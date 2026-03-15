@@ -1,9 +1,41 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './Dashboard.css';
+import { eldenRingChallenges, Challenge, Tier } from '../../data/challenges';
+
+const tierColors: Record<Tier, string> = {
+  Platinum: '#8ab4d4',
+  Diamond: '#a8d4f4',
+  Legend: '#c44a2a',
+};
 
 const Dashboard: React.FC = () => {
+  const [activeChallenge, setActiveChallenge] = useState<Challenge | null>(null);
+  const [filter, setFilter] = useState<Tier | 'All'>('All');
+
+  const filtered = filter === 'All'
+    ? eldenRingChallenges
+    : eldenRingChallenges.filter(c => c.tier === filter);
+
   return (
     <div className="dashboard">
+      {activeChallenge && (
+        <div className="dashboard__modal-overlay" onClick={() => setActiveChallenge(null)}>
+          <div className="dashboard__modal" onClick={e => e.stopPropagation()}>
+            <div className="dashboard__modal-tier" style={{ color: tierColors[activeChallenge.tier] }}>
+              {activeChallenge.tier}
+            </div>
+            <div className="dashboard__modal-title">{activeChallenge.title}</div>
+            <div className="dashboard__modal-desc">{activeChallenge.description}</div>
+            <div className="dashboard__modal-meta">
+              {activeChallenge.attempts.toLocaleString()} attempts worldwide
+            </div>
+            <button className="dashboard__modal-close" onClick={() => setActiveChallenge(null)}>
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="dashboard__hero">
         <div className="dashboard__hero-top" />
         <div className="dashboard__statue">
@@ -40,7 +72,7 @@ const Dashboard: React.FC = () => {
           <div className="dashboard__stat-label">Skill Points</div>
         </div>
         <div className="dashboard__stat">
-          <div className="dashboard__stat-value">12</div>
+          <div className="dashboard__stat-value">{eldenRingChallenges.length}</div>
           <div className="dashboard__stat-label">Challenges</div>
         </div>
         <div className="dashboard__stat">
@@ -49,16 +81,26 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      <div className="dashboard__section-title">Active Challenges</div>
+      <div className="dashboard__filters">
+        {(['All', 'Platinum', 'Diamond', 'Legend'] as const).map(t => (
+          <button
+            key={t}
+            className={"dashboard__filter" + (filter === t ? " dashboard__filter--active" : "")}
+            onClick={() => setFilter(t)}
+          >
+            {t}
+          </button>
+        ))}
+      </div>
+
+      <div className="dashboard__section-title">Challenges — Elden Ring</div>
+
       <div className="dashboard__challenges">
-        {[
-          { color: '#8ab4d4', name: 'No leveling run to final boss', tier: 'Platinum' },
-          { color: '#c9922a', name: 'All bosses without flasks', tier: 'Gold' },
-          { color: '#c44a2a', name: 'Blindfold final boss attempt', tier: 'Legend?' },
-        ].map((ch, i) => (
-          <div className="dashboard__challenge" key={i}>
-            <div className="dashboard__challenge-dot" style={{ background: ch.color }} />
-            <div className="dashboard__challenge-name">{ch.name}</div>
+        {filtered.map(ch => (
+          <div className="dashboard__challenge" key={ch.id} onClick={() => setActiveChallenge(ch)}>
+            <div className="dashboard__challenge-dot" style={{ background: tierColors[ch.tier] }} />
+            <div className="dashboard__challenge-name">{ch.title}</div>
+            <div className="dashboard__challenge-attempts">{ch.attempts.toLocaleString()}</div>
             <div className="dashboard__challenge-tier">{ch.tier}</div>
           </div>
         ))}

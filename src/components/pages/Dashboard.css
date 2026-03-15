@@ -138,3 +138,100 @@
   color: var(--color-text-muted);
   text-transform: uppercase;
 }
+
+.dashboard__challenge-attempts {
+  font-family: var(--font-display);
+  font-size: 8px;
+  color: var(--color-text-muted);
+  letter-spacing: 0.1em;
+  margin-right: 0.5rem;
+}
+
+.dashboard__filters {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+
+.dashboard__filter {
+  font-family: var(--font-display);
+  font-size: 7px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  background: transparent;
+  border: 0.5px solid var(--color-border);
+  padding: 0.3rem 0.75rem;
+  transition: all 0.18s;
+}
+
+.dashboard__filter:hover { border-color: var(--color-border-mid); color: var(--color-text-dim); }
+.dashboard__filter--active { border-color: var(--color-gold-dim); color: var(--color-gold-dim); }
+
+.dashboard__modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(8,8,14,0.85);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.dashboard__modal {
+  background: var(--color-bg-surface);
+  border: 0.5px solid var(--color-border-strong);
+  padding: 1.5rem;
+  max-width: 420px;
+  width: 100%;
+}
+
+.dashboard__modal-tier {
+  font-family: var(--font-display);
+  font-size: 8px;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.dashboard__modal-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 0.75rem;
+}
+
+.dashboard__modal-desc {
+  font-size: 15px;
+  color: var(--color-text-secondary);
+  font-style: italic;
+  line-height: 1.7;
+  margin-bottom: 1rem;
+  padding-left: 0.75rem;
+  border-left: 1.5px solid var(--color-border-mid);
+}
+
+.dashboard__modal-meta {
+  font-family: var(--font-display);
+  font-size: 8px;
+  letter-spacing: 0.2em;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+
+.dashboard__modal-close {
+  font-family: var(--font-display);
+  font-size: 8px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  background: transparent;
+  border: 0.5px solid var(--color-border-mid);
+  padding: 0.5rem 1.5rem;
+  transition: all 0.2s;
+}
+
+.dashboard__modal-close:hover { border-color: var(--color-gold-dim); color: var(--color-gold-dim); }
