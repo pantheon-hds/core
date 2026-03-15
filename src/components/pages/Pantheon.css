@@ -1,0 +1,164 @@
+.pantheon { padding: 1.25rem 1.5rem; overflow-y: auto; height: 100%; }
+
+.pantheon__intro {
+  background: var(--color-bg-surface);
+  border: 0.5px solid var(--color-border-mid);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.pantheon__intro-top {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-gold), transparent);
+}
+
+.pantheon__intro-title {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.pantheon__intro-sub {
+  font-size: 13px;
+  color: var(--color-text-dim);
+  font-style: italic;
+}
+
+.pantheon__section-title {
+  font-family: var(--font-display);
+  font-size: 8px;
+  letter-spacing: 0.3em;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 0.5px solid var(--color-border);
+}
+
+.pantheon__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.pantheon__card {
+  background: var(--color-bg-surface);
+  border: 0.5px solid var(--color-border);
+  padding: 1rem 1.1rem;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.pantheon__card:hover { border-color: var(--color-border-mid); }
+
+.pantheon__card--legend { border-color: var(--color-border-strong); }
+
+.pantheon__card-top {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-gold), transparent);
+}
+
+.pantheon__card-name {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 1px;
+}
+
+.pantheon__card-game {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  font-style: italic;
+  margin-bottom: 0.6rem;
+}
+
+.pantheon__card-feat {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  font-style: italic;
+  padding-left: 0.65rem;
+  border-left: 1.5px solid var(--color-border-mid);
+  margin-bottom: 0.6rem;
+  line-height: 1.5;
+}
+
+.pantheon__card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pantheon__card-votes {
+  font-family: var(--font-display);
+  font-size: 8px;
+  letter-spacing: 0.15em;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+}
+
+.pantheon__card-badge {
+  font-family: var(--font-display);
+  font-size: 7px;
+  letter-spacing: 0.2em;
+  padding: 0.2rem 0.5rem;
+  text-transform: uppercase;
+  border: 0.5px solid var(--color-border-mid);
+  color: var(--color-text-dim);
+}
+
+.pantheon__card-badge--legend {
+  color: var(--color-gold);
+  border-color: var(--color-border-strong);
+}
+
+.pantheon__vote-bar { margin-top: 0.6rem; }
+
+.pantheon__vote-track {
+  height: 2px;
+  background: var(--color-border);
+  border-radius: 1px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.pantheon__vote-fill {
+  height: 100%;
+  background: var(--color-gold);
+  border-radius: 1px;
+  transition: width 0.4s ease;
+}
+
+.pantheon__vote-btn {
+  width: 100%;
+  background: transparent;
+  border: 0.5px solid var(--color-border-mid);
+  padding: 0.45rem;
+  font-family: var(--font-display);
+  font-size: 8px;
+  letter-spacing: 0.3em;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  transition: all 0.2s;
+  margin-top: 0.35rem;
+}
+
+.pantheon__vote-btn:hover:not(:disabled) {
+  border-color: var(--color-gold-dim);
+  color: var(--color-gold-dim);
+}
+
+.pantheon__vote-btn--done {
+  border-color: var(--color-border-strong);
+  color: var(--color-gold);
+  cursor: default;
+}
