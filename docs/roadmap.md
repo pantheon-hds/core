@@ -104,3 +104,34 @@ One step at a time. One game. One community. Done right before moving forward.
 - Remove a Legend statue without a community vote
 - Change the three core principles
 
+
+---
+
+## AI & Automation roadmap
+
+### Phase 2 — Vision API for Platinum/Diamond verification
+- Integrate GPT-4 Vision or Google Gemini Video
+- Automatic HUD analysis — flask counter, level, timer
+- AI returns verdict with explanation
+- Human judge only confirms — does not watch full video
+- Cost: cents per verification at launch scale
+
+### Phase 3 — Custom trained models per game
+- Collect verified submissions as training data
+- Train game-specific models that know each game's UI
+- Model recognizes Elden Ring HUD, Dark Souls HUD, Hollow Knight HUD etc.
+- Accuracy improves with every verified submission
+- Goal: 95%+ automatic verification for Platinum and Diamond tiers
+
+### Distribution of verification by tier (target state)
+| Tier | Method |
+|------|--------|
+| Gold | 100% automatic — Steam API |
+| Platinum | 90% automatic — Vision AI |
+| Diamond | 70% automatic — Vision AI + human confirmation |
+| Legend | 100% human — community vote only, no AI |
+
+### Why Legend stays human forever
+Legend is not about verifying facts. It is about recognizing greatness.
+No AI can decide that. Only people who love the game can.
+
