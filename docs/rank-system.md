@@ -172,3 +172,76 @@ No AI can decide that. Only people who love the game can.
 - Rank stripping requires community vote — never automatic
 - All ranks are game-specific — Legend in Elden Ring ≠ Legend in Hollow Knight
 
+
+---
+
+## Genre rank system
+
+### Core idea
+Small games have limited achievements. The genre system solves this by aggregating ranks across games of the same genre into a higher genre-level rank.
+
+### How it works
+
+**Game rank** — earned within a single game.
+**Genre rank** — earned by combining game ranks across multiple games in the same genre.
+
+### Genre rank progression
+
+| Genre rank | Requirement |
+|-----------|-------------|
+| Genre Bronze | Gold in 1 game of the genre |
+| Genre Silver | Gold in 2 games of the genre |
+| Genre Gold | Platinum in 1 game of the genre |
+| Genre Platinum | Platinum in 2 games of the genre |
+| Genre Diamond | Platinum in 3 games of the genre |
+| Genre Master | Master in 2 games of the genre |
+| Genre Grandmaster | Grandmaster in 2 games of the genre |
+| Genre Legend | Legend in 2 games of the genre — community vote required |
+
+### Example profile
+
+```
+Roguelike Expert — Genre Diamond
+  Deadzone: Rogue     — Platinum II
+  Hades               — Platinum III
+  Risk of Rain 2      — Platinum I
+
+Souls-like            — Genre Silver
+  Elden Ring          — Gold I
+  Dark Souls III      — Gold II
+
+Metroidvania          — Genre Gold
+  Hollow Knight       — Platinum I
+```
+
+### Genre Legend — rarest status on the platform
+If a player earns Legend in 2 games of the same genre — they receive Genre Legend.
+This is one of the rarest statuses that can exist on the platform.
+Requires additional community vote from players of that genre.
+Gets a unique genre statue — different from any single-game Legend statue.
+
+### Supported genres at launch
+- Souls-like
+- Roguelike / Roguelite
+- Metroidvania
+- Platformer
+- RPG
+- FPS
+- Strategy
+- Survival
+- Horror
+- Fighting
+
+New genres added as community requests them.
+
+### Why this system works for small games
+Every Platinum in a small game counts toward genre rank.
+No game is too small to matter.
+A player who masters 5 small roguelikes is recognized as a genre expert —
+even if no single game offered a full rank ladder.
+
+### Genre rank statues
+Genre statues are visually distinct from game statues.
+They feature the genre symbol combined with the rank material.
+Genre Legend statue is unique per genre — never duplicated.
+
