@@ -3,9 +3,8 @@ import './App.css';
 import WelcomeScreen from './components/pages/WelcomeScreen';
 import Dashboard from './components/pages/Dashboard';
 import Pantheon from './components/pages/Pantheon';
-import Sidebar from './components/ui/Sidebar';
-
-type Page = 'dashboard' | 'pantheon';
+import Profile from './components/pages/Profile';
+import Sidebar, { Page } from './components/ui/Sidebar';
 
 const App: React.FC = () => {
   const [entered, setEntered] = useState(false);
@@ -14,12 +13,13 @@ const App: React.FC = () => {
   const titles: Record<Page, string> = {
     dashboard: 'Dashboard',
     pantheon: 'Pantheon of Legends',
+    profile: 'Player Profile',
   };
 
   return (
     <div className="app">
       {!entered && <WelcomeScreen onEnter={() => setEntered(true)} />}
-      <div className={`app__layout ${entered ? 'app__layout--visible' : ''}`}>
+      <div className={"app__layout" + (entered ? " app__layout--visible" : "")}>
         <Sidebar current={page} onChange={setPage} />
         <div className="app__main">
           <div className="app__topbar">
@@ -32,6 +32,7 @@ const App: React.FC = () => {
           <div className="app__content">
             {page === 'dashboard' && <Dashboard />}
             {page === 'pantheon' && <Pantheon />}
+            {page === 'profile' && <Profile />}
           </div>
         </div>
       </div>

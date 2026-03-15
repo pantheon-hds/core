@@ -1,0 +1,286 @@
+.profile { padding: 1.25rem 1.5rem; overflow-y: auto; height: 100%; }
+
+.profile__header {
+  background: var(--color-bg-surface);
+  border: 0.5px solid var(--color-border-mid);
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.profile__header::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-gold-dim) 40%, var(--color-gold) 50%, var(--color-gold-dim) 60%, transparent);
+}
+
+.profile__avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--color-bg-elevated);
+  border: 0.5px solid var(--color-border-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 18px;
+  color: var(--color-gold-dim);
+  flex-shrink: 0;
+}
+
+.profile__info { flex: 1; }
+
+.profile__username {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 3px;
+}
+
+.profile__since {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  font-style: italic;
+  margin-bottom: 0.5rem;
+}
+
+.profile__tags { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+
+.profile__tag {
+  font-family: var(--font-display);
+  font-size: 7px;
+  letter-spacing: 0.2em;
+  color: var(--color-text-muted);
+  border: 0.5px solid var(--color-border-mid);
+  padding: 0.2rem 0.5rem;
+  text-transform: uppercase;
+}
+
+.profile__legend-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-display);
+  font-size: 8px;
+  letter-spacing: 0.25em;
+  color: #c44a2a;
+  text-transform: uppercase;
+  border: 0.5px solid #3a1a0a;
+  padding: 0.35rem 0.75rem;
+  flex-shrink: 0;
+}
+
+.profile__legend-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #c44a2a;
+}
+
+.profile__stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.profile__stat {
+  background: var(--color-bg-surface);
+  border: 0.5px solid var(--color-border);
+  padding: 0.75rem;
+  text-align: center;
+}
+
+.profile__stat-value {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-gold);
+}
+
+.profile__stat-label {
+  font-family: var(--font-display);
+  font-size: 7px;
+  letter-spacing: 0.2em;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.profile__section-title {
+  font-family: var(--font-display);
+  font-size: 8px;
+  letter-spacing: 0.3em;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 0.5px solid var(--color-border);
+}
+
+.profile__statues {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.profile__statue-card {
+  background: var(--color-bg-surface);
+  border: 0.5px solid var(--color-border);
+  padding: 1.25rem 1rem 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, transform 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.profile__statue-card:hover {
+  border-color: var(--color-border-mid);
+  transform: translateY(-2px);
+}
+
+.profile__statue-card--unique {
+  border-color: var(--color-border-strong);
+}
+
+.profile__statue-card-glow {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  opacity: 0.8;
+}
+
+.profile__statue-figure {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
+
+.profile__statue-tier {
+  font-family: var(--font-display);
+  font-size: 8px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.profile__statue-game {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.profile__statue-unique-tag {
+  font-family: var(--font-display);
+  font-size: 7px;
+  letter-spacing: 0.2em;
+  color: #c44a2a;
+  text-transform: uppercase;
+  margin-top: 4px;
+  border: 0.5px solid #3a1a0a;
+  padding: 0.15rem 0.4rem;
+  display: inline-block;
+}
+
+.profile__overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 8, 14, 0.9);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.profile__modal {
+  background: var(--color-bg-surface);
+  border: 0.5px solid var(--color-border-strong);
+  padding: 2rem 1.5rem 1.5rem;
+  max-width: 320px;
+  width: 100%;
+  text-align: center;
+  position: relative;
+}
+
+.profile__modal::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-gold), transparent);
+}
+
+.profile__modal-statue {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.profile__modal-tier {
+  font-family: var(--font-display);
+  font-size: 9px;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.profile__modal-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 4px;
+}
+
+.profile__modal-game {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  font-style: italic;
+  margin-bottom: 2px;
+}
+
+.profile__modal-season {
+  font-family: var(--font-display);
+  font-size: 8px;
+  letter-spacing: 0.2em;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+
+.profile__modal-unique {
+  font-size: 12px;
+  color: #c44a2a;
+  font-style: italic;
+  padding: 0.6rem 0.75rem;
+  border: 0.5px solid #3a1a0a;
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+
+.profile__modal-close {
+  font-family: var(--font-display);
+  font-size: 8px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  background: transparent;
+  border: 0.5px solid var(--color-border-mid);
+  padding: 0.5rem 1.5rem;
+  transition: all 0.2s;
+}
+
+.profile__modal-close:hover {
+  border-color: var(--color-gold-dim);
+  color: var(--color-gold-dim);
+}

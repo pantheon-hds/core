@@ -1,7 +1,7 @@
 import React from 'react';
 import './Sidebar.css';
 
-type Page = 'dashboard' | 'pantheon';
+export type Page = 'dashboard' | 'pantheon' | 'profile';
 
 interface SidebarProps {
   current: Page;
@@ -18,27 +18,26 @@ const Sidebar: React.FC<SidebarProps> = ({ current, onChange }) => {
       </div>
 
       <nav className="sidebar__nav">
-        <button
-          className={`sidebar__nav-item ${current === 'dashboard' ? 'sidebar__nav-item--active' : ''}`}
-          onClick={() => onChange('dashboard')}
-        >
+        <button className={"sidebar__nav-item" + (current === 'dashboard' ? " sidebar__nav-item--active" : "")} onClick={() => onChange('dashboard')}>
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1">
-            <rect x="1" y="1" width="5" height="5"/>
-            <rect x="8" y="1" width="5" height="5"/>
-            <rect x="1" y="8" width="5" height="5"/>
-            <rect x="8" y="8" width="5" height="5"/>
+            <rect x="1" y="1" width="5" height="5"/><rect x="8" y="1" width="5" height="5"/>
+            <rect x="1" y="8" width="5" height="5"/><rect x="8" y="8" width="5" height="5"/>
           </svg>
           <span>Dashboard</span>
         </button>
 
-        <button
-          className={`sidebar__nav-item ${current === 'pantheon' ? 'sidebar__nav-item--active' : ''}`}
-          onClick={() => onChange('pantheon')}
-        >
+        <button className={"sidebar__nav-item" + (current === 'pantheon' ? " sidebar__nav-item--active" : "")} onClick={() => onChange('pantheon')}>
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1">
             <polygon points="7,1 9,5 13,5 10,8 11,13 7,10 3,13 4,8 1,5 5,5" strokeLinejoin="round"/>
           </svg>
           <span>Pantheon</span>
+        </button>
+
+        <button className={"sidebar__nav-item" + (current === 'profile' ? " sidebar__nav-item--active" : "")} onClick={() => onChange('profile')}>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1">
+            <circle cx="7" cy="5" r="3"/><path d="M2 13c0-2.8 2.2-5 5-5s5 2.2 5 5" fill="none"/>
+          </svg>
+          <span>Profile</span>
         </button>
       </nav>
 
