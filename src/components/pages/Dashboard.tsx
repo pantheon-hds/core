@@ -29,12 +29,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
     ? eldenRingChallenges
     : eldenRingChallenges.filter(c => c.tier === filter);
 
-  useEffect(() => {
-    if (!user) return;
-    loadUserData();
-   }, [user, loadUserData]);
-
-  const loadUserData = async () => {
+const loadUserData = async () => {
     if (!user) return;
     setLoading(true);
     try {
@@ -48,6 +43,11 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
     }
     setLoading(false);
   };
+
+  useEffect(() => {
+    if (!user) return;
+    loadUserData();
+   }, [user, loadUserData]);
 
   const handleCheckGame = async (appId: string, title: string) => {
     if (!user) return;
