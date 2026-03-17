@@ -57,7 +57,7 @@ const App: React.FC = () => {
           <div className="app__topbar">
             <span className="app__topbar-title">{titles[page]}</span>
             <div className="app__topbar-tags">
-              <span className="app__tag">Hollow Knight</span>
+              
               {user && <span className="app__tag app__tag--live">● {user.username}</span>}
             </div>
           </div>

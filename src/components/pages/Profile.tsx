@@ -3,15 +3,17 @@ import './Profile.css';
 import { SteamUser } from './SteamCallback';
 import { getUserBySteamId, getUserStatues, getUserRanks, UserStatue } from '../../services/supabase';
 
+type StatueTier = 'Bronze I' | 'Bronze II' | 'Bronze III' | 'Silver I' | 'Silver II' | 'Silver III' | 'Gold' | 'Gold I' | 'Platinum' | 'Diamond' | 'Legend' | 'Bronze' | 'Silver';
+
 const statueColors: Record<string, { primary: string; secondary: string; base: string }> = {
-  'Bronze I':   { primary: '#c8874a', secondary: '#a06030', base: '#3a2215' },
-  'Bronze II':  { primary: '#c8874a', secondary: '#a06030', base: '#3a2215' },
-  'Bronze III': { primary: '#c8874a', secondary: '#a06030', base: '#3a2215' },
-  'Silver I':   { primary: '#c0c8d4', secondary: '#8898a8', base: '#2a3040' },
-  'Silver II':  { primary: '#c0c8d4', secondary: '#8898a8', base: '#2a3040' },
-  'Silver III': { primary: '#c0c8d4', secondary: '#8898a8', base: '#2a3040' },
-  'Gold':       { primary: '#c9922a', secondary: '#b07820', base: '#3a2e1a' },
-  'Gold I':     { primary: '#c9922a', secondary: '#b07820', base: '#3a2e1a' },
+  'Bronze I':   { primary: '#e8974a', secondary: '#a06030', base: '#3a2215' },
+  'Bronze II':  { primary: '#e8974a', secondary: '#a06030', base: '#3a2215' },
+  'Bronze III': { primary: '#e8974a', secondary: '#a06030', base: '#3a2215' },
+  'Silver I':   { primary: '#d8eaf8', secondary: '#8898a8', base: '#2a3040' },
+  'Silver II':  { primary: '#d8eaf8', secondary: '#8898a8', base: '#2a3040' },
+  'Silver III': { primary: '#d8eaf8', secondary: '#8898a8', base: '#2a3040' },
+  'Gold':       { primary: '#e8a830', secondary: '#b07820', base: '#3a2e1a' },
+  'Gold I':     { primary: '#e8a830', secondary: '#b07820', base: '#3a2e1a' },
   'Platinum':   { primary: '#8ab4d4', secondary: '#6a94b4', base: '#1e2a3a' },
   'Diamond':    { primary: '#a8d4f4', secondary: '#78b4e4', base: '#182030' },
   'Legend':     { primary: '#c44a2a', secondary: '#a43a1a', base: '#2a1a0a' },
