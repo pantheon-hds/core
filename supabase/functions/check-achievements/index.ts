@@ -11,24 +11,32 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
 }
 
+function getTier(percentage: number): string | null {
+  if (percentage === 100) return 'Gold'
+  if (percentage >= 95) return 'Silver III'
+  if (percentage >= 90) return 'Silver II'
+  if (percentage >= 75) return 'Silver I'
+  if (percentage >= 50) return 'Bronze III'
+  if (percentage >= 25) return 'Bronze II'
+  if (percentage >= 1)  return 'Bronze I'
+  return null
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    // Parse body safely
     let steamId: string
     let appId: string
 
     const contentType = req.headers.get('content-type') || ''
-    
     if (contentType.includes('application/json')) {
       const body = await req.json()
       steamId = body.steamId
       appId = body.appId
     } else {
-      // Try URL params as fallback
       const url = new URL(req.url)
       steamId = url.searchParams.get('steamId') || ''
       appId = url.searchParams.get('appId') || ''
@@ -41,21 +49,15 @@ serve(async (req) => {
       )
     }
 
-    console.log(`Checking achievements for steamId: ${steamId}, appId: ${appId}`)
+    console.log(`Checking steamId: ${steamId}, appId: ${appId}`)
 
-    // Get achievements from Steam API
     const url = `https://api.steampowered.com/ISteamUserStats/GetPlayerAchievements/v1/?key=${STEAM_API_KEY}&steamid=${steamId}&appid=${appId}&l=english`
     const response = await fetch(url)
     const data = await response.json()
 
-    console.log('Steam API response:', JSON.stringify(data).slice(0, 200))
-
     if (!data.playerstats?.success) {
       return new Response(
-        JSON.stringify({
-          error: 'Could not fetch achievements. Make sure your Steam profile is public.',
-          steamResponse: data,
-        }),
+        JSON.stringify({ error: 'Could not fetch achievements', appId }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
@@ -64,11 +66,11 @@ serve(async (req) => {
     const total = achievements.length
     const unlocked = achievements.filter((a: any) => a.achieved === 1).length
     const percentage = total > 0 ? Math.round((unlocked / total) * 100) : 0
-    const isGold = percentage === 100
+    const tier = getTier(percentage)
 
-    console.log(`Total: ${total}, Unlocked: ${unlocked}, Percentage: ${percentage}%, Gold: ${isGold}`)
+    console.log(`${appId}: ${unlocked}/${total} = ${percentage}% → ${tier}`)
 
-    if (isGold) {
+    if (tier) {
       const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_KEY!)
 
       const { data: user } = await supabase
@@ -77,8 +79,6 @@ serve(async (req) => {
         .eq('steam_id', steamId)
         .single()
 
-      console.log('User found:', user)
-
       if (user) {
         const { data: game } = await supabase
           .from('games')
@@ -86,55 +86,49 @@ serve(async (req) => {
           .eq('steam_app_id', appId)
           .single()
 
-        console.log('Game found:', game)
-
         if (game) {
+          // Check existing rank
           const { data: existingRank } = await supabase
             .from('ranks')
-            .select('id')
+            .select('id, tier')
             .eq('user_id', user.id)
             .eq('game_id', game.id)
-            .eq('tier', 'Gold')
             .single()
 
           if (!existingRank) {
-            const { error: rankError } = await supabase.from('ranks').insert({
+            // Insert new rank
+            await supabase.from('ranks').insert({
               user_id: user.id,
               game_id: game.id,
-              tier: 'Gold',
+              tier,
               method: 'steam_auto',
             })
-            console.log('Rank insert error:', rankError)
-
-            const { error: statueError } = await supabase.from('statues').insert({
+            await supabase.from('statues').insert({
               user_id: user.id,
               game_id: game.id,
-              tier: 'Gold',
-              challenge: '100% Steam Achievements',
+              tier,
+              challenge: `${percentage}% Steam Achievements`,
               is_unique: false,
             })
-            console.log('Statue insert error:', statueError)
-          } else {
-            console.log('Gold rank already exists')
+            console.log(`Assigned ${tier} rank`)
+          } else if (existingRank.tier !== tier) {
+            // Update rank if changed
+            await supabase.from('ranks')
+              .update({ tier, method: 'steam_auto' })
+              .eq('id', existingRank.id)
+            console.log(`Updated rank from ${existingRank.tier} to ${tier}`)
           }
         }
       }
     }
 
     return new Response(
-      JSON.stringify({
-        steamId,
-        appId,
-        total,
-        unlocked,
-        percentage,
-        isGold,
-      }),
+      JSON.stringify({ steamId, appId, total, unlocked, percentage, tier }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
 
   } catch (error) {
-    console.error('Function error:', error)
+    console.error('Error:', error)
     return new Response(
       JSON.stringify({ error: 'Internal error', details: error.message }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

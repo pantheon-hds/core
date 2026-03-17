@@ -10,7 +10,15 @@ const tierColors: Record<Tier, string> = {
   Legend: '#c44a2a',
 };
 
-interface DashboardProps { user: SteamUser | null; }
+const STATUE_COLORS: Record<string, string> = {
+  Gold: '#c9922a',
+  'Silver III': '#a0b4c8',
+  'Silver II': '#a0b4c8',
+  'Silver I': '#a0b4c8',
+  'Bronze III': '#8b6040',
+  'Bronze II': '#8b6040',
+  'Bronze I': '#8b6040',
+};
 
 const GAMES = [
   { appId: '3228590', title: 'Deadzone: Rogue' },
@@ -18,12 +26,13 @@ const GAMES = [
   { appId: '1030300', title: 'Hollow Knight: Silksong' },
 ];
 
+interface DashboardProps { user: SteamUser | null; }
+
 const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   const [activeChallenge, setActiveChallenge] = useState<Challenge | null>(null);
   const [filter, setFilter] = useState<Tier | 'All'>('All');
   const [ranks, setRanks] = useState<UserRank[]>([]);
   const [loading, setLoading] = useState(false);
-  const [checkingGame, setCheckingGame] = useState<string | null>(null);
 
   const filtered = filter === 'All'
     ? eldenRingChallenges
@@ -35,6 +44,9 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
     try {
       const dbUser = await getUserBySteamId(user.steamId);
       if (dbUser) {
+        // Auto-check all games
+        await Promise.all(GAMES.map(g => checkAchievements(user.steamId, g.appId)));
+        // Load updated ranks
         const userRanks = await getUserRanks(dbUser.id);
         setRanks(userRanks);
       }
@@ -47,27 +59,14 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   useEffect(() => {
     if (!user) return;
     loadUserData();
-   }, [user, loadUserData]);
+  }, [user, loadUserData]);
 
-  const handleCheckGame = async (appId: string, title: string) => {
-    if (!user) return;
-    setCheckingGame(title);
-    try {
-      const result = await checkAchievements(user.steamId, appId);
-      if (result?.isGold) {
-        await loadUserData();
-      }
-      alert(result
-        ? `${title}: ${result.unlocked}/${result.total} achievements (${result.percentage}%)${result.isGold ? ' — Gold rank assigned!' : ''}`
-        : 'Could not check achievements. Make sure your Steam profile is public.'
-      );
-    } catch (e) {
-      console.error('Check failed:', e);
-    }
-    setCheckingGame(null);
-  };
+  const topRank = ranks.sort((a, b) => {
+    const order = ['Gold', 'Silver III', 'Silver II', 'Silver I', 'Bronze III', 'Bronze II', 'Bronze I'];
+    return order.indexOf(a.tier) - order.indexOf(b.tier);
+  })[0];
 
-  const topRank = ranks[0];
+  const statueColor = topRank ? (STATUE_COLORS[topRank.tier] || '#3a3020') : '#3a3020';
 
   return (
     <div className="dashboard">
@@ -91,60 +90,49 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
 
       <div className="dashboard__rank-card">
         <div className="dashboard__rank-statue">
-          <svg viewBox="0 0 60 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg viewBox="0 0 60 80" fill="none" xmlns="http://www.w3.org/2000/svg" width="48" height="64">
             <ellipse cx="30" cy="72" rx="18" ry="5" fill="#1a1508" opacity="0.5"/>
-            <rect x="15" y="58" width="30" height="12" rx="2" fill={topRank?.tier === 'Gold' ? '#8b6914' : '#2a2215'}/>
-            <ellipse cx="30" cy="44" rx="12" ry="16" fill={topRank?.tier === 'Gold' ? '#c9922a' : '#3a3020'}/>
-            <circle cx="30" cy="24" r="10" fill={topRank?.tier === 'Gold' ? '#c9922a' : '#3a3020'}/>
+            <rect x="15" y="58" width="30" height="12" rx="2" fill={topRank ? statueColor : '#2a2215'} opacity="0.7"/>
+            <ellipse cx="30" cy="44" rx="12" ry="16" fill={statueColor}/>
+            <circle cx="30" cy="24" r="10" fill={statueColor}/>
           </svg>
         </div>
         <div className="dashboard__rank-info">
           <div className="dashboard__rank-title">
-            {loading ? 'Loading...' : topRank ? `${topRank.tier} I` : 'No rank yet'}
+            {loading ? 'Checking achievements...' : topRank ? topRank.tier : 'No rank yet'}
           </div>
           <div className="dashboard__rank-game">
-            {topRank ? (topRank.game as any)?.title : 'Check your achievements below'}
+            {loading ? 'Please wait' : topRank ? topRank.game?.title : 'Play games to earn ranks'}
           </div>
           <div className="dashboard__rank-bar">
             <div className="dashboard__rank-bar-fill" style={{ width: topRank ? '100%' : '0%' }} />
           </div>
           <div className="dashboard__rank-xp">
-            {ranks.length} rank{ranks.length !== 1 ? 's' : ''} earned
+            {ranks.length} rank{ranks.length !== 1 ? 's' : ''} earned across {GAMES.length} games
           </div>
         </div>
       </div>
 
-      {/* Check achievements section */}
-      {user && (
+      {/* Ranks per game */}
+      {ranks.length > 0 && (
         <div className="dashboard__games">
-          <div className="dashboard__games-title">Check Your Achievements</div>
+          <div className="dashboard__games-title">Your Ranks</div>
           <div className="dashboard__games-list">
-            {GAMES.map(game => {
-              const hasRank = ranks.some(r => (r.game as any)?.steam_app_id === game.appId);
-              return (
-                <div key={game.appId} className="dashboard__game-item">
-                  <span className="dashboard__game-title">{game.title}</span>
-                  {hasRank ? (
-                    <span className="dashboard__game-gold">✓ Gold</span>
-                  ) : (
-                    <button
-                      className="dashboard__game-btn"
-                      onClick={() => handleCheckGame(game.appId, game.title)}
-                      disabled={checkingGame === game.title}
-                    >
-                      {checkingGame === game.title ? 'Checking...' : 'Check'}
-                    </button>
-                  )}
-                </div>
-              );
-            })}
+            {ranks.map(rank => (
+              <div key={rank.id} className="dashboard__game-item">
+                <span className="dashboard__game-title">{rank.game?.title}</span>
+                <span className="dashboard__game-rank" style={{ color: STATUE_COLORS[rank.tier] || '#c9922a' }}>
+                  {rank.tier}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
       )}
 
       <div className="dashboard__stats">
         <div className="dashboard__stat">
-          <div className="dashboard__stat-value">{ranks.length > 0 ? '847' : '0'}</div>
+          <div className="dashboard__stat-value">{ranks.length > 0 ? ranks.length * 100 : 0}</div>
           <div className="dashboard__stat-label">Rank Points</div>
         </div>
         <div className="dashboard__stat">
