@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './Dashboard.css';
 import { eldenRingChallenges, Challenge, Tier } from '../../data/challenges';
 import { SteamUser } from './SteamCallback';
@@ -29,7 +29,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
     ? eldenRingChallenges
     : eldenRingChallenges.filter(c => c.tier === filter);
 
-const loadUserData = async () => {
+  const loadUserData = useCallback(async () => {
     if (!user) return;
     setLoading(true);
     try {
@@ -42,7 +42,7 @@ const loadUserData = async () => {
       console.error('Failed to load user data:', e);
     }
     setLoading(false);
-  };
+  }, [user]);
 
   useEffect(() => {
     if (!user) return;
