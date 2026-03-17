@@ -1,0 +1,57 @@
+.steam-auth {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.steam-auth__btn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: #c9922a;
+  background: transparent;
+  border: 0.5px solid #3a2e1a;
+  padding: 0.9rem 2.5rem;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: color 0.3s ease;
+}
+
+.steam-auth__btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #8b6914;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.35s ease;
+  z-index: -1;
+}
+
+.steam-auth__btn:hover {
+  color: #08080e;
+  border-color: #8b6914;
+}
+
+.steam-auth__btn:hover::after {
+  transform: scaleX(1);
+}
+
+.steam-auth__icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.steam-auth__note {
+  font-size: 11px;
+  color: #3a3020;
+  font-style: italic;
+  text-align: center;
+}

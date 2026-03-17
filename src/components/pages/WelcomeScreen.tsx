@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './WelcomeScreen.css';
+import SteamAuth from '../ui/SteamAuth';
 
 interface WelcomeScreenProps {
   onEnter: () => void;
@@ -27,8 +28,10 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnter }) => {
           <span className="welcome__word welcome__word--3">Skill</span>
         </div>
 
-        <button className="welcome__btn" onClick={handleEnter}>
-          Enter
+        <SteamAuth />
+
+        <button className="welcome__demo" onClick={handleEnter}>
+          View demo without login
         </button>
       </div>
     </div>
