@@ -16,7 +16,10 @@ const App: React.FC = () => {
   const [entered, setEntered] = useState(false);
   const [page, setPage] = useState<Page>('dashboard');
   const [user, setUser] = useState<SteamUser | null>(null);
-  const [isCallback] = useState(isSteamCallback);
+  const isCallbackResult = isSteamCallback();
+  console.log('Is callback:', isCallbackResult);
+  console.log('Search:', window.location.search);
+  const [isCallback] = useState(isCallbackResult);
 
   const titles: Record<Page, string> = {
     dashboard: 'Dashboard',
