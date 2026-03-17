@@ -45,8 +45,8 @@ console.log('username param:', params.get('username'));
             isPublic,
           };
 
-          window.history.replaceState({}, '', '/');
           onSuccess(user);
+          window.history.replaceState({}, '', '/');
           return;
         }
 
