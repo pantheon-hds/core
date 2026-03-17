@@ -3,6 +3,8 @@ import './SteamCallback.css';
 
 const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.REACT_APP_SUPABASE_ANON_KEY;
+console.log('URL:', process.env.REACT_APP_SUPABASE_URL);
+console.log('KEY exists:', !!process.env.REACT_APP_SUPABASE_ANON_KEY);
 
 interface SteamCallbackProps {
   onSuccess: (user: SteamUser) => void;
