@@ -32,7 +32,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   useEffect(() => {
     if (!user) return;
     loadUserData();
-  }, [user]);
+   }, [user, loadUserData]);
 
   const loadUserData = async () => {
     if (!user) return;
