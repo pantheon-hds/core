@@ -2,14 +2,14 @@ import React from 'react';
 import './SteamAuth.css';
 
 const STEAM_OPENID_URL = 'https://steamcommunity.com/openid/login';
-const RETURN_URL = `${window.location.origin}/auth/steam/callback`;
+const SUPABASE_FUNCTION_URL = 'https://vwkifeesoadlwhajwbje.supabase.co/functions/v1/steam-auth';
 
 const buildSteamAuthUrl = (): string => {
   const params = new URLSearchParams({
     'openid.ns': 'http://specs.openid.net/auth/2.0',
     'openid.mode': 'checkid_setup',
-    'openid.return_to': RETURN_URL,
-    'openid.realm': window.location.origin,
+    'openid.return_to': SUPABASE_FUNCTION_URL,
+    'openid.realm': 'https://pantheon-hds.vercel.app',
     'openid.identity': 'http://specs.openid.net/auth/2.0/identifier_select',
     'openid.claimed_id': 'http://specs.openid.net/auth/2.0/identifier_select',
   });
