@@ -34,21 +34,39 @@ console.log('username param:', params.get('username'));
         const avatar = params.get('avatar');
         const isPublic = params.get('public') === 'true';
 
-        if (steamId && username) {
-          setStatus('checking');
-          setMessage('Checking achievements...');
+      if (steamId && username) {
+  setStatus('checking');
+  setMessage('Checking achievements...');
+  const user: SteamUser = {
+    steamId,
+    username: decodeURIComponent(username),
+    avatarUrl: decodeURIComponent(avatar || ''),
+    isPublic,
+  };
 
-          const user: SteamUser = {
-            steamId,
-            username: decodeURIComponent(username),
-            avatarUrl: decodeURIComponent(avatar || ''),
-            isPublic,
-          };
+  try {
+    await fetch(
+      `${SUPABASE_URL}/functions/v1/check-achievements`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          steamId,
+          appId: '3228590',
+        }),
+      }
+    );
+  } catch (e) {
+    console.log('Achievement check failed:', e);
+  }
 
-          onSuccess(user);
-          window.history.replaceState({}, '', '/');
-          return;
-        }
+  onSuccess(user);
+  window.history.replaceState({}, '', '/');
+  return;
+}
 
         const claimedId = params.get('openid.claimed_id');
         if (!claimedId) {
