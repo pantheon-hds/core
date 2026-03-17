@@ -106,3 +106,12 @@
   letter-spacing: 0.15em;
   text-transform: uppercase;
 }
+
+.sidebar__avatar-img {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 0.5px solid var(--color-border-strong);
+  flex-shrink: 0;
+  object-fit: cover;
+}

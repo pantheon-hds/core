@@ -1,14 +1,20 @@
 import React from 'react';
 import './Sidebar.css';
+import { SteamUser } from '../pages/SteamCallback';
 
 export type Page = 'dashboard' | 'pantheon' | 'profile';
 
 interface SidebarProps {
   current: Page;
   onChange: (page: Page) => void;
+  user: SteamUser | null;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ current, onChange }) => {
+const Sidebar: React.FC<SidebarProps> = ({ current, onChange, user }) => {
+  const initials = user?.username
+    ? user.username.slice(0, 2).toUpperCase()
+    : 'HR';
+
   return (
     <aside className="sidebar">
       <div className="sidebar__logo">
@@ -42,10 +48,14 @@ const Sidebar: React.FC<SidebarProps> = ({ current, onChange }) => {
       </nav>
 
       <div className="sidebar__footer">
-        <div className="sidebar__avatar">HR</div>
+        {user?.avatarUrl ? (
+          <img src={user.avatarUrl} alt={user.username} className="sidebar__avatar-img" />
+        ) : (
+          <div className="sidebar__avatar">{initials}</div>
+        )}
         <div>
-          <div className="sidebar__username">Hero_RU</div>
-          <div className="sidebar__rank">Gold III</div>
+          <div className="sidebar__username">{user?.username || 'Guest'}</div>
+          <div className="sidebar__rank">{user ? 'Checking rank...' : 'Not logged in'}</div>
         </div>
       </div>
     </aside>

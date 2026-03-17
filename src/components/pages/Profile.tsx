@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './Profile.css';
+import { SteamUser } from './SteamCallback';
 
 type StatueTier = 'Bronze' | 'Silver' | 'Gold' | 'Platinum' | 'Diamond' | 'Legend';
 
@@ -99,7 +100,9 @@ const StatueSVG: React.FC<StatueSVGProps> = ({ tier, size = 80 }) => {
   );
 };
 
-const Profile: React.FC = () => {
+interface ProfileProps { user: SteamUser | null; }
+
+const Profile: React.FC<ProfileProps> = ({ user }) => {
   const [selected, setSelected] = useState<Statue | null>(null);
 
   return (

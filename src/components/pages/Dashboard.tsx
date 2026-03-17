@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './Dashboard.css';
 import { eldenRingChallenges, Challenge, Tier } from '../../data/challenges';
+import { SteamUser } from './SteamCallback';
 
 const tierColors: Record<Tier, string> = {
   Platinum: '#8ab4d4',
@@ -8,7 +9,9 @@ const tierColors: Record<Tier, string> = {
   Legend: '#c44a2a',
 };
 
-const Dashboard: React.FC = () => {
+interface DashboardProps { user: SteamUser | null; }
+
+const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   const [activeChallenge, setActiveChallenge] = useState<Challenge | null>(null);
   const [filter, setFilter] = useState<Tier | 'All'>('All');
 
