@@ -12,14 +12,21 @@ const isSteamCallback = (): boolean => {
   return params.has('openid.claimed_id') || params.has('steamId');
 };
 
+const getSavedUser = (): SteamUser | null => {
+  try {
+    const saved = localStorage.getItem('pantheon_user');
+    return saved ? JSON.parse(saved) : null;
+  } catch {
+    return null;
+  }
+};
+
 const App: React.FC = () => {
-  const [entered, setEntered] = useState(false);
+  const savedUser = getSavedUser();
+  const [entered, setEntered] = useState(!!savedUser);
   const [page, setPage] = useState<Page>('dashboard');
-  const [user, setUser] = useState<SteamUser | null>(null);
-  const isCallbackResult = isSteamCallback();
-  console.log('Is callback:', isCallbackResult);
-  console.log('Search:', window.location.search);
-  const [isCallback] = useState(isCallbackResult);
+  const [user, setUser] = useState<SteamUser | null>(savedUser);
+  const [isCallback] = useState(isSteamCallback);
 
   const titles: Record<Page, string> = {
     dashboard: 'Dashboard',
@@ -28,6 +35,7 @@ const App: React.FC = () => {
   };
 
   const handleSteamSuccess = (steamUser: SteamUser) => {
+    localStorage.setItem('pantheon_user', JSON.stringify(steamUser));
     setUser(steamUser);
     setEntered(true);
   };
