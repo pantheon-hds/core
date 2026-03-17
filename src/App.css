@@ -1,4 +1,8 @@
-.app { height: 100vh; position: relative; overflow: hidden; }
+.app {
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
 
 .app__layout {
   display: flex;
@@ -17,34 +21,45 @@
 }
 
 .app__topbar {
-  padding: 0.85rem 1.5rem;
+  padding: 1rem 2rem;
   border-bottom: 0.5px solid var(--color-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-shrink: 0;
+  min-height: 52px;
 }
 
 .app__topbar-title {
   font-family: var(--font-display);
-  font-size: 10px;
-  letter-spacing: 0.3em;
-  color: var(--color-text-muted);
+  font-size: 13px;
+  letter-spacing: 0.25em;
+  color: var(--color-text-secondary);
   text-transform: uppercase;
 }
 
-.app__topbar-tags { display: flex; gap: 0.5rem; }
+.app__topbar-tags {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
 
 .app__tag {
   font-family: var(--font-display);
-  font-size: 7px;
-  letter-spacing: 0.2em;
-  color: var(--color-text-muted);
-  border: 0.5px solid var(--color-border);
-  padding: 0.2rem 0.5rem;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  color: var(--color-text-secondary);
+  border: 0.5px solid var(--color-border-mid);
+  padding: 0.3rem 0.75rem;
   text-transform: uppercase;
 }
 
-.app__tag--live { color: var(--color-gold-dark); border-color: var(--color-border-mid); }
+.app__tag--live {
+  color: var(--color-gold);
+  border-color: var(--color-gold-dim);
+}
 
-.app__content { flex: 1; overflow: hidden; }
+.app__content {
+  flex: 1;
+  overflow: hidden;
+}

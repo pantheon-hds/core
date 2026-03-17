@@ -4,18 +4,18 @@
   --color-bg: #08080e;
   --color-bg-surface: #0d0d14;
   --color-bg-elevated: #111118;
-  --color-border: #1a1510;
-  --color-border-mid: #2a2215;
-  --color-border-strong: #3a2e1a;
-  --color-gold: #c9922a;
-  --color-gold-dim: #8b6914;
-  --color-gold-dark: #6a4a10;
-  --color-platinum: #8ab4d4;
-  --color-legend: #c44a2a;
-  --color-text-primary: #e8d5a0;
-  --color-text-secondary: #8a7a60;
-  --color-text-dim: #5a5040;
-  --color-text-muted: #3a3020;
+  --color-border: #2a2218;
+  --color-border-mid: #3a3225;
+  --color-border-strong: #4a3e28;
+  --color-gold: #e8a830;
+  --color-gold-dim: #c9922a;
+  --color-gold-dark: #a07020;
+  --color-platinum: #9ac4e4;
+  --color-legend: #e45a3a;
+  --color-text-primary: #f0e0b0;
+  --color-text-secondary: #b09870;
+  --color-text-dim: #807060;
+  --color-text-muted: #605040;
   --font-display: 'Cinzel', serif;
   --font-body: 'Crimson Pro', serif;
 }
@@ -27,6 +27,7 @@ body {
   background: var(--color-bg);
   color: var(--color-text-primary);
   font-family: var(--font-body);
+  font-size: 16px;
   -webkit-font-smoothing: antialiased;
 }
 

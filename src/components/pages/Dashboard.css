@@ -296,3 +296,87 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* Readability fixes */
+.dashboard__rank-title {
+  font-size: 22px !important;
+  letter-spacing: 0.1em !important;
+}
+
+.dashboard__rank-game {
+  font-size: 14px !important;
+  margin-top: 0.4rem !important;
+  color: var(--color-text-secondary) !important;
+}
+
+.dashboard__rank-xp {
+  font-size: 12px !important;
+  margin-top: 0.5rem !important;
+  color: var(--color-text-secondary) !important;
+}
+
+.dashboard__stat-value {
+  font-size: 30px !important;
+}
+
+.dashboard__stat-label {
+  font-size: 11px !important;
+  margin-top: 0.4rem !important;
+  color: var(--color-text-secondary) !important;
+  letter-spacing: 0.2em !important;
+}
+
+.dashboard__challenges-title {
+  font-size: 13px !important;
+  color: var(--color-text-secondary) !important;
+  letter-spacing: 0.2em !important;
+}
+
+.dashboard__filter {
+  font-size: 11px !important;
+  padding: 0.4rem 1rem !important;
+  letter-spacing: 0.15em !important;
+  color: var(--color-text-secondary) !important;
+  border-color: var(--color-border-mid) !important;
+}
+
+.dashboard__filter--active {
+  color: var(--color-gold) !important;
+  border-color: var(--color-gold-dim) !important;
+}
+
+.dashboard__challenge-title {
+  font-size: 14px !important;
+  color: var(--color-text-primary) !important;
+}
+
+.dashboard__challenge-tier {
+  font-size: 11px !important;
+  color: var(--color-text-secondary) !important;
+  letter-spacing: 0.15em !important;
+}
+
+.dashboard__challenge {
+  padding: 0.9rem 1.5rem !important;
+}
+
+.dashboard__games-title {
+  font-size: 11px !important;
+  color: var(--color-text-secondary) !important;
+  letter-spacing: 0.2em !important;
+}
+
+.dashboard__game-title {
+  font-size: 14px !important;
+  color: var(--color-text-primary) !important;
+}
+
+.dashboard__game-rank {
+  font-size: 13px !important;
+  letter-spacing: 0.1em !important;
+}
+
+.dashboard__challenges-header {
+  padding: 1.2rem 2rem 0.8rem !important;
+  gap: 1rem !important;
+}
