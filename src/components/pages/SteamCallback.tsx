@@ -26,6 +26,9 @@ const SteamCallback: React.FC<SteamCallbackProps> = ({ onSuccess, onError }) => 
     const handleCallback = async () => {
       try {
         const params = new URLSearchParams(window.location.search);
+console.log('All params:', window.location.search);
+console.log('steamId param:', params.get('steamId'));
+console.log('username param:', params.get('username'));
         const steamId = params.get('steamId');
         const username = params.get('username');
         const avatar = params.get('avatar');
