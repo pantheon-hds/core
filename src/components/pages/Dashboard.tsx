@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Dashboard.css';
 import { eldenRingChallenges, Challenge, Tier } from '../../data/challenges';
 import { SteamUser } from './SteamCallback';
+import { getUserBySteamId, getUserRanks, checkAchievements, UserRank } from '../../services/supabase';
 
 const tierColors: Record<Tier, string> = {
   Platinum: '#8ab4d4',
@@ -11,13 +12,62 @@ const tierColors: Record<Tier, string> = {
 
 interface DashboardProps { user: SteamUser | null; }
 
+const GAMES = [
+  { appId: '3228590', title: 'Deadzone: Rogue' },
+  { appId: '367520', title: 'Hollow Knight' },
+  { appId: '1030300', title: 'Hollow Knight: Silksong' },
+];
+
 const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   const [activeChallenge, setActiveChallenge] = useState<Challenge | null>(null);
   const [filter, setFilter] = useState<Tier | 'All'>('All');
+  const [ranks, setRanks] = useState<UserRank[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [checkingGame, setCheckingGame] = useState<string | null>(null);
 
   const filtered = filter === 'All'
     ? eldenRingChallenges
     : eldenRingChallenges.filter(c => c.tier === filter);
+
+  useEffect(() => {
+    if (!user) return;
+    loadUserData();
+  }, [user]);
+
+  const loadUserData = async () => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      const dbUser = await getUserBySteamId(user.steamId);
+      if (dbUser) {
+        const userRanks = await getUserRanks(dbUser.id);
+        setRanks(userRanks);
+      }
+    } catch (e) {
+      console.error('Failed to load user data:', e);
+    }
+    setLoading(false);
+  };
+
+  const handleCheckGame = async (appId: string, title: string) => {
+    if (!user) return;
+    setCheckingGame(title);
+    try {
+      const result = await checkAchievements(user.steamId, appId);
+      if (result?.isGold) {
+        await loadUserData();
+      }
+      alert(result
+        ? `${title}: ${result.unlocked}/${result.total} achievements (${result.percentage}%)${result.isGold ? ' — Gold rank assigned!' : ''}`
+        : 'Could not check achievements. Make sure your Steam profile is public.'
+      );
+    } catch (e) {
+      console.error('Check failed:', e);
+    }
+    setCheckingGame(null);
+  };
+
+  const topRank = ranks[0];
 
   return (
     <div className="dashboard">
@@ -39,72 +89,102 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
         </div>
       )}
 
-      <div className="dashboard__hero">
-        <div className="dashboard__hero-top" />
-        <div className="dashboard__statue">
-          <svg width="64" height="78" viewBox="0 0 64 78" fill="none">
-            <rect x="16" y="68" width="32" height="9" rx="1" fill="#2a2215"/>
-            <rect x="22" y="57" width="20" height="12" rx="1" fill="#3a2e1a"/>
-            <ellipse cx="32" cy="19" rx="10" ry="12" fill="#c9922a" opacity="0.9"/>
-            <rect x="23" y="30" width="18" height="26" rx="2" fill="#b07820"/>
-            <line x1="19" y1="36" x2="23" y2="36" stroke="#c9922a" strokeWidth="2" strokeLinecap="round"/>
-            <line x1="41" y1="36" x2="45" y2="36" stroke="#c9922a" strokeWidth="2" strokeLinecap="round"/>
-            <line x1="45" y1="36" x2="49" y2="44" stroke="#c9922a" strokeWidth="2" strokeLinecap="round"/>
-            <polygon points="46,42 51,38 50,46" fill="#c9922a" opacity="0.8"/>
-            <circle cx="32" cy="11" r="3" fill="#e8d5a0" opacity="0.25"/>
+      <div className="dashboard__rank-card">
+        <div className="dashboard__rank-statue">
+          <svg viewBox="0 0 60 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="30" cy="72" rx="18" ry="5" fill="#1a1508" opacity="0.5"/>
+            <rect x="15" y="58" width="30" height="12" rx="2" fill={topRank?.tier === 'Gold' ? '#8b6914' : '#2a2215'}/>
+            <ellipse cx="30" cy="44" rx="12" ry="16" fill={topRank?.tier === 'Gold' ? '#c9922a' : '#3a3020'}/>
+            <circle cx="30" cy="24" r="10" fill={topRank?.tier === 'Gold' ? '#c9922a' : '#3a3020'}/>
           </svg>
         </div>
         <div className="dashboard__rank-info">
-          <div className="dashboard__rank-name">Gold III</div>
-          <div className="dashboard__rank-game">Elden Ring · Season 1</div>
-          <div className="dashboard__xp-wrap">
-            <div className="dashboard__xp-track">
-              <div className="dashboard__xp-fill" style={{ width: '62%' }} />
-            </div>
-            <div className="dashboard__xp-meta">
-              <span>847 / 1000 XP</span>
-              <span>153 to Platinum</span>
-            </div>
+          <div className="dashboard__rank-title">
+            {loading ? 'Loading...' : topRank ? `${topRank.tier} I` : 'No rank yet'}
+          </div>
+          <div className="dashboard__rank-game">
+            {topRank ? (topRank.game as any)?.title : 'Check your achievements below'}
+          </div>
+          <div className="dashboard__rank-bar">
+            <div className="dashboard__rank-bar-fill" style={{ width: topRank ? '100%' : '0%' }} />
+          </div>
+          <div className="dashboard__rank-xp">
+            {ranks.length} rank{ranks.length !== 1 ? 's' : ''} earned
           </div>
         </div>
       </div>
 
+      {/* Check achievements section */}
+      {user && (
+        <div className="dashboard__games">
+          <div className="dashboard__games-title">Check Your Achievements</div>
+          <div className="dashboard__games-list">
+            {GAMES.map(game => {
+              const hasRank = ranks.some(r => (r.game as any)?.steam_app_id === game.appId);
+              return (
+                <div key={game.appId} className="dashboard__game-item">
+                  <span className="dashboard__game-title">{game.title}</span>
+                  {hasRank ? (
+                    <span className="dashboard__game-gold">✓ Gold</span>
+                  ) : (
+                    <button
+                      className="dashboard__game-btn"
+                      onClick={() => handleCheckGame(game.appId, game.title)}
+                      disabled={checkingGame === game.title}
+                    >
+                      {checkingGame === game.title ? 'Checking...' : 'Check'}
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       <div className="dashboard__stats">
         <div className="dashboard__stat">
-          <div className="dashboard__stat-value">847</div>
-          <div className="dashboard__stat-label">Skill Points</div>
+          <div className="dashboard__stat-value">{ranks.length > 0 ? '847' : '0'}</div>
+          <div className="dashboard__stat-label">Rank Points</div>
         </div>
         <div className="dashboard__stat">
-          <div className="dashboard__stat-value">{eldenRingChallenges.length}</div>
+          <div className="dashboard__stat-value">10</div>
           <div className="dashboard__stat-label">Challenges</div>
         </div>
         <div className="dashboard__stat">
-          <div className="dashboard__stat-value">3</div>
-          <div className="dashboard__stat-label">Statues</div>
+          <div className="dashboard__stat-value">{ranks.length}</div>
+          <div className="dashboard__stat-label">Ranks</div>
         </div>
       </div>
 
-      <div className="dashboard__filters">
-        {(['All', 'Platinum', 'Diamond', 'Legend'] as const).map(t => (
-          <button
-            key={t}
-            className={"dashboard__filter" + (filter === t ? " dashboard__filter--active" : "")}
-            onClick={() => setFilter(t)}
-          >
-            {t}
-          </button>
-        ))}
+      <div className="dashboard__challenges-header">
+        <span className="dashboard__challenges-title">Challenges — Elden Ring</span>
+        <div className="dashboard__filters">
+          {(['All', 'Platinum', 'Diamond', 'Legend'] as const).map(t => (
+            <button
+              key={t}
+              className={"dashboard__filter" + (filter === t ? " dashboard__filter--active" : "")}
+              onClick={() => setFilter(t)}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div className="dashboard__section-title">Challenges — Elden Ring</div>
-
       <div className="dashboard__challenges">
-        {filtered.map(ch => (
-          <div className="dashboard__challenge" key={ch.id} onClick={() => setActiveChallenge(ch)}>
-            <div className="dashboard__challenge-dot" style={{ background: tierColors[ch.tier] }} />
-            <div className="dashboard__challenge-name">{ch.title}</div>
-            <div className="dashboard__challenge-attempts">{ch.attempts.toLocaleString()}</div>
-            <div className="dashboard__challenge-tier">{ch.tier}</div>
+        {filtered.map(challenge => (
+          <div
+            key={challenge.id}
+            className="dashboard__challenge"
+            onClick={() => setActiveChallenge(challenge)}
+          >
+            <div
+              className="dashboard__challenge-dot"
+              style={{ background: tierColors[challenge.tier] }}
+            />
+            <span className="dashboard__challenge-title">{challenge.title}</span>
+            <span className="dashboard__challenge-tier">{challenge.tier}</span>
           </div>
         ))}
       </div>
