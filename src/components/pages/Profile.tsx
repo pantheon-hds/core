@@ -3,7 +3,6 @@ import './Profile.css';
 import { SteamUser } from './SteamCallback';
 import { getUserBySteamId, getUserStatues, getUserRanks, UserStatue, supabase, checkJudgeEligibility, submitJudgeApplication } from '../../services/supabase';
 
-type StatueTier = 'Bronze I' | 'Bronze II' | 'Bronze III' | 'Silver I' | 'Silver II' | 'Silver III' | 'Gold' | 'Gold I' | 'Platinum' | 'Diamond' | 'Legend' | 'Bronze' | 'Silver';
 
 const statueColors: Record<string, { primary: string; secondary: string; base: string }> = {
   'Bronze I':   { primary: '#e8974a', secondary: '#a06030', base: '#3a2215' },
