@@ -103,20 +103,15 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
           .single();
 
         if (challenge) {
-          await supabase.from('ranks').upsert({
-            user_id: fullSub.user_id,
-            game_id: challenge.game_id,
-            tier: challenge.tier + ' I',
-            method: 'community_verified',
-          }, { onConflict: 'user_id,game_id' });
+          await supabase.from('ranks')
+  .update({ tier: challenge.tier + ' I', method: 'community_verified' })
+  .eq('user_id', fullSub.user_id)
+  .eq('game_id', challenge.game_id);
 
-          await supabase.from('statues').upsert({
-            user_id: fullSub.user_id,
-            game_id: challenge.game_id,
-            tier: challenge.tier + ' I',
-            challenge: challenge.title,
-            is_unique: challenge.tier === 'Legend',
-          }, { onConflict: 'user_id,game_id' });
+await supabase.from('statues')
+  .update({ tier: challenge.tier + ' I', challenge: challenge.title })
+  .eq('user_id', fullSub.user_id)
+  .eq('game_id', challenge.game_id);
         }
       }
     }
