@@ -57,29 +57,49 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
 
   useEffect(() => { loadData(); }, [loadData]);
 
-  const handleAddChallenge = async () => {
-    if (!newChallenge.title || !newChallenge.description || !newChallenge.game_id) {
-      setMessage('Please fill all fields'); return;
+  const handleSubmissionAction = async (submissionId: string, action: 'approved' | 'rejected') => {
+  const note = adminNote[submissionId] || '';
+  const sub = submissions.find(s => s.id === submissionId);
+  
+  await supabase.from('submissions')
+    .update({ status: action, admin_note: note })
+    .eq('id', submissionId);
+
+  if (action === 'approved' && sub) {
+    // Get full submission with challenge_id
+    const { data: fullSub } = await supabase
+      .from('submissions')
+      .select('challenge_id, user_id')
+      .eq('id', submissionId)
+      .single();
+
+    if (fullSub) {
+      const { data: challenge } = await supabase
+        .from('challenges')
+        .select('*')
+        .eq('id', fullSub.challenge_id)
+        .single();
+
+      if (challenge) {
+        await supabase.from('ranks').upsert({
+          user_id: fullSub.user_id,
+          game_id: challenge.game_id,
+          tier: challenge.tier + ' I',
+          method: 'community_verified',
+        }, { onConflict: 'user_id,game_id' });
+
+        await supabase.from('statues').upsert({
+          user_id: fullSub.user_id,
+          game_id: challenge.game_id,
+          tier: challenge.tier + ' I',
+          challenge: challenge.title,
+          is_unique: challenge.tier === 'Legend',
+        }, { onConflict: 'user_id,game_id' });
+      }
     }
-    setSaving(true);
-    const { error } = await supabase.from('challenges').insert({
-      title: newChallenge.title,
-      description: newChallenge.description,
-      tier: newChallenge.tier,
-      game_id: parseInt(newChallenge.game_id),
-      created_by: null,
-      attempts: 0,
-      type: 'community',
-    });
-    if (error) { setMessage(`Error: ${error.message}`); }
-    else {
-      setMessage('Challenge added!');
-      setNewChallenge({ title: '', description: '', tier: 'Platinum', game_id: '' });
-      await loadData();
-    }
-    setSaving(false);
-    setTimeout(() => setMessage(''), 3000);
-  };
+  }
+  await loadData();
+};
 
   const handleDeleteChallenge = async (id: string) => {
     if (!window.confirm('Delete this challenge?')) return;
