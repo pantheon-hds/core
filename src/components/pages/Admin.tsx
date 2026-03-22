@@ -104,21 +104,22 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
         if (dbUser && challenge) {
           const { data: game } = await supabase
             .from('games').select('id').eq('id', challenge.game_id).single();
-          if (game) {
-            await supabase.from('ranks').insert({
-              user_id: dbUser.id,
-              game_id: game.id,
-              tier: challenge.tier,
-              method: 'community_verified',
-            });
-            await supabase.from('statues').insert({
-              user_id: dbUser.id,
-              game_id: game.id,
-              tier: challenge.tier,
-              challenge: challenge.title,
-              is_unique: challenge.tier === 'Legend',
-            });
-          }
+         if (game) {
+  await supabase.from('ranks').upsert({
+    user_id: dbUser.id,
+    game_id: game.id,
+    tier: challenge.tier,
+    method: 'community_verified',
+  }, { onConflict: 'user_id,game_id' });
+
+  await supabase.from('statues').upsert({
+    user_id: dbUser.id,
+    game_id: game.id,
+    tier: challenge.tier,
+    challenge: challenge.title,
+    is_unique: challenge.tier === 'Legend',
+  }, { onConflict: 'user_id,game_id' });
+}
         }
       }
     }
