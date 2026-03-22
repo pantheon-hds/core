@@ -395,3 +395,145 @@
   margin-left: auto;
   letter-spacing: 0.05em;
 }
+
+/* Submit form */
+.dashboard__modal--submit {
+  max-width: 500px !important;
+}
+
+.dashboard__modal-game {
+  font-size: 13px;
+  color: var(--color-gold-dim);
+  margin-top: 0.3rem;
+  letter-spacing: 0.1em;
+}
+
+.dashboard__modal-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  align-items: center;
+}
+
+.dashboard__modal-submit-btn {
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #08080e;
+  background: var(--color-gold);
+  border: none;
+  padding: 0.7rem 1.5rem;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.dashboard__modal-submit-btn:hover { opacity: 0.85; }
+.dashboard__modal-submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.dashboard__submit-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1.2rem;
+}
+
+.dashboard__submit-label {
+  font-family: var(--font-display);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--color-text-dim);
+  text-transform: uppercase;
+}
+
+.dashboard__submit-input,
+.dashboard__submit-textarea {
+  background: var(--color-bg-surface);
+  border: 0.5px solid var(--color-border-mid);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  font-size: 14px;
+  padding: 0.7rem 1rem;
+  outline: none;
+  width: 100%;
+  transition: border-color 0.2s;
+}
+
+.dashboard__submit-input:focus,
+.dashboard__submit-textarea:focus {
+  border-color: var(--color-gold-dim);
+}
+
+.dashboard__submit-textarea { resize: vertical; }
+
+.dashboard__submit-hint {
+  font-size: 11px;
+  color: var(--color-text-dim);
+  font-style: italic;
+}
+
+.dashboard__submit-message {
+  font-size: 13px;
+  padding: 0.6rem 1rem;
+  border: 0.5px solid;
+  margin-top: 0.5rem;
+}
+
+.dashboard__submit-message--success {
+  color: #6ab87a;
+  border-color: #3a6a4a;
+  background: #0a1a10;
+}
+
+.dashboard__submit-message--error {
+  color: var(--color-legend);
+  border-color: #6a2a1a;
+  background: #1a0a08;
+}
+
+/* Active submission banner */
+.dashboard__active-submission {
+  margin: 0 2rem;
+  border: 0.5px solid var(--color-gold-dim);
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: rgba(200, 146, 42, 0.05);
+}
+
+.dashboard__active-submission-title {
+  font-family: var(--font-display);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  color: var(--color-gold);
+}
+
+.dashboard__active-submission-status {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin-top: 0.3rem;
+}
+
+.dashboard__withdraw-btn {
+  font-family: var(--font-display);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-legend);
+  background: transparent;
+  border: 0.5px solid #6a2a1a;
+  padding: 0.4rem 0.8rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.dashboard__withdraw-btn:hover { background: #1a0808; }
+
+/* Challenge status icons */
+.dashboard__challenge-status {
+  font-size: 12px;
+  flex-shrink: 0;
+}

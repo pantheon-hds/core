@@ -227,3 +227,102 @@
 .admin__delete-btn:hover {
   background: #1a0808;
 }
+
+.admin__badge {
+  background: var(--color-legend);
+  color: white;
+  font-size: 9px;
+  padding: 0.1rem 0.4rem;
+  border-radius: 10px;
+  margin-left: 0.4rem;
+}
+
+.admin__empty {
+  padding: 2rem;
+  font-size: 13px;
+  color: var(--color-text-dim);
+  font-style: italic;
+  text-align: center;
+}
+
+.admin__item--pending {
+  border-color: var(--color-gold-dim) !important;
+  background: rgba(200, 146, 42, 0.03);
+}
+
+.admin__video-link {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-size: 12px;
+  color: var(--color-gold);
+  letter-spacing: 0.1em;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.admin__video-link:hover { opacity: 0.7; }
+
+.admin__review-actions {
+  margin-top: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.admin__note-input {
+  background: var(--color-bg-surface);
+  border: 0.5px solid var(--color-border-mid);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  font-size: 13px;
+  padding: 0.5rem 0.8rem;
+  outline: none;
+  width: 100%;
+}
+
+.admin__action-btns {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.admin__approve-btn {
+  font-family: var(--font-display);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #08080e;
+  background: #4a9a5a;
+  border: none;
+  padding: 0.5rem 1.2rem;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.admin__approve-btn:hover { opacity: 0.85; }
+
+.admin__reject-btn {
+  font-family: var(--font-display);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: white;
+  background: #8a2a1a;
+  border: none;
+  padding: 0.5rem 1.2rem;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.admin__reject-btn:hover { opacity: 0.85; }
+
+.admin__item-note {
+  font-size: 12px;
+  color: var(--color-text-dim);
+  font-style: italic;
+  margin-top: 0.4rem;
+}
+
+.admin__item--submission {
+  flex-direction: column;
+  align-items: flex-start;
+}
