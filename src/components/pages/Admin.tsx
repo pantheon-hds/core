@@ -107,46 +107,7 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
     await loadData();
   };
 
-  const handleSubmissionAction = async (submissionId: string, action: 'approved' | 'rejected') => {
-    const note = adminNote[submissionId] || '';
-    await supabase.from('submissions')
-      .update({ status: action, admin_note: note })
-      .eq('id', submissionId);
-
-    if (action === 'approved') {
-      const sub = submissions.find(s => s.id === submissionId);
-      if (sub) {
-        const { data: dbUser } = await supabase
-          .from('users').select('id').eq('steam_id', sub.user?.steam_id).single();
-        const { data: challenge } = await supabase
-          .from('challenges').select('*').eq('id', sub.challenge?.id || '').single();
-
-        if (dbUser && challenge) {
-          const { data: game } = await supabase
-            .from('games').select('id').eq('id', challenge.game_id).single();
-         if (game) {
-  await supabase.from('ranks').upsert({
-    user_id: dbUser.id,
-    game_id: game.id,
-    tier: challenge.tier,
-    method: 'community_verified',
-  }, { onConflict: 'user_id,game_id' });
-
-  await supabase.from('statues').upsert({
-    user_id: dbUser.id,
-    game_id: game.id,
-    tier: challenge.tier,
-    challenge: challenge.title,
-    is_unique: challenge.tier === 'Legend',
-  }, { onConflict: 'user_id,game_id' });
-}
-        }
-      }
-    }
-    await loadData();
-  };
-
-  const pendingCount = submissions.filter(s => s.status === 'pending').length;
+   const pendingCount = submissions.filter(s => s.status === 'pending').length;
 
   if (loading) return <div className="admin__loading">Loading...</div>;
   if (!isAdmin) return <div className="admin__denied">Access denied.</div>;
