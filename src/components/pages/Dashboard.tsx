@@ -1,42 +1,56 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import './Dashboard.css';
-import { eldenRingChallenges, Challenge, Tier } from '../../data/challenges';
 import { SteamUser } from './SteamCallback';
-import { getUserBySteamId, getUserRanks, checkAchievements, UserRank } from '../../services/supabase';
+import { getUserBySteamId, getUserRanks, checkAchievements, UserRank, supabase } from '../../services/supabase';
 
-const tierColors: Record<Tier, string> = {
-  Platinum: '#8ab4d4',
-  Diamond: '#a8d4f4',
-  Legend: '#c44a2a',
+const TIER_COLORS: Record<string, string> = {
+  Platinum: '#9ac4e4',
+  Diamond: '#b8e4ff',
+  Master: '#d4a8f4',
+  Grandmaster: '#f4d4a8',
+  Legend: '#e45a3a',
 };
 
 const STATUE_COLORS: Record<string, string> = {
-  Gold: '#c9922a',
-  'Silver III': '#a0b4c8',
-  'Silver II': '#a0b4c8',
-  'Silver I': '#a0b4c8',
-  'Bronze III': '#8b6040',
-  'Bronze II': '#8b6040',
-  'Bronze I': '#8b6040',
+  Gold: '#e8a830',
+  'Silver III': '#d8eaf8',
+  'Silver II': '#d8eaf8',
+  'Silver I': '#d8eaf8',
+  'Bronze III': '#e8974a',
+  'Bronze II': '#e8974a',
+  'Bronze I': '#e8974a',
 };
 
 const GAMES = [
-  { appId: '3228590', title: 'Deadzone: Rogue' },
   { appId: '367520', title: 'Hollow Knight' },
   { appId: '1030300', title: 'Hollow Knight: Silksong' },
 ];
 
+interface DBChallenge {
+  id: string;
+  title: string;
+  description: string;
+  tier: string;
+  attempts: number;
+  game: any;
+}
+
 interface DashboardProps { user: SteamUser | null; }
 
 const Dashboard: React.FC<DashboardProps> = ({ user }) => {
-  const [activeChallenge, setActiveChallenge] = useState<Challenge | null>(null);
-  const [filter, setFilter] = useState<Tier | 'All'>('All');
+  const [activeChallenge, setActiveChallenge] = useState<DBChallenge | null>(null);
+  const [filter, setFilter] = useState<string>('All');
   const [ranks, setRanks] = useState<UserRank[]>([]);
+  const [challenges, setChallenges] = useState<DBChallenge[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const filtered = filter === 'All'
-    ? eldenRingChallenges
-    : eldenRingChallenges.filter(c => c.tier === filter);
+  const loadChallenges = useCallback(async () => {
+    const { data } = await supabase
+      .from('challenges')
+      .select('*, game:games(title)')
+      .order('tier', { ascending: true });
+    setChallenges(data || []);
+  }, []);
 
   const loadUserData = useCallback(async () => {
     if (!user) return;
@@ -44,9 +58,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
     try {
       const dbUser = await getUserBySteamId(user.steamId);
       if (dbUser) {
-        // Auto-check all games
         await Promise.all(GAMES.map(g => checkAchievements(user.steamId, g.appId)));
-        // Load updated ranks
         const userRanks = await getUserRanks(dbUser.id);
         setRanks(userRanks);
       }
@@ -55,6 +67,10 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
     }
     setLoading(false);
   }, [user]);
+
+  useEffect(() => {
+    loadChallenges();
+  }, [loadChallenges]);
 
   useEffect(() => {
     if (!user) return;
@@ -68,18 +84,21 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
 
   const statueColor = topRank ? (STATUE_COLORS[topRank.tier] || '#3a3020') : '#3a3020';
 
+  const tiers = ['All', ...Array.from(new Set(challenges.map(c => c.tier)))];
+  const filtered = filter === 'All' ? challenges : challenges.filter(c => c.tier === filter);
+
   return (
     <div className="dashboard">
       {activeChallenge && (
         <div className="dashboard__modal-overlay" onClick={() => setActiveChallenge(null)}>
           <div className="dashboard__modal" onClick={e => e.stopPropagation()}>
-            <div className="dashboard__modal-tier" style={{ color: tierColors[activeChallenge.tier] }}>
+            <div className="dashboard__modal-tier" style={{ color: TIER_COLORS[activeChallenge.tier] || '#c9922a' }}>
               {activeChallenge.tier}
             </div>
             <div className="dashboard__modal-title">{activeChallenge.title}</div>
             <div className="dashboard__modal-desc">{activeChallenge.description}</div>
             <div className="dashboard__modal-meta">
-              {activeChallenge.attempts.toLocaleString()} attempts worldwide
+              {activeChallenge.game?.title}
             </div>
             <button className="dashboard__modal-close" onClick={() => setActiveChallenge(null)}>
               Close
@@ -113,7 +132,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
         </div>
       </div>
 
-      {/* Ranks per game */}
       {ranks.length > 0 && (
         <div className="dashboard__games">
           <div className="dashboard__games-title">Your Ranks</div>
@@ -132,11 +150,11 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
 
       <div className="dashboard__stats">
         <div className="dashboard__stat">
-          <div className="dashboard__stat-value">{ranks.length > 0 ? ranks.length * 100 : 0}</div>
+          <div className="dashboard__stat-value">{ranks.length * 100}</div>
           <div className="dashboard__stat-label">Rank Points</div>
         </div>
         <div className="dashboard__stat">
-          <div className="dashboard__stat-value">10</div>
+          <div className="dashboard__stat-value">{challenges.length}</div>
           <div className="dashboard__stat-label">Challenges</div>
         </div>
         <div className="dashboard__stat">
@@ -146,9 +164,9 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
       </div>
 
       <div className="dashboard__challenges-header">
-        <span className="dashboard__challenges-title">Challenges — Elden Ring</span>
+        <span className="dashboard__challenges-title">Community Challenges</span>
         <div className="dashboard__filters">
-          {(['All', 'Platinum', 'Diamond', 'Legend'] as const).map(t => (
+          {tiers.map(t => (
             <button
               key={t}
               className={"dashboard__filter" + (filter === t ? " dashboard__filter--active" : "")}
@@ -161,20 +179,27 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
       </div>
 
       <div className="dashboard__challenges">
-        {filtered.map(challenge => (
-          <div
-            key={challenge.id}
-            className="dashboard__challenge"
-            onClick={() => setActiveChallenge(challenge)}
-          >
-            <div
-              className="dashboard__challenge-dot"
-              style={{ background: tierColors[challenge.tier] }}
-            />
-            <span className="dashboard__challenge-title">{challenge.title}</span>
-            <span className="dashboard__challenge-tier">{challenge.tier}</span>
+        {filtered.length === 0 ? (
+          <div className="dashboard__empty">
+            No challenges yet. Add some from the Admin panel.
           </div>
-        ))}
+        ) : (
+          filtered.map(challenge => (
+            <div
+              key={challenge.id}
+              className="dashboard__challenge"
+              onClick={() => setActiveChallenge(challenge)}
+            >
+              <div
+                className="dashboard__challenge-dot"
+                style={{ background: TIER_COLORS[challenge.tier] || '#c9922a' }}
+              />
+              <span className="dashboard__challenge-title">{challenge.title}</span>
+              <span className="dashboard__challenge-game">{challenge.game?.title}</span>
+              <span className="dashboard__challenge-tier">{challenge.tier}</span>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );

@@ -380,3 +380,18 @@
   padding: 1.2rem 2rem 0.8rem !important;
   gap: 1rem !important;
 }
+
+.dashboard__empty {
+  padding: 2rem;
+  font-size: 13px;
+  color: var(--color-text-dim);
+  font-style: italic;
+  text-align: center;
+}
+
+.dashboard__challenge-game {
+  font-size: 11px;
+  color: var(--color-text-dim);
+  margin-left: auto;
+  letter-spacing: 0.05em;
+}
