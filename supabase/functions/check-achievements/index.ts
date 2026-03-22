@@ -90,34 +90,33 @@ serve(async (req) => {
           // Check existing rank
           const { data: existingRank } = await supabase
             .from('ranks')
-            .select('id, tier')
+            .select('id, tier, method')
             .eq('user_id', user.id)
             .eq('game_id', game.id)
             .single()
 
           if (!existingRank) {
-            // Insert new rank
-            await supabase.from('ranks').insert({
-              user_id: user.id,
-              game_id: game.id,
-              tier,
-              method: 'steam_auto',
-            })
-            await supabase.from('statues').insert({
-              user_id: user.id,
-              game_id: game.id,
-              tier,
-              challenge: `${percentage}% Steam Achievements`,
-              is_unique: false,
-            })
-            console.log(`Assigned ${tier} rank`)
-          } else if (existingRank.tier !== tier) {
-            // Update rank if changed
-            await supabase.from('ranks')
-              .update({ tier, method: 'steam_auto' })
-              .eq('id', existingRank.id)
-            console.log(`Updated rank from ${existingRank.tier} to ${tier}`)
-          }
+  await supabase.from('ranks').upsert({
+    user_id: user.id,
+    game_id: game.id,
+    tier,
+    method: 'steam_auto',
+  }, { onConflict: 'user_id,game_id' });
+
+  await supabase.from('statues').upsert({
+    user_id: user.id,
+    game_id: game.id,
+    tier,
+    challenge: `${percentage}% Steam Achievements`,
+    is_unique: false,
+  }, { onConflict: 'user_id,game_id' });
+
+} else if (existingRank.method !== 'community_verified' && existingRank.tier !== tier) {
+  // Only update if not community verified
+  await supabase.from('ranks')
+    .update({ tier, method: 'steam_auto' })
+    .eq('id', existingRank.id);
+}
         }
       }
     }
