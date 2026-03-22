@@ -364,3 +364,153 @@
 .profile__statues .profile__statue-card:nth-child(1) .profile__statue-tier {
   filter: brightness(1.4);
 }
+
+/* Judge section */
+.profile__judge-section {
+  margin: 1.5rem 2rem;
+  border: 0.5px solid var(--color-border-mid);
+  padding: 1.5rem;
+}
+
+.profile__judge-title {
+  font-family: var(--font-display);
+  font-size: 12px;
+  letter-spacing: 0.25em;
+  color: var(--color-gold);
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+
+.profile__judge-badge {
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  color: var(--color-gold);
+  border: 0.5px solid var(--color-gold-dim);
+  padding: 0.3rem 0.8rem;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.profile__judge-requirements {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.profile__judge-req-title {
+  font-size: 12px;
+  color: var(--color-text-dim);
+  margin-bottom: 0.3rem;
+  letter-spacing: 0.05em;
+}
+
+.profile__judge-req {
+  font-size: 13px;
+  color: var(--color-legend);
+}
+
+.profile__judge-req--met {
+  color: #6ab87a;
+}
+
+.profile__judge-status {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.profile__judge-btn {
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #08080e;
+  background: var(--color-gold);
+  border: none;
+  padding: 0.7rem 1.5rem;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.profile__judge-btn:hover { opacity: 0.85; }
+
+.profile__judge-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.profile__judge-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.profile__judge-label {
+  font-family: var(--font-display);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--color-text-dim);
+  text-transform: uppercase;
+}
+
+.profile__judge-select,
+.profile__judge-textarea {
+  background: var(--color-bg-surface);
+  border: 0.5px solid var(--color-border-mid);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  font-size: 14px;
+  padding: 0.7rem 1rem;
+  outline: none;
+  width: 100%;
+  transition: border-color 0.2s;
+}
+
+.profile__judge-select:focus,
+.profile__judge-textarea:focus {
+  border-color: var(--color-gold-dim);
+}
+
+.profile__judge-textarea { resize: vertical; }
+
+.profile__judge-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.profile__judge-submit {
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #08080e;
+  background: var(--color-gold);
+  border: none;
+  padding: 0.7rem 1.5rem;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.profile__judge-submit:hover { opacity: 0.85; }
+.profile__judge-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.profile__judge-cancel {
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-text-dim);
+  background: transparent;
+  border: 0.5px solid var(--color-border-mid);
+  padding: 0.7rem 1.5rem;
+  cursor: pointer;
+}
+
+.profile__judge-message {
+  font-size: 13px;
+  color: var(--color-gold);
+  margin-top: 0.5rem;
+  font-style: italic;
+}

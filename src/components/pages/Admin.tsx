@@ -26,7 +26,8 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
   const [games, setGames] = useState<Game[]>([]);
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const [activeTab, setActiveTab] = useState<'submissions' | 'challenges' | 'games'>('submissions');
+  const [activeTab, setActiveTab] = useState<'submissions' | 'challenges' | 'games' | 'judges'>('submissions');
+  const [judgeApps, setJudgeApps] = useState<any[]>([]);
   const [newChallenge, setNewChallenge] = useState({ title: '', description: '', tier: 'Platinum', game_id: '' });
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
@@ -51,6 +52,12 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
       .select('*, user:users(username, steam_id), challenge:challenges(title, tier)')
       .order('submitted_at', { ascending: false });
     setSubmissions(subsData || []);
+
+    const { data: judgeAppsData } = await supabase
+      .from('judge_applications')
+      .select('*, user:users(username, steam_id), game:games(title)')
+      .order('applied_at', { ascending: false });
+    setJudgeApps(judgeAppsData || []);
 
     setLoading(false);
   }, [user]);
@@ -103,15 +110,20 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
           .single();
 
         if (challenge) {
-          await supabase.from('ranks')
-  .update({ tier: challenge.tier + ' I', method: 'community_verified' })
-  .eq('user_id', fullSub.user_id)
-  .eq('game_id', challenge.game_id);
+          await supabase.from('ranks').upsert({
+            user_id: fullSub.user_id,
+            game_id: challenge.game_id,
+            tier: challenge.tier + ' I',
+            method: 'community_verified',
+          }, { onConflict: 'user_id,game_id' });
 
-await supabase.from('statues')
-  .update({ tier: challenge.tier + ' I', challenge: challenge.title })
-  .eq('user_id', fullSub.user_id)
-  .eq('game_id', challenge.game_id);
+          await supabase.from('statues').upsert({
+            user_id: fullSub.user_id,
+            game_id: challenge.game_id,
+            tier: challenge.tier + ' I',
+            challenge: challenge.title,
+            is_unique: challenge.tier === 'Legend',
+          }, { onConflict: 'user_id,game_id' });
         }
       }
     }
@@ -145,6 +157,9 @@ await supabase.from('statues')
         </button>
         <button className={"admin__tab" + (activeTab === 'games' ? ' admin__tab--active' : '')} onClick={() => setActiveTab('games')}>
           Games ({games.length})
+        </button>
+        <button className={"admin__tab" + (activeTab === 'judges' ? ' admin__tab--active' : '')} onClick={() => setActiveTab('judges')}>
+          Judges {judgeApps.filter(j => j.status === 'pending').length > 0 && <span className="admin__badge">{judgeApps.filter(j => j.status === 'pending').length}</span>}
         </button>
       </div>
 
@@ -255,6 +270,80 @@ await supabase.from('statues')
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'judges' && (
+        <div className="admin__section">
+          <div className="admin__list">
+            <div className="admin__list-title">Judge Applications — {judgeApps.length} total</div>
+            {judgeApps.length === 0 ? (
+              <div className="admin__empty">No judge applications yet.</div>
+            ) : (
+              judgeApps.map(app => (
+                <div key={app.id} className={"admin__item admin__item--submission" + (app.status === 'pending' ? ' admin__item--pending' : '')}>
+                  <div className="admin__item-info">
+                    <div className="admin__item-title">
+                      {app.user?.username || 'Unknown'} — {app.game?.title || 'Unknown game'}
+                    </div>
+                    <div className="admin__item-meta">
+                      Applied: {new Date(app.applied_at).toLocaleDateString()}
+                      · Status: <span style={{ color: app.status === 'approved' ? '#6ab87a' : app.status === 'rejected' ? '#e45a3a' : '#e8a830' }}>{app.status}</span>
+                    </div>
+                    {app.motivation && <div className="admin__item-desc">"{app.motivation}"</div>}
+                    {app.status === 'pending' && (
+                      <div className="admin__action-btns" style={{ marginTop: '0.8rem' }}>
+                        <button className="admin__approve-btn" onClick={async () => {
+                          await supabase.from('judge_applications').update({ status: 'approved' }).eq('id', app.id);
+                          await supabase.from('users').update({ is_judge: true }).eq('id', app.user_id);
+                          await loadData();
+                        }}>
+                          ✓ Approve
+                        </button>
+                        <button className="admin__reject-btn" onClick={async () => {
+                          await supabase.from('judge_applications').update({ status: 'rejected' }).eq('id', app.id);
+                          await loadData();
+                        }}>
+                          ✗ Reject
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          <div className="admin__list" style={{ marginTop: '2rem' }}>
+            <div className="admin__list-title">Current Judges</div>
+            <div className="admin__form" style={{ padding: '1rem' }}>
+              <div className="admin__form-title">Appoint Judge Manually</div>
+              <div className="admin__field">
+                <label className="admin__label">Steam ID</label>
+                <input
+                  className="admin__input"
+                  placeholder="Steam ID of the player..."
+                  id="manual-judge-input"
+                />
+              </div>
+              <button className="admin__btn" onClick={async () => {
+                const input = document.getElementById('manual-judge-input') as HTMLInputElement;
+                const steamId = input?.value?.trim();
+                if (!steamId) return;
+                const { data: targetUser } = await supabase.from('users').select('id, username').eq('steam_id', steamId).single();
+                if (targetUser) {
+                  await supabase.from('users').update({ is_judge: true }).eq('id', targetUser.id);
+                  alert(`${targetUser.username} is now a Judge!`);
+                  if (input) input.value = '';
+                  await loadData();
+                } else {
+                  alert('User not found. They must be registered on Pantheon first.');
+                }
+              }}>
+                Appoint as Judge
+              </button>
+            </div>
           </div>
         </div>
       )}

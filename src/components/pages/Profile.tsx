@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import './Profile.css';
 import { SteamUser } from './SteamCallback';
-import { getUserBySteamId, getUserStatues, getUserRanks, UserStatue } from '../../services/supabase';
+import { getUserBySteamId, getUserStatues, getUserRanks, UserStatue, supabase, checkJudgeEligibility, submitJudgeApplication } from '../../services/supabase';
 
+type StatueTier = 'Bronze I' | 'Bronze II' | 'Bronze III' | 'Silver I' | 'Silver II' | 'Silver III' | 'Gold' | 'Gold I' | 'Platinum' | 'Diamond' | 'Legend' | 'Bronze' | 'Silver';
 
 const statueColors: Record<string, { primary: string; secondary: string; base: string }> = {
   'Bronze I':   { primary: '#e8974a', secondary: '#a06030', base: '#3a2215' },
@@ -88,11 +89,22 @@ const StatueSVG: React.FC<StatueSVGProps> = ({ tier, size = 80 }) => {
 
 interface ProfileProps { user: SteamUser | null; }
 
+
 const Profile: React.FC<ProfileProps> = ({ user }) => {
   const [selected, setSelected] = useState<UserStatue | null>(null);
   const [statues, setStatues] = useState<UserStatue[]>([]);
   const [ranks, setRanks] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [dbUserId, setDbUserId] = useState<string | null>(null);
+  const [games, setGames] = useState<any[]>([]);
+
+  // Judge application state
+  const [judgeEligibility, setJudgeEligibility] = useState<any>(null);
+  const [showJudgeForm, setShowJudgeForm] = useState(false);
+  const [judgeGameId, setJudgeGameId] = useState('');
+  const [judgeMotivation, setJudgeMotivation] = useState('');
+  const [judgeSubmitting, setJudgeSubmitting] = useState(false);
+  const [judgeMessage, setJudgeMessage] = useState('');
 
   const loadProfileData = useCallback(async () => {
     if (!user) return;
@@ -100,12 +112,20 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
     try {
       const dbUser = await getUserBySteamId(user.steamId);
       if (dbUser) {
+        setDbUserId(dbUser.id);
         const [userStatues, userRanks] = await Promise.all([
           getUserStatues(dbUser.id),
           getUserRanks(dbUser.id),
         ]);
         setStatues(userStatues);
         setRanks(userRanks);
+
+        // Load games and judge eligibility
+        const { data: gamesData } = await supabase.from('games').select('*');
+        setGames(gamesData || []);
+
+        const eligibility = await checkJudgeEligibility(dbUser.id, user.steamId);
+        setJudgeEligibility(eligibility);
       }
     } catch (e) {
       console.error('Failed to load profile:', e);
@@ -117,6 +137,28 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
     if (!user) return;
     loadProfileData();
   }, [user, loadProfileData]);
+
+  const handleJudgeApplication = async () => {
+    if (!dbUserId || !judgeGameId || !judgeMotivation.trim()) {
+      setJudgeMessage('Please select a game and write your motivation.');
+      return;
+    }
+    setJudgeSubmitting(true);
+    const success = await submitJudgeApplication(
+      dbUserId,
+      parseInt(judgeGameId),
+      judgeMotivation
+    );
+    if (success) {
+      setJudgeMessage('Application submitted! The admin will review it.');
+      setShowJudgeForm(false);
+      await loadProfileData();
+    } else {
+      setJudgeMessage('Error submitting application. Try again.');
+    }
+    setJudgeSubmitting(false);
+    setTimeout(() => setJudgeMessage(''), 4000);
+  };
 
   const topRank = ranks[0];
   const username = user?.username || 'Guest';
@@ -165,6 +207,9 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
             ))}
           </div>
         </div>
+        {judgeEligibility?.isAlreadyJudge && (
+          <div className="profile__judge-badge">⚖ Judge</div>
+        )}
       </div>
 
       <div className="profile__stats">
@@ -185,6 +230,87 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
           <div className="profile__stat-label">Games</div>
         </div>
       </div>
+
+      {/* Judge Application Section */}
+      {judgeEligibility && !judgeEligibility.isAlreadyJudge && (
+        <div className="profile__judge-section">
+          <div className="profile__judge-title">⚖ Become a Judge</div>
+
+          {!judgeEligibility.meetsRequirements ? (
+            <div className="profile__judge-requirements">
+              <div className="profile__judge-req-title">Requirements to apply:</div>
+              <div className={"profile__judge-req" + (judgeEligibility.hasGoldRank ? ' profile__judge-req--met' : '')}>
+                {judgeEligibility.hasGoldRank ? '✓' : '✗'} Gold rank in at least one game
+              </div>
+              <div className={"profile__judge-req" + (judgeEligibility.accountAgeOk ? ' profile__judge-req--met' : '')}>
+                {judgeEligibility.accountAgeOk ? '✓' : '✗'} Account at least 7 days old
+              </div>
+            </div>
+          ) : judgeEligibility.existingApplication ? (
+            <div className="profile__judge-status">
+              Application status:
+              <span style={{
+                color: judgeEligibility.existingApplication.status === 'approved' ? '#6ab87a' :
+                       judgeEligibility.existingApplication.status === 'rejected' ? '#e45a3a' : '#e8a830'
+              }}>
+                {' '}{judgeEligibility.existingApplication.status}
+              </span>
+            </div>
+          ) : (
+            <>
+              {!showJudgeForm ? (
+                <button className="profile__judge-btn" onClick={() => setShowJudgeForm(true)}>
+                  Apply to become a Judge
+                </button>
+              ) : (
+                <div className="profile__judge-form">
+                  <div className="profile__judge-field">
+                    <label className="profile__judge-label">Game you want to judge</label>
+                    <select
+                      className="profile__judge-select"
+                      value={judgeGameId}
+                      onChange={e => setJudgeGameId(e.target.value)}
+                    >
+                      <option value="">Select game...</option>
+                      {games.map(g => (
+                        <option key={g.id} value={g.id}>{g.title}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="profile__judge-field">
+                    <label className="profile__judge-label">Why do you want to be a judge?</label>
+                    <textarea
+                      className="profile__judge-textarea"
+                      placeholder="Tell us about your experience with this game..."
+                      value={judgeMotivation}
+                      onChange={e => setJudgeMotivation(e.target.value)}
+                      rows={3}
+                    />
+                  </div>
+                  <div className="profile__judge-actions">
+                    <button
+                      className="profile__judge-submit"
+                      onClick={handleJudgeApplication}
+                      disabled={judgeSubmitting}
+                    >
+                      {judgeSubmitting ? 'Submitting...' : 'Submit Application'}
+                    </button>
+                    <button
+                      className="profile__judge-cancel"
+                      onClick={() => setShowJudgeForm(false)}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+          {judgeMessage && (
+            <div className="profile__judge-message">{judgeMessage}</div>
+          )}
+        </div>
+      )}
 
       <div className="profile__section-title">Hall of Statues</div>
 
