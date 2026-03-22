@@ -5,6 +5,7 @@ import SteamCallback, { SteamUser } from './components/pages/SteamCallback';
 import Dashboard from './components/pages/Dashboard';
 import Pantheon from './components/pages/Pantheon';
 import Profile from './components/pages/Profile';
+import Admin from './components/pages/Admin';
 import Sidebar, { Page } from './components/ui/Sidebar';
 
 const isSteamCallback = (): boolean => {
@@ -32,6 +33,7 @@ const App: React.FC = () => {
     dashboard: 'Dashboard',
     pantheon: 'Pantheon of Legends',
     profile: 'Player Profile',
+    admin: 'Admin Panel',
   };
 
   const handleSteamSuccess = (steamUser: SteamUser) => {
@@ -57,7 +59,6 @@ const App: React.FC = () => {
           <div className="app__topbar">
             <span className="app__topbar-title">{titles[page]}</span>
             <div className="app__topbar-tags">
-              
               {user && <span className="app__tag app__tag--live">● {user.username}</span>}
             </div>
           </div>
@@ -65,6 +66,7 @@ const App: React.FC = () => {
             {page === 'dashboard' && <Dashboard user={user} />}
             {page === 'pantheon' && <Pantheon />}
             {page === 'profile' && <Profile user={user} />}
+            {page === 'admin' && <Admin user={user} />}
           </div>
         </div>
       </div>

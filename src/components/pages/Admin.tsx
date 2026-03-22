@@ -1,0 +1,250 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import './Admin.css';
+import { SteamUser } from './SteamCallback';
+import { supabase, getUserBySteamId } from '../../services/supabase';
+
+interface AdminProps { user: SteamUser | null; }
+
+interface Game {
+  id: number;
+  title: string;
+  steam_app_id: string;
+}
+
+interface Challenge {
+  id: string;
+  title: string;
+  description: string;
+  tier: string;
+  game_id: number;
+  created_at: string;
+  game?: { title: string };
+}
+
+const TIERS = ['Platinum', 'Diamond', 'Master', 'Grandmaster', 'Legend'];
+
+const Admin: React.FC<AdminProps> = ({ user }) => {
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [games, setGames] = useState<Game[]>([]);
+  const [challenges, setChallenges] = useState<Challenge[]>([]);
+  const [activeTab, setActiveTab] = useState<'challenges' | 'games'>('challenges');
+
+  // New challenge form
+  const [newChallenge, setNewChallenge] = useState({
+    title: '',
+    description: '',
+    tier: 'Platinum',
+    game_id: '',
+  });
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState('');
+
+  const loadData = useCallback(async () => {
+    if (!user) return;
+    setLoading(true);
+
+    const dbUser = await getUserBySteamId(user.steamId);
+    if (!dbUser?.is_admin) {
+      setIsAdmin(false);
+      setLoading(false);
+      return;
+    }
+    setIsAdmin(true);
+
+    const { data: gamesData } = await supabase
+      .from('games')
+      .select('*')
+      .order('title');
+    setGames(gamesData || []);
+
+    const { data: challengesData } = await supabase
+      .from('challenges')
+      .select('*, game:games(title)')
+      .order('created_at', { ascending: false });
+    setChallenges(challengesData || []);
+
+    setLoading(false);
+  }, [user]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  const handleAddChallenge = async () => {
+    if (!newChallenge.title || !newChallenge.description || !newChallenge.game_id) {
+      setMessage('Please fill all fields');
+      return;
+    }
+
+    setSaving(true);
+    const { error } = await supabase.from('challenges').insert({
+      title: newChallenge.title,
+      description: newChallenge.description,
+      tier: newChallenge.tier,
+      game_id: parseInt(newChallenge.game_id),
+      created_by: null,
+      attempts: 0,
+      type: 'community',
+    });
+
+    if (error) {
+      setMessage(`Error: ${error.message}`);
+    } else {
+      setMessage('Challenge added successfully!');
+      setNewChallenge({ title: '', description: '', tier: 'Platinum', game_id: '' });
+      await loadData();
+    }
+    setSaving(false);
+    setTimeout(() => setMessage(''), 3000);
+  };
+
+  const handleDeleteChallenge = async (id: string) => {
+    if (!window.confirm('Delete this challenge?')) return;
+    await supabase.from('challenges').delete().eq('id', id);
+    await loadData();
+  };
+
+  if (loading) {
+    return <div className="admin__loading">Loading...</div>;
+  }
+
+  if (!isAdmin) {
+    return <div className="admin__denied">Access denied. Admins only.</div>;
+  }
+
+  return (
+    <div className="admin">
+      <div className="admin__header">
+        <div className="admin__title">Admin Panel</div>
+        <div className="admin__subtitle">Pantheon Management</div>
+      </div>
+
+      <div className="admin__tabs">
+        <button
+          className={"admin__tab" + (activeTab === 'challenges' ? ' admin__tab--active' : '')}
+          onClick={() => setActiveTab('challenges')}
+        >
+          Challenges ({challenges.length})
+        </button>
+        <button
+          className={"admin__tab" + (activeTab === 'games' ? ' admin__tab--active' : '')}
+          onClick={() => setActiveTab('games')}
+        >
+          Games ({games.length})
+        </button>
+      </div>
+
+      {activeTab === 'challenges' && (
+        <div className="admin__section">
+          {/* Add challenge form */}
+          <div className="admin__form">
+            <div className="admin__form-title">Add New Challenge</div>
+
+            <div className="admin__field">
+              <label className="admin__label">Game</label>
+              <select
+                className="admin__select"
+                value={newChallenge.game_id}
+                onChange={e => setNewChallenge({ ...newChallenge, game_id: e.target.value })}
+              >
+                <option value="">Select game...</option>
+                {games.map(g => (
+                  <option key={g.id} value={g.id}>{g.title}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="admin__field">
+              <label className="admin__label">Tier</label>
+              <select
+                className="admin__select"
+                value={newChallenge.tier}
+                onChange={e => setNewChallenge({ ...newChallenge, tier: e.target.value })}
+              >
+                {TIERS.map(t => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="admin__field">
+              <label className="admin__label">Title</label>
+              <input
+                className="admin__input"
+                placeholder="e.g. Pantheon of Hallownest — No Damage"
+                value={newChallenge.title}
+                onChange={e => setNewChallenge({ ...newChallenge, title: e.target.value })}
+              />
+            </div>
+
+            <div className="admin__field">
+              <label className="admin__label">Description</label>
+              <textarea
+                className="admin__textarea"
+                placeholder="Describe the challenge conditions clearly..."
+                value={newChallenge.description}
+                onChange={e => setNewChallenge({ ...newChallenge, description: e.target.value })}
+                rows={3}
+              />
+            </div>
+
+            {message && (
+              <div className={"admin__message" + (message.includes('Error') ? ' admin__message--error' : ' admin__message--success')}>
+                {message}
+              </div>
+            )}
+
+            <button
+              className="admin__btn"
+              onClick={handleAddChallenge}
+              disabled={saving}
+            >
+              {saving ? 'Saving...' : 'Add Challenge'}
+            </button>
+          </div>
+
+          {/* Challenges list */}
+          <div className="admin__list">
+            <div className="admin__list-title">All Challenges ({challenges.length})</div>
+            {challenges.map(c => (
+              <div key={c.id} className="admin__item">
+                <div className="admin__item-info">
+                  <div className="admin__item-title">{c.title}</div>
+                  <div className="admin__item-meta">
+                    {c.game?.title} · {c.tier}
+                  </div>
+                  <div className="admin__item-desc">{c.description}</div>
+                </div>
+                <button
+                  className="admin__delete-btn"
+                  onClick={() => handleDeleteChallenge(c.id)}
+                >
+                  Delete
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'games' && (
+        <div className="admin__section">
+          <div className="admin__list">
+            <div className="admin__list-title">All Games</div>
+            {games.map(g => (
+              <div key={g.id} className="admin__item">
+                <div className="admin__item-info">
+                  <div className="admin__item-title">{g.title}</div>
+                  <div className="admin__item-meta">Steam App ID: {g.steam_app_id}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Admin;
