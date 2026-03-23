@@ -239,7 +239,7 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
             <div className="profile__judge-requirements">
               <div className="profile__judge-req-title">Requirements to apply:</div>
               <div className={"profile__judge-req" + (judgeEligibility.hasGoldRank ? ' profile__judge-req--met' : '')}>
-                {judgeEligibility.hasGoldRank ? '✓' : '✗'} Gold rank in at least one game
+                {judgeEligibility.hasPlatinumRank ? '✓' : '✗'} Platinum rank in at least one game
               </div>
               <div className={"profile__judge-req" + (judgeEligibility.accountAgeOk ? ' profile__judge-req--met' : '')}>
                 {judgeEligibility.accountAgeOk ? '✓' : '✗'} Account at least 7 days old

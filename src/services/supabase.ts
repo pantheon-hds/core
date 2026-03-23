@@ -74,11 +74,11 @@ export async function checkAchievements(steamId: string, appId: string) {
 // Check if user meets judge requirements
 export async function checkJudgeEligibility(userId: string, steamId: string) {
   // Check if has Gold rank
-  const { data: goldRank } = await supabase
+  const { data: platinumRank } = await supabase
     .from('ranks')
     .select('id')
     .eq('user_id', userId)
-    .eq('tier', 'Gold')
+    .eq('tier', 'Platinum%')
     .limit(1);
 
   // Check account age (7 days on platform)
@@ -101,11 +101,11 @@ export async function checkJudgeEligibility(userId: string, steamId: string) {
     .limit(1);
 
   return {
-    hasGoldRank: (goldRank?.length || 0) > 0,
+    hasPlatinumRank: (platinumRank?.length || 0) > 0,
     accountAgeOk: accountAge >= 7,
     isAlreadyJudge: user?.is_judge || false,
     existingApplication: existingApp?.[0] || null,
-    meetsRequirements: (goldRank?.length || 0) > 0 && accountAge >= 7,
+    meetsRequirements: (platinumRank?.length || 0) > 0 && accountAge >= 7,
   };
 }
 
