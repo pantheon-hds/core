@@ -63,3 +63,9 @@
   flex: 1;
   overflow: hidden;
 }
+
+.app__tag--founder {
+  color: #e8a830;
+  border-color: #8b6914;
+  font-size: 12px !important;
+}

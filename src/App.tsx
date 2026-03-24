@@ -42,6 +42,18 @@ const App: React.FC = () => {
     setEntered(true);
   };
 
+  const handleFounderLogin = (founderUser: any) => {
+    const user: SteamUser = {
+      steamId: founderUser.steamId,
+      username: founderUser.username,
+      avatarUrl: founderUser.avatarUrl,
+      isPublic: true,
+    };
+    localStorage.setItem('pantheon_user', JSON.stringify(user));
+    setUser(user);
+    setEntered(true);
+  };
+
   const handleSteamError = () => {
     window.location.href = '/';
   };
@@ -50,16 +62,28 @@ const App: React.FC = () => {
     return <SteamCallback onSuccess={handleSteamSuccess} onError={handleSteamError} />;
   }
 
+  const isFounder = user?.steamId === 'VOLAND_FOUNDER';
+
   return (
     <div className="app">
-      {!entered && <WelcomeScreen onEnter={() => setEntered(true)} />}
+      {!entered && (
+        <WelcomeScreen
+          onEnter={() => setEntered(true)}
+          onFounderLogin={handleFounderLogin}
+        />
+      )}
       <div className={"app__layout" + (entered ? " app__layout--visible" : "")}>
         <Sidebar current={page} onChange={setPage} user={user} />
         <div className="app__main">
           <div className="app__topbar">
             <span className="app__topbar-title">{titles[page]}</span>
             <div className="app__topbar-tags">
-              {user && <span className="app__tag app__tag--live">● {user.username}</span>}
+              {isFounder && (
+                <span className="app__tag app__tag--founder">⚜ Founder</span>
+              )}
+              {user && (
+                <span className="app__tag app__tag--live">● {user.username}</span>
+              )}
             </div>
           </div>
           <div className="app__content">

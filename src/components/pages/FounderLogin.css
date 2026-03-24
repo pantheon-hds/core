@@ -1,0 +1,63 @@
+.founder-login {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 8, 14, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.founder-login__box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: 280px;
+}
+
+.founder-login__title {
+  font-size: 24px;
+  color: var(--color-gold);
+  margin-bottom: 0.5rem;
+}
+
+.founder-login__input {
+  background: var(--color-bg-surface);
+  border: 0.5px solid var(--color-border-mid);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  font-size: 14px;
+  padding: 0.8rem 1rem;
+  outline: none;
+  width: 100%;
+  text-align: center;
+  letter-spacing: 0.2em;
+  transition: border-color 0.2s;
+}
+
+.founder-login__input:focus {
+  border-color: var(--color-gold-dim);
+}
+
+.founder-login__error {
+  font-size: 11px;
+  color: var(--color-legend);
+  letter-spacing: 0.1em;
+}
+
+.founder-login__btn {
+  font-family: var(--font-display);
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: #08080e;
+  background: var(--color-gold);
+  border: none;
+  padding: 0.6rem 2rem;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.founder-login__btn:hover { opacity: 0.85; }
+.founder-login__btn:disabled { opacity: 0.4; }
