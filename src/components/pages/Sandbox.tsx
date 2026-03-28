@@ -61,13 +61,21 @@ const Sandbox: React.FC<SandboxProps> = ({ user }) => {
     setLoading(true);
     for (let i = 0; i < judgeCount; i++) {
       const steamId = `TEST_JUDGE_${Date.now()}_${i}`;
-      await supabase.from('users').insert({
-        steam_id: steamId,
-        username: `TestJudge_${i + 1}`,
-        is_judge: true,
-        is_test: true,
-        is_admin: false,
-      });
+      const { data: newJudge } = await supabase.from('users').insert({
+  steam_id: steamId,
+  username: `TestJudge_${i + 1}`,
+  is_judge: true,
+  is_test: true,
+  is_admin: false,
+}).select().single();
+
+// Give rank in Hollow Knight and Silksong
+if (newJudge) {
+  await supabase.from('ranks').insert([
+    { user_id: newJudge.id, game_id: 2, tier: 'Gold', method: 'steam_auto', is_test: true },
+    { user_id: newJudge.id, game_id: 3, tier: 'Gold', method: 'steam_auto', is_test: true },
+  ]);
+}
     }
     showMessage(`Created ${judgeCount} test judges`);
     await loadData();
