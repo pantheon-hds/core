@@ -9,7 +9,7 @@ interface FAQItem {
 const faqData: FAQItem[] = [
   {
     question: "What is Pantheon HDS?",
-    answer: "Pantheon is a community-driven achievement platform for hardcore gamers. Here, 100% Steam achievements is not the end — it's just the beginning. Players earn ranks by completing community-created challenges, verified by real players, not algorithms."
+    answer: "Pantheon is a community-driven achievement platform for players who love games deeply. Here, 100% Steam achievements is not the end — it's just the beginning. Players earn ranks by completing community-created challenges, verified by real players, not algorithms. Whether you are an elite speedrunner or a dedicated completionist — if you love games deeply, this is your home. Currently the Warrior path is available — challenges and ranks. Other paths (Teacher, Lorekeeper, Creator, Orator and more) are in active development."
   },
   {
     question: "Is my Steam account safe?",
