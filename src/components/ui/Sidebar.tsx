@@ -3,7 +3,7 @@ import './Sidebar.css';
 import { SteamUser } from '../pages/SteamCallback';
 import { getUserBySteamId } from '../../services/supabase';
 
-export type Page = 'dashboard' | 'pantheon' | 'profile' | 'admin' | 'judge' | 'sandbox';
+export type Page = 'dashboard' | 'pantheon' | 'profile' | 'admin' | 'judge' | 'sandbox' | 'faq';
 
 interface SidebarProps {
   current: Page;
@@ -90,6 +90,17 @@ const Sidebar: React.FC<SidebarProps> = ({ current, onChange, user }) => {
             <span>Judge Panel</span>
           </button>
         )}
+        <button
+          className={"sidebar__nav-item" + (current === 'faq' ? " sidebar__nav-item--active" : "")}
+          onClick={() => onChange('faq')}
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1">
+            <circle cx="7" cy="7" r="6"/>
+            <path d="M7 10v-1M7 7c0-1.5 2-1.5 2-3a2 2 0 0 0-4 0"/>
+          </svg>
+          <span>About & FAQ</span>
+        </button>
+
         {user?.steamId === 'VOLAND_FOUNDER' && (
           <button
             className={"sidebar__nav-item" + (current === 'sandbox' ? " sidebar__nav-item--active" : "")}
@@ -109,21 +120,9 @@ const Sidebar: React.FC<SidebarProps> = ({ current, onChange, user }) => {
         ) : (
           <div className="sidebar__avatar">{initials}</div>
         )}
-        <div style={{ flex: 1 }}>
+        <div>
           <div className="sidebar__username">{user?.username || 'Guest'}</div>
-          {user ? (
-            <button
-              className="sidebar__logout-text"
-              onClick={() => {
-                localStorage.removeItem('pantheon_user');
-                window.location.href = '/';
-              }}
-            >
-              Log out
-            </button>
-          ) : (
-            <div className="sidebar__rank">Not logged in</div>
-          )}
+          <div className="sidebar__rank">{user ? 'Logged in' : 'Not logged in'}</div>
         </div>
       </div>
     </aside>
