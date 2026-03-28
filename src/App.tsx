@@ -7,6 +7,7 @@ import Pantheon from './components/pages/Pantheon';
 import Profile from './components/pages/Profile';
 import Admin from './components/pages/Admin';
 import JudgePanel from './components/pages/JudgePanel';
+import Sandbox from './components/pages/Sandbox';
 import Sidebar, { Page } from './components/ui/Sidebar';
 
 const isSteamCallback = (): boolean => {
@@ -36,6 +37,7 @@ const App: React.FC = () => {
     profile: 'Player Profile',
     admin: 'Admin Panel',
     judge: 'Judge Panel',
+    sandbox: 'Sandbox',
   };
 
   const handleSteamSuccess = (steamUser: SteamUser) => {
@@ -94,6 +96,7 @@ const App: React.FC = () => {
             {page === 'profile' && <Profile user={user} />}
             {page === 'admin' && <Admin user={user} />}
             {page === 'judge' && <JudgePanel user={user} />}
+            {page === 'sandbox' && <Sandbox user={user} />}
           </div>
         </div>
       </div>
