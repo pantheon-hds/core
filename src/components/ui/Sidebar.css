@@ -135,3 +135,21 @@
   color: var(--color-legend);
   border-color: var(--color-legend);
 }
+
+.sidebar__logout-text {
+  background: transparent;
+  border: none;
+  color: var(--color-text-dim);
+  font-family: var(--font-display);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s;
+  text-align: left;
+}
+
+.sidebar__logout-text:hover {
+  color: var(--color-legend);
+}
