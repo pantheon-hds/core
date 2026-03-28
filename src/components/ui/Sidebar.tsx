@@ -3,7 +3,7 @@ import './Sidebar.css';
 import { SteamUser } from '../pages/SteamCallback';
 import { getUserBySteamId } from '../../services/supabase';
 
-export type Page = 'dashboard' | 'pantheon' | 'profile' | 'admin';
+export type Page = 'dashboard' | 'pantheon' | 'profile' | 'admin' | 'judge';
 
 interface SidebarProps {
   current: Page;
@@ -13,11 +13,13 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ current, onChange, user }) => {
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isJudge, setIsJudge] = useState(false);
 
   useEffect(() => {
     if (!user) return;
     getUserBySteamId(user.steamId).then(dbUser => {
       setIsAdmin(dbUser?.is_admin || false);
+      setIsJudge(dbUser?.is_judge || false);
     });
   }, [user]);
 
@@ -75,6 +77,17 @@ const Sidebar: React.FC<SidebarProps> = ({ current, onChange, user }) => {
               <path d="M7 1v2M7 11v2M1 7h2M11 7h2M3 3l1.4 1.4M9.6 9.6L11 11M11 3l-1.4 1.4M4.4 9.6L3 11"/>
             </svg>
             <span>Admin</span>
+          </button>
+        )}
+        {isJudge && !isAdmin && (
+          <button
+            className={"sidebar__nav-item" + (current === 'judge' ? " sidebar__nav-item--active" : "")}
+            onClick={() => onChange('judge')}
+          >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1">
+              <path d="M2 12 L7 2 L12 12" /><line x1="3.5" y1="9" x2="10.5" y2="9"/>
+            </svg>
+            <span>Judge Panel</span>
           </button>
         )}
       </nav>

@@ -74,11 +74,11 @@ export async function checkAchievements(steamId: string, appId: string) {
 // Check if user meets judge requirements
 export async function checkJudgeEligibility(userId: string, steamId: string) {
   // Check if has Gold rank
-  const { data: platinumRank } = await supabase
+  const { data: goldRank } = await supabase
     .from('ranks')
     .select('id')
     .eq('user_id', userId)
-    .eq('tier', 'Platinum%')
+    .eq('tier', 'Gold')
     .limit(1);
 
   // Check account age (7 days on platform)
@@ -101,11 +101,11 @@ export async function checkJudgeEligibility(userId: string, steamId: string) {
     .limit(1);
 
   return {
-    hasPlatinumRank: (platinumRank?.length || 0) > 0,
+    hasGoldRank: (goldRank?.length || 0) > 0,
     accountAgeOk: accountAge >= 7,
     isAlreadyJudge: user?.is_judge || false,
     existingApplication: existingApp?.[0] || null,
-    meetsRequirements: (platinumRank?.length || 0) > 0 && accountAge >= 7,
+    meetsRequirements: (goldRank?.length || 0) > 0 && accountAge >= 7,
   };
 }
 
@@ -122,4 +122,20 @@ export async function submitJudgeApplication(
     status: 'pending',
   });
   return !error;
+}
+
+// Assign judges to a submission
+export async function assignJudges(submissionId: string): Promise<boolean> {
+  const response = await fetch(
+    `${SUPABASE_URL}/functions/v1/assign-judges`,
+    {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ submissionId }),
+    }
+  );
+  return response.ok;
 }

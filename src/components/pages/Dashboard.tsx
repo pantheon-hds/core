@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import './Dashboard.css';
 import { SteamUser } from './SteamCallback';
-import { getUserBySteamId, getUserRanks, checkAchievements, UserRank, supabase } from '../../services/supabase';
+import { getUserBySteamId, getUserRanks, checkAchievements, UserRank, supabase, assignJudges } from '../../services/supabase';
 
 const TIER_COLORS: Record<string, string> = {
   Platinum: '#9ac4e4',
@@ -159,7 +159,22 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
     if (error) {
       setSubmitMessage(`Error: ${error.message}`);
     } else {
-      setSubmitMessage('Submission sent! Judges will review your video.');
+      // Get the new submission ID and assign judges
+      const { data: newSub } = await supabase
+        .from('submissions')
+        .select('id')
+        .eq('user_id', dbUserId)
+        .eq('challenge_id', submitChallenge.id)
+        .eq('status', 'pending')
+        .order('submitted_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (newSub) {
+        await assignJudges(newSub.id);
+      }
+
+      setSubmitMessage('Submission sent! Judges have been assigned and will review your video.');
       setVideoUrl('');
       setComment('');
       await loadSubmissions(dbUserId);
