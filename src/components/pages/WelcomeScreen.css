@@ -137,3 +137,10 @@
 .welcome__demo:hover {
   color: #5a5040;
 }
+
+.welcome__logo {
+  width: 280px;
+  max-width: 80%;
+  margin-bottom: 2rem;
+  opacity: 0.9;
+}

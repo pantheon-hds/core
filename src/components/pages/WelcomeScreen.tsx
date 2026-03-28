@@ -44,6 +44,11 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnter, onFounderLogin }
       <div className="welcome__line welcome__line--bottom" />
 
       <div className="welcome__content">
+	<img 
+  src="/logo-hero.png" 
+  alt="Pantheon" 
+  className="welcome__logo"
+/>
         <div className="welcome__words">
           <span
             className="welcome__word welcome__word--1"
