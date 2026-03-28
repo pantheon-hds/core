@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import './Sandbox.css';
 import { SteamUser } from './SteamCallback';
-import { supabase, assignJudges } from '../../services/supabase';
+import { supabase } from '../../services/supabase';
 
 interface SandboxProps { user: SteamUser | null; }
 
