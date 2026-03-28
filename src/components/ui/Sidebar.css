@@ -115,3 +115,20 @@
   flex-shrink: 0;
   object-fit: cover;
 }
+
+.sidebar__logout {
+  background: transparent;
+  border: 0.5px solid var(--color-border-mid);
+  color: var(--color-text-dim);
+  padding: 0.3rem 0.5rem;
+  cursor: pointer;
+  font-size: 12px;
+  margin-left: auto;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.sidebar__logout:hover {
+  color: var(--color-legend);
+  border-color: var(--color-legend);
+}

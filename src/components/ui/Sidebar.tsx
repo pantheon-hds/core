@@ -113,6 +113,17 @@ const Sidebar: React.FC<SidebarProps> = ({ current, onChange, user }) => {
           <div className="sidebar__username">{user?.username || 'Guest'}</div>
           <div className="sidebar__rank">{user ? 'Logged in' : 'Not logged in'}</div>
         </div>
+        {user && (
+          <button
+            className="sidebar__logout"
+            onClick={() => {
+              localStorage.removeItem('pantheon_user');
+              window.location.href = '/';
+            }}
+          >
+            ↪
+          </button>
+        )}
       </div>
     </aside>
   );
