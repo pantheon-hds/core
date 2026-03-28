@@ -75,6 +75,8 @@
   display: flex;
   align-items: center;
   gap: 0.6rem;
+  flex-wrap: nowrap;
+  overflow: hidden;
 }
 
 .sidebar__avatar {
@@ -123,9 +125,10 @@
   padding: 0.3rem 0.5rem;
   cursor: pointer;
   font-size: 12px;
-  margin-left: auto;
   transition: all 0.2s;
   flex-shrink: 0;
+  margin-left: auto;
+  min-width: 28px;
 }
 
 .sidebar__logout:hover {
