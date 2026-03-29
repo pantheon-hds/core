@@ -663,3 +663,9 @@
   .landing__games { grid-template-columns: 1fr; }
   .landing__beta-options { flex-direction: column; }
 }
+
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 70px;
+}
