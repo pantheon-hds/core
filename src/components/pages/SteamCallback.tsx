@@ -3,8 +3,6 @@ import './SteamCallback.css';
 
 const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.REACT_APP_SUPABASE_ANON_KEY;
-console.log('URL:', process.env.REACT_APP_SUPABASE_URL);
-console.log('KEY exists:', !!process.env.REACT_APP_SUPABASE_ANON_KEY);
 
 interface SteamCallbackProps {
   onSuccess: (user: SteamUser) => void;
@@ -26,51 +24,50 @@ const SteamCallback: React.FC<SteamCallbackProps> = ({ onSuccess, onError }) => 
     const handleCallback = async () => {
       try {
         const params = new URLSearchParams(window.location.search);
-console.log('All params:', window.location.search);
-console.log('steamId param:', params.get('steamId'));
-console.log('username param:', params.get('username'));
         const steamId = params.get('steamId');
         const username = params.get('username');
         const avatar = params.get('avatar');
         const isPublic = params.get('public') === 'true';
 
-      if (steamId && username) {
-  setStatus('checking');
-  setMessage('Checking achievements...');
-  const user: SteamUser = {
-    steamId,
-    username: decodeURIComponent(username),
-    avatarUrl: decodeURIComponent(avatar || ''),
-    isPublic,
-  };
+        // Direct callback with user data — success path
+        if (steamId && username) {
+          setStatus('checking');
+          setMessage('Checking achievements...');
 
-  try {
-    await fetch(
-      `${SUPABASE_URL}/functions/v1/check-achievements`,
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          steamId,
-          appId: '3228590',
-        }),
-      }
-    );
-  } catch (e) {
-    console.log('Achievement check failed:', e);
-  }
+          const user: SteamUser = {
+            steamId,
+            username: decodeURIComponent(username),
+            avatarUrl: decodeURIComponent(avatar || ''),
+            isPublic,
+          };
 
-  onSuccess(user);
-  window.history.replaceState({}, '', '/');
-  return;
-}
+          try {
+            await fetch(
+              `${SUPABASE_URL}/functions/v1/check-achievements`,
+              {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ steamId, appId: '3228590' }),
+              }
+            );
+          } catch (e) {
+            console.log('Achievement check failed:', e);
+          }
 
+          window.history.replaceState({}, '', '/app');
+          onSuccess(user);
+          return;
+        }
+
+        // OpenID callback — verify with Edge Function
         const claimedId = params.get('openid.claimed_id');
         if (!claimedId) {
-          onError();
+          setStatus('error');
+          setMessage('Login failed. Please try again.');
+          setTimeout(onError, 2000);
           return;
         }
 
