@@ -3,18 +3,12 @@ import './SteamAuth.css';
 
 const STEAM_OPENID_URL = 'https://steamcommunity.com/openid/login';
 const APP_URL = 'https://pantheonhds.com';
-const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
-
 
 const buildSteamAuthUrl = (): string => {
-  // return_to points to our Edge Function which handles verification
-  // then redirects back to /app with user data
-  const returnTo = `${SUPABASE_URL}/functions/v1/steam-auth`;
-
   const params = new URLSearchParams({
     'openid.ns': 'http://specs.openid.net/auth/2.0',
     'openid.mode': 'checkid_setup',
-    'openid.return_to': returnTo,
+    'openid.return_to': `${APP_URL}/app`,
     'openid.realm': APP_URL,
     'openid.identity': 'http://specs.openid.net/auth/2.0/identifier_select',
     'openid.claimed_id': 'http://specs.openid.net/auth/2.0/identifier_select',
