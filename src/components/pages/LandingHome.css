@@ -292,3 +292,30 @@
 @media (max-width: 480px) {
   .lh__steps { grid-template-columns: 1fr; }
 }
+
+.lh__btn--scroll {
+  background: transparent;
+  color: var(--color-gold-dim);
+  border: 0.5px solid var(--color-border-mid);
+  width: 48px;
+  height: 48px;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  animation: lhBounce 2s ease infinite;
+  flex-shrink: 0;
+}
+
+.lh__btn--scroll:hover {
+  color: var(--color-gold);
+  border-color: var(--color-gold-dim);
+  animation: none;
+}
+
+@keyframes lhBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(5px); }
+}

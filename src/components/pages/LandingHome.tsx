@@ -22,14 +22,19 @@ const LandingHome: React.FC = () => {
           </div>
           <div className="lh__hero-actions">
             <Link to="/beta" className="lh__btn lh__btn--primary">Request Invite</Link>
-            <Link to="/ranks" className="lh__btn lh__btn--ghost">Learn More →</Link>
+            <button
+              className="lh__btn lh__btn--scroll"
+              onClick={() => document.getElementById('story')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              ↓
+            </button>
           </div>
         </div>
         <div className="lh__scroll-line" />
       </section>
 
       {/* Story */}
-      <section className="lh__section">
+      <section className="lh__section" id="story">
         <div className="lh__inner">
           <div className="lh__label">The Story</div>
           <h2 className="lh__title">You got 100%.<br />Now what?</h2>
