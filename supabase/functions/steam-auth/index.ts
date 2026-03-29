@@ -4,7 +4,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 const STEAM_API_KEY = Deno.env.get('STEAM_API_KEY')
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
 const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-const APP_URL = Deno.env.get('APP_URL') || 'https://pantheon-hds.vercel.app'
+const APP_URL = Deno.env.get('APP_URL') || 'https://pantheonhds.com'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -49,7 +49,6 @@ async function getSteamProfile(steamId: string) {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -74,27 +73,22 @@ serve(async (req) => {
       )
     }
 
-    // Verify with Steam
     const isValid = await verifySteamLogin(params)
     if (!isValid) {
-      const redirectUrl = `${APP_URL}?error=auth_failed`
       return new Response(null, {
         status: 302,
-        headers: { ...corsHeaders, Location: redirectUrl }
+        headers: { ...corsHeaders, Location: `${APP_URL}/app?error=auth_failed` }
       })
     }
 
-    // Get Steam profile
     const profile = await getSteamProfile(steamId)
     if (!profile) {
-      const redirectUrl = `${APP_URL}?error=profile_failed`
       return new Response(null, {
         status: 302,
-        headers: { ...corsHeaders, Location: redirectUrl }
+        headers: { ...corsHeaders, Location: `${APP_URL}/app?error=profile_failed` }
       })
     }
 
-    // Save or update user in Supabase
     const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_KEY!)
 
     const { data: existingUser } = await supabase
@@ -117,8 +111,8 @@ serve(async (req) => {
       }).eq('steam_id', steamId)
     }
 
-    // Redirect back to app with user data
-    const redirectUrl = `${APP_URL}?steamId=${steamId}&username=${encodeURIComponent(profile.username)}&avatar=${encodeURIComponent(profile.avatarUrl)}&public=${profile.isPublic}`
+    // Redirect to /app with user data
+    const redirectUrl = `${APP_URL}/app?steamId=${steamId}&username=${encodeURIComponent(profile.username)}&avatar=${encodeURIComponent(profile.avatarUrl)}&public=${profile.isPublic}`
 
     return new Response(null, {
       status: 302,
