@@ -8,10 +8,29 @@ interface WelcomeScreenProps {
   onFounderLogin: (user: any) => void;
 }
 
+const BETA_PASSWORD = 'pantheon2026';
+
 const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnter, onFounderLogin }) => {
   const [leaving, setLeaving] = useState(false);
   const [showFounder, setShowFounder] = useState(false);
   const [honorClicks, setHonorClicks] = useState(0);
+
+  const [betaUnlocked, setBetaUnlocked] = useState(
+    localStorage.getItem('pantheon_beta') === 'true'
+  );
+  const [betaInput, setBetaInput] = useState('');
+  const [betaError, setBetaError] = useState('');
+
+  const handleBetaSubmit = () => {
+    if (betaInput.trim().toLowerCase() === BETA_PASSWORD) {
+      localStorage.setItem('pantheon_beta', 'true');
+      setBetaUnlocked(true);
+      setBetaError('');
+    } else {
+      setBetaError('Invalid access code.');
+      setBetaInput('');
+    }
+  };
 
   const handleEnter = () => {
     setLeaving(true);
@@ -27,6 +46,43 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnter, onFounderLogin }
     }
     setTimeout(() => setHonorClicks(0), 2000);
   };
+
+  if (!betaUnlocked) {
+    return (
+      <div className="welcome">
+        <div className="welcome__line welcome__line--top" />
+        <div className="welcome__line welcome__line--bottom" />
+        <div className="welcome__content">
+          <img src="/logo-hero.png" alt="Pantheon" className="welcome__logo" />
+          <div className="welcome__words">
+            <span className="welcome__word welcome__word--1">Honor</span>
+            <div className="welcome__sep" />
+            <span className="welcome__word welcome__word--2">Democracy</span>
+            <div className="welcome__sep" />
+            <span className="welcome__word welcome__word--3">Skill</span>
+          </div>
+          <div className="welcome__beta-gate">
+            <div className="welcome__beta-title">Closed Beta</div>
+            <div className="welcome__beta-text">Enter your access code to continue.</div>
+            <input
+              className="welcome__beta-input"
+              type="password"
+              placeholder="Access code"
+              value={betaInput}
+              onChange={e => setBetaInput(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleBetaSubmit()}
+              autoFocus
+            />
+            {betaError && <div className="welcome__beta-error">{betaError}</div>}
+            <button className="welcome__beta-btn" onClick={handleBetaSubmit}>
+              Enter
+            </button>
+            <a href="/" className="welcome__beta-back">← Back to site</a>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`welcome ${leaving ? 'welcome--out' : ''}`}>
@@ -44,11 +100,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnter, onFounderLogin }
       <div className="welcome__line welcome__line--bottom" />
 
       <div className="welcome__content">
-	<img 
-  src="/logo-hero.png" 
-  alt="Pantheon" 
-  className="welcome__logo"
-/>
+        <img src="/logo-hero.png" alt="Pantheon" className="welcome__logo" />
         <div className="welcome__words">
           <span
             className="welcome__word welcome__word--1"
