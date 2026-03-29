@@ -10,6 +10,7 @@ import JudgePanel from './components/pages/JudgePanel';
 import Sandbox from './components/pages/Sandbox';
 import FAQ from './components/pages/FAQ';
 import Sidebar, { Page } from './components/ui/Sidebar';
+import WelcomeScreen from './components/pages/WelcomeScreen';
 import LandingHome from './components/pages/LandingHome';
 import LandingRanks from './components/pages/LandingRanks';
 import LandingGames from './components/pages/LandingGames';
@@ -29,7 +30,6 @@ const getSavedUser = (): SteamUser | null => {
   }
 };
 
-// App shell — shown when logged in
 const AppShell: React.FC<{ user: SteamUser | null; onLogout: () => void }> = ({ user, onLogout }) => {
   const [page, setPage] = useState<Page>('dashboard');
 
@@ -83,7 +83,7 @@ const App: React.FC = () => {
           setUser(steamUser);
           window.location.href = '/app';
         }}
-        onError={() => { window.location.href = '/'; }}
+        onError={() => { window.location.href = '/app'; }}
       />
     );
   }
@@ -94,26 +94,36 @@ const App: React.FC = () => {
     window.location.href = '/';
   };
 
+  const handleFounderLogin = (founderUser: any) => {
+    const steamUser: SteamUser = {
+      steamId: founderUser.steamId,
+      username: founderUser.username,
+      avatarUrl: founderUser.avatarUrl,
+      isPublic: true,
+    };
+    localStorage.setItem('pantheon_user', JSON.stringify(steamUser));
+    setUser(steamUser);
+    window.location.href = '/app';
+  };
+
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public landing pages */}
         <Route path="/" element={<LandingHome />} />
         <Route path="/ranks" element={<LandingRanks />} />
         <Route path="/games" element={<LandingGames />} />
         <Route path="/beta" element={<LandingBeta />} />
-
-        {/* App — requires login */}
         <Route
           path="/app"
           element={
             user
               ? <AppShell user={user} onLogout={handleLogout} />
-              : <Navigate to="/" replace />
+              : <WelcomeScreen
+                  onEnter={() => {}}
+                  onFounderLogin={handleFounderLogin}
+                />
           }
         />
-
-        {/* Catch all */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
