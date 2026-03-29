@@ -2,7 +2,7 @@ import React from 'react';
 import './SteamAuth.css';
 
 const STEAM_OPENID_URL = 'https://steamcommunity.com/openid/login';
-const APP_URL = 'https://pantheon-hds.vercel.app';
+const APP_URL = 'https://pantheonhds.com';
 
 const buildSteamAuthUrl = (): string => {
   const params = new URLSearchParams({
