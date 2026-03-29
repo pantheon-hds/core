@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './App.css';
 import WelcomeScreen from './components/pages/WelcomeScreen';
+import Landing from './components/pages/Landing';
 import SteamCallback, { SteamUser } from './components/pages/SteamCallback';
 import Dashboard from './components/pages/Dashboard';
 import Pantheon from './components/pages/Pantheon';
@@ -72,7 +73,10 @@ const App: React.FC = () => {
 
   return (
     <div className="app">
-      {!entered && (
+      {!entered && !user && (
+        <Landing onEnterApp={() => setEntered(true)} />
+      )}
+      {!entered && !user && false && (
         <WelcomeScreen
           onEnter={() => setEntered(true)}
           onFounderLogin={handleFounderLogin}
