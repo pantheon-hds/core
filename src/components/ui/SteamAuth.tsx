@@ -4,7 +4,7 @@ import './SteamAuth.css';
 const STEAM_OPENID_URL = 'https://steamcommunity.com/openid/login';
 const APP_URL = 'https://pantheonhds.com';
 const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
-const SUPABASE_ANON_KEY = process.env.REACT_APP_SUPABASE_ANON_KEY;
+
 
 const buildSteamAuthUrl = (): string => {
   // return_to points to our Edge Function which handles verification
