@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
-import WelcomeScreen from './components/pages/WelcomeScreen';
-import Landing from './components/pages/Landing';
 import SteamCallback, { SteamUser } from './components/pages/SteamCallback';
 import Dashboard from './components/pages/Dashboard';
 import Pantheon from './components/pages/Pantheon';
@@ -11,6 +10,10 @@ import JudgePanel from './components/pages/JudgePanel';
 import Sandbox from './components/pages/Sandbox';
 import FAQ from './components/pages/FAQ';
 import Sidebar, { Page } from './components/ui/Sidebar';
+import LandingHome from './components/pages/LandingHome';
+import LandingRanks from './components/pages/LandingRanks';
+import LandingGames from './components/pages/LandingGames';
+import LandingBeta from './components/pages/LandingBeta';
 
 const isSteamCallback = (): boolean => {
   const params = new URLSearchParams(window.location.search);
@@ -26,12 +29,9 @@ const getSavedUser = (): SteamUser | null => {
   }
 };
 
-const App: React.FC = () => {
-  const savedUser = getSavedUser();
-  const [entered, setEntered] = useState(!!savedUser);
+// App shell — shown when logged in
+const AppShell: React.FC<{ user: SteamUser | null; onLogout: () => void }> = ({ user, onLogout }) => {
   const [page, setPage] = useState<Page>('dashboard');
-  const [user, setUser] = useState<SteamUser | null>(savedUser);
-  const [isCallback] = useState(isSteamCallback);
 
   const titles: Record<Page, string> = {
     dashboard: 'Dashboard',
@@ -43,57 +43,18 @@ const App: React.FC = () => {
     faq: 'About & FAQ',
   };
 
-  const handleSteamSuccess = (steamUser: SteamUser) => {
-    localStorage.setItem('pantheon_user', JSON.stringify(steamUser));
-    setUser(steamUser);
-    setEntered(true);
-  };
-
-  const handleFounderLogin = (founderUser: any) => {
-    const user: SteamUser = {
-      steamId: founderUser.steamId,
-      username: founderUser.username,
-      avatarUrl: founderUser.avatarUrl,
-      isPublic: true,
-    };
-    localStorage.setItem('pantheon_user', JSON.stringify(user));
-    setUser(user);
-    setEntered(true);
-  };
-
-  const handleSteamError = () => {
-    window.location.href = '/';
-  };
-
-  if (isCallback) {
-    return <SteamCallback onSuccess={handleSteamSuccess} onError={handleSteamError} />;
-  }
-
   const isFounder = user?.steamId === 'VOLAND_FOUNDER';
 
   return (
     <div className="app">
-      {!entered && !user && (
-        <Landing onEnterApp={() => setEntered(true)} />
-      )}
-      {!entered && !user && false && (
-        <WelcomeScreen
-          onEnter={() => setEntered(true)}
-          onFounderLogin={handleFounderLogin}
-        />
-      )}
-      <div className={"app__layout" + (entered ? " app__layout--visible" : "")}>
-        <Sidebar current={page} onChange={setPage} user={user} />
+      <div className="app__layout app__layout--visible">
+        <Sidebar current={page} onChange={setPage} user={user} onLogout={onLogout} />
         <div className="app__main">
           <div className="app__topbar">
             <span className="app__topbar-title">{titles[page]}</span>
             <div className="app__topbar-tags">
-              {isFounder && (
-                <span className="app__tag app__tag--founder">⚜ Founder</span>
-              )}
-              {user && (
-                <span className="app__tag app__tag--live">● {user.username}</span>
-              )}
+              {isFounder && <span className="app__tag app__tag--founder">⚜ Founder</span>}
+              {user && <span className="app__tag app__tag--live">● {user.username}</span>}
             </div>
           </div>
           <div className="app__content">
@@ -108,6 +69,54 @@ const App: React.FC = () => {
         </div>
       </div>
     </div>
+  );
+};
+
+const App: React.FC = () => {
+  const [user, setUser] = useState<SteamUser | null>(getSavedUser());
+
+  if (isSteamCallback()) {
+    return (
+      <SteamCallback
+        onSuccess={(steamUser) => {
+          localStorage.setItem('pantheon_user', JSON.stringify(steamUser));
+          setUser(steamUser);
+          window.location.href = '/app';
+        }}
+        onError={() => { window.location.href = '/'; }}
+      />
+    );
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem('pantheon_user');
+    setUser(null);
+    window.location.href = '/';
+  };
+
+  return (
+    <BrowserRouter>
+      <Routes>
+        {/* Public landing pages */}
+        <Route path="/" element={<LandingHome />} />
+        <Route path="/ranks" element={<LandingRanks />} />
+        <Route path="/games" element={<LandingGames />} />
+        <Route path="/beta" element={<LandingBeta />} />
+
+        {/* App — requires login */}
+        <Route
+          path="/app"
+          element={
+            user
+              ? <AppShell user={user} onLogout={handleLogout} />
+              : <Navigate to="/" replace />
+          }
+        />
+
+        {/* Catch all */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
   );
 };
 

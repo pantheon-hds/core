@@ -1,0 +1,147 @@
+.lg__page { padding: 5rem 2rem 6rem; min-height: calc(100vh - 65px); }
+.lg__inner { max-width: 900px; margin: 0 auto; }
+
+.lg__label {
+  font-family: var(--font-display);
+  font-size: 10px;
+  letter-spacing: 0.4em;
+  color: var(--color-gold-dim);
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+
+.lg__title {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 5vw, 52px);
+  letter-spacing: 0.05em;
+  color: var(--color-text-primary);
+  margin: 0 0 1rem;
+  font-weight: 400;
+}
+
+.lg__subtitle {
+  font-size: 17px;
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+  margin-bottom: 4rem;
+  max-width: 560px;
+}
+
+.lg__games {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 4rem;
+}
+
+.lg__game {
+  border: 0.5px solid var(--color-border-mid);
+  padding: 2rem;
+  transition: all 0.2s;
+}
+
+.lg__game:hover { border-color: var(--color-gold-dim); transform: translateY(-2px); }
+
+.lg__game--soon { opacity: 0.5; border-style: dashed; }
+.lg__game--soon:hover { border-color: var(--color-border-mid); transform: none; }
+
+.lg__game-header { margin-bottom: 1rem; }
+
+.lg__game-status {
+  font-family: var(--font-display);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.lg__game-status--live { color: #6ab87a; }
+.lg__game-status--soon { color: var(--color-text-dim); }
+
+.lg__game-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  letter-spacing: 0.08em;
+  color: var(--color-text-primary);
+  margin-bottom: 0.4rem;
+}
+
+.lg__game-studio {
+  font-size: 12px;
+  color: var(--color-gold-dim);
+  letter-spacing: 0.1em;
+}
+
+.lg__game-divider {
+  height: 0.5px;
+  background: var(--color-border);
+  margin: 1.2rem 0;
+}
+
+.lg__game-stats {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 1.2rem;
+}
+
+.lg__game-stat-value {
+  font-family: var(--font-display);
+  font-size: 20px;
+  color: var(--color-gold);
+  margin-bottom: 0.3rem;
+}
+
+.lg__game-stat-label {
+  font-size: 11px;
+  color: var(--color-text-dim);
+  letter-spacing: 0.05em;
+}
+
+.lg__game-desc {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+}
+
+.lg__note {
+  border: 0.5px solid var(--color-border-mid);
+  padding: 2rem;
+  margin-bottom: 3rem;
+  background: var(--color-bg-surface);
+}
+
+.lg__note-title {
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: 0.25em;
+  color: var(--color-gold);
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+
+.lg__note-text {
+  font-size: 15px;
+  color: var(--color-text-secondary);
+  line-height: 1.8;
+}
+
+.lg__cta { display: flex; gap: 1rem; flex-wrap: wrap; }
+
+.lg__btn {
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  padding: 0.9rem 2.5rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s;
+  display: inline-block;
+  border: none;
+}
+
+.lg__btn--primary { background: var(--color-gold); color: #08080e; }
+.lg__btn--primary:hover { opacity: 0.85; }
+.lg__btn--ghost { background: transparent; color: var(--color-text-secondary); border: 0.5px solid var(--color-border-mid); }
+.lg__btn--ghost:hover { color: var(--color-gold); border-color: var(--color-gold-dim); }
+
+@media (max-width: 768px) { .lg__games { grid-template-columns: 1fr; } }

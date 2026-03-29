@@ -9,9 +9,10 @@ interface SidebarProps {
   current: Page;
   onChange: (page: Page) => void;
   user: SteamUser | null;
+  onLogout?: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ current, onChange, user }) => {
+const Sidebar: React.FC<SidebarProps> = ({ current, onChange, user, onLogout }) => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isJudge, setIsJudge] = useState(false);
 
