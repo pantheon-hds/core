@@ -19,6 +19,10 @@ const STATUE_COLORS: Record<string, string> = {
   'Bronze III': '#e8974a',
   'Bronze II': '#e8974a',
   'Bronze I': '#e8974a',
+  'Platinum I': '#9ac4e4',
+  'Diamond I': '#b8e4ff',
+  'Master I': '#d4a8f4',
+  'Grandmaster': '#f4d4a8',
 };
 
 const ALLOWED_DOMAINS = ['youtube.com', 'youtu.be', 'twitch.tv'];
@@ -36,6 +40,39 @@ const GAMES = [
   { appId: '367520', title: 'Hollow Knight' },
   { appId: '1030300', title: 'Hollow Knight: Silksong' },
 ];
+
+// Progress to next rank based on current rank
+function getProgressInfo(currentTier: string, approvedSubmissions: any[], challenges: any[]) {
+  const isBronze = currentTier.startsWith('Bronze');
+  const isSilver = currentTier.startsWith('Silver');
+  const isGold = currentTier === 'Gold';
+  const isPlatinum = currentTier.startsWith('Platinum');
+  const isDiamond = currentTier.startsWith('Diamond');
+  const isMaster = currentTier.startsWith('Master');
+  const isGrandmaster = currentTier === 'Grandmaster';
+
+  if (isGrandmaster) {
+    return { nextRank: 'Legend', required: 0, completed: 0, challengeTier: null, isLegend: true };
+  }
+
+  let required = 0;
+  let challengeTier = '';
+  let nextRank = '';
+
+  if (isBronze) { required = 5; challengeTier = 'Platinum'; nextRank = 'Platinum'; }
+  else if (isSilver) { required = 4; challengeTier = 'Platinum'; nextRank = 'Platinum'; }
+  else if (isGold) { required = 3; challengeTier = 'Platinum'; nextRank = 'Platinum'; }
+  else if (isPlatinum) { required = 2; challengeTier = 'Diamond'; nextRank = 'Diamond'; }
+  else if (isDiamond) { required = 2; challengeTier = 'Master'; nextRank = 'Master'; }
+  else if (isMaster) { required = 1; challengeTier = 'Grandmaster'; nextRank = 'Grandmaster'; }
+
+  const approvedChallengeIds = approvedSubmissions.map(s => s.challenge_id);
+  const completed = challenges.filter(c =>
+    c.tier === challengeTier && approvedChallengeIds.includes(c.id)
+  ).length;
+
+  return { nextRank, required, completed, challengeTier, isLegend: false };
+}
 
 interface DBChallenge {
   id: string;
@@ -65,7 +102,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   const [loading, setLoading] = useState(false);
   const [dbUserId, setDbUserId] = useState<string | null>(null);
 
-  // Submit form state
   const [videoUrl, setVideoUrl] = useState('');
   const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -159,7 +195,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
     if (error) {
       setSubmitMessage(`Error: ${error.message}`);
     } else {
-      // Get the new submission ID and assign judges
       const { data: newSub } = await supabase
         .from('submissions')
         .select('id')
@@ -204,13 +239,16 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   };
 
   const topRank = [...ranks].sort((a, b) => {
-    const order = ['Gold', 'Silver III', 'Silver II', 'Silver I', 'Bronze III', 'Bronze II', 'Bronze I'];
+    const order = ['Grandmaster', 'Master I', 'Diamond I', 'Platinum I', 'Gold', 'Silver III', 'Silver II', 'Silver I', 'Bronze III', 'Bronze II', 'Bronze I'];
     return order.indexOf(a.tier) - order.indexOf(b.tier);
   })[0];
 
-  const statueColor = topRank ? (STATUE_COLORS[topRank.tier] || '#3a3020') : '#3a3020';
+  const statueColor = topRank ? (STATUE_COLORS[topRank.tier] || '#c9922a') : '#3a3020';
   const tiers = ['All', ...Array.from(new Set(challenges.map(c => c.tier)))];
   const filtered = filter === 'All' ? challenges : challenges.filter(c => c.tier === filter);
+
+  const approvedSubmissions = submissions.filter(s => s.status === 'approved');
+  const progress = topRank ? getProgressInfo(topRank.tier, approvedSubmissions, challenges) : null;
 
   return (
     <div className="dashboard">
@@ -226,15 +264,19 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
             <div className="dashboard__modal-desc">{activeChallenge.description}</div>
             <div className="dashboard__modal-meta">{activeChallenge.game?.title}</div>
             <div className="dashboard__modal-actions">
-              <button
-                className="dashboard__modal-submit-btn"
-                onClick={() => {
-                  setActiveChallenge(null);
-                  setSubmitChallenge(activeChallenge);
-                }}
-              >
-                Submit Attempt
-              </button>
+              {getSubmissionStatus(activeChallenge.id)?.status === 'approved' ? (
+                <div className="dashboard__modal-completed">✓ Completed</div>
+              ) : (
+                <button
+                  className="dashboard__modal-submit-btn"
+                  onClick={() => {
+                    setActiveChallenge(null);
+                    setSubmitChallenge(activeChallenge);
+                  }}
+                >
+                  Submit Attempt
+                </button>
+              )}
               <button className="dashboard__modal-close" onClick={() => setActiveChallenge(null)}>
                 Close
               </button>
@@ -325,6 +367,39 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
           </div>
         </div>
       </div>
+
+      {/* Progress to next rank */}
+      {progress && !progress.isLegend && progress.required > 0 && (
+        <div className="dashboard__progress">
+          <div className="dashboard__progress-header">
+            <span className="dashboard__progress-label">Path to {progress.nextRank}</span>
+            <span className="dashboard__progress-count">
+              {progress.completed} / {progress.required} {progress.challengeTier} challenges
+            </span>
+          </div>
+          <div className="dashboard__progress-dots">
+            {Array.from({ length: progress.required }).map((_, i) => (
+              <div
+                key={i}
+                className={"dashboard__progress-dot" + (i < progress.completed ? ' dashboard__progress-dot--done' : '')}
+                style={i < progress.completed ? { background: TIER_COLORS[progress.challengeTier!] || '#c9922a' } : {}}
+              />
+            ))}
+          </div>
+          {progress.completed >= progress.required && (
+            <div className="dashboard__progress-ready">
+              Ready to advance! Submit your next challenge to unlock {progress.nextRank}.
+            </div>
+          )}
+        </div>
+      )}
+
+      {progress?.isLegend && (
+        <div className="dashboard__progress dashboard__progress--legend">
+          <div className="dashboard__progress-label">You are Grandmaster. The path to Legend awaits.</div>
+          <div className="dashboard__progress-legend-text">Legend rank is granted by community vote only.</div>
+        </div>
+      )}
 
       {/* Active submissions */}
       {submissions.filter(s => s.status === 'pending' || s.status === 'in_review').map(s => {
