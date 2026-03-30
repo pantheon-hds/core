@@ -67,7 +67,7 @@ const LandingGames: React.FC = () => {
               <div className="lg__game-studio">Community decides</div>
               <div className="lg__game-divider" />
               <div className="lg__game-desc">
-                What game should we add next? Any game with Steam achievements can be added. The community votes.
+                What game should we add next? Any game with Steam achievements can be added. Join Discord and suggest it.
               </div>
             </div>
           </div>
@@ -75,14 +75,14 @@ const LandingGames: React.FC = () => {
           <div className="lg__note">
             <div className="lg__note-title">How games are added</div>
             <div className="lg__note-text">
-              Any game with Steam achievements can be added to Pantheon. Community members suggest games, 
-              the community votes, and we add them. If you have a game in mind — join the beta and suggest it.
+              Any game with Steam achievements can be added to Pantheon. Community members suggest games
+              in Discord, the community votes, and we add them. If you have a game in mind, join the beta and suggest it.
             </div>
           </div>
 
           <div className="lg__cta">
             <Link to="/beta" className="lg__btn lg__btn--primary">Request Invite</Link>
-            <Link to="/ranks" className="lg__btn lg__btn--ghost">See Rank System →</Link>
+            <Link to="/ranks" className="lg__btn lg__btn--ghost">See Rank System</Link>
           </div>
         </div>
       </div>

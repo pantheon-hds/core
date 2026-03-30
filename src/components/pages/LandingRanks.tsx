@@ -4,8 +4,8 @@ import LandingLayout from '../layout/LandingLayout';
 import './LandingRanks.css';
 
 const ranks = [
-  { tier: 'Bronze', color: '#e8974a', how: 'Automatic · Steam API', desc: '1–74% Steam achievements. Your journey begins.' },
-  { tier: 'Silver', color: '#d8eaf8', how: 'Automatic · Steam API', desc: '75–99% Steam achievements. Almost there.' },
+  { tier: 'Bronze', color: '#e8974a', how: 'Automatic · Steam API', desc: '1-74% Steam achievements. Your journey begins.' },
+  { tier: 'Silver', color: '#d8eaf8', how: 'Automatic · Steam API', desc: '75-99% Steam achievements. Almost there.' },
   { tier: 'Gold', color: '#e8a830', how: 'Automatic · Steam API', desc: '100% Steam achievements. The starting point of greatness.' },
   { tier: 'Platinum', color: '#9ac4e4', how: 'Community · Judge verified', desc: 'Complete community challenges. Verified by real judges.' },
   { tier: 'Diamond', color: '#b8e4ff', how: 'Community · Judge verified', desc: 'Elite challenges. Only the dedicated reach this far.' },
@@ -22,7 +22,7 @@ const LandingRanks: React.FC = () => {
           <div className="lr__label">The Path</div>
           <h1 className="lr__title">Eight Ranks. One Legend.</h1>
           <div className="lr__subtitle">
-            Every rank is earned. None can be purchased. The path is long — but every step is real.
+            Every rank is earned. None can be purchased. The path is long, but every step is real.
           </div>
 
           <div className="lr__ranks">
@@ -53,7 +53,7 @@ const LandingRanks: React.FC = () => {
 
           <div className="lr__cta">
             <Link to="/beta" className="lr__btn lr__btn--primary">Start Your Journey</Link>
-            <Link to="/games" className="lr__btn lr__btn--ghost">See Supported Games →</Link>
+            <Link to="/games" className="lr__btn lr__btn--ghost">See Supported Games</Link>
           </div>
         </div>
       </div>

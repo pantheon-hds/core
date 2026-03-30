@@ -22,7 +22,7 @@ const LandingBeta: React.FC = () => {
           <div className="lb__label">Closed Beta</div>
           <h1 className="lb__title">Be Among the First</h1>
           <div className="lb__subtitle">
-            Pantheon is being built in public, with the community. The first members shape everything — 
+            Pantheon is being built in public, with the community. The first members shape everything:
             challenges, rules, culture. There are no second chances to be first.
           </div>
 
@@ -68,7 +68,7 @@ const LandingBeta: React.FC = () => {
               <div className="lb__app-section">
                 <div className="lb__app-title">Already have an invite code?</div>
                 <div className="lb__app-text">Enter the app and connect your Steam account.</div>
-                <Link to="/app" className="lb__btn lb__btn--ghost">Enter App →</Link>
+                <Link to="/app" className="lb__btn lb__btn--ghost">Enter App</Link>
               </div>
             </div>
           ) : (
@@ -79,7 +79,7 @@ const LandingBeta: React.FC = () => {
                 We review every application personally. You will hear from us if you are selected for the beta.
                 Thank you for believing in this idea.
               </div>
-              <div className="lb__success-author">— Voland</div>
+              <div className="lb__success-author">Voland</div>
             </div>
           )}
 

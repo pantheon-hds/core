@@ -40,14 +40,14 @@ const LandingHome: React.FC = () => {
           <h2 className="lh__title">You got 100%.<br />Now what?</h2>
           <div className="lh__story-text">
             <p>I have loved video games my entire life. For years, my way of honoring a game I loved was simple: get 100%. Every achievement. Every secret. Every hidden ending.</p>
-            <p>But after the last achievement popped — I felt something unexpected. <em>Emptiness.</em> The game was over. There was nowhere left to go.</p>
+            <p>But after the last achievement popped, I felt something unexpected. <em>Emptiness.</em> The game was over. There was nowhere left to go.</p>
             <p>I had done something genuinely hard. But where could I show it? Nobody cared about a Steam profile screenshot.</p>
             <p>So I asked myself one question that changed everything:</p>
           </div>
           <div className="lh__quote">
-            "What if 100% achievements isn't the end of a game — but only the beginning?"
+            "What if 100% achievements is not the end of a game, but only the beginning?"
           </div>
-          <div className="lh__quote-author">— Voland, Founder</div>
+          <div className="lh__quote-author">Voland, Founder</div>
         </div>
       </section>
 
@@ -85,8 +85,8 @@ const LandingHome: React.FC = () => {
             {[
               { num: '01', title: 'Connect Steam', text: 'Link your account. We automatically detect your 100% completions and award Gold rank.' },
               { num: '02', title: 'Take Challenges', text: 'Community-created challenges push you beyond 100%. Record your attempt. Submit your video.' },
-              { num: '03', title: 'Get Verified', text: 'Real judges — anonymous, blind voting. 2 of 3 must approve. No algorithms.' },
-              { num: '04', title: 'Earn Your Statue', text: 'Your rank rises. A statue is placed in your Hall. Reach Legend — stand in the Pantheon forever.' },
+              { num: '03', title: 'Get Verified', text: 'Real judges watch your video anonymously and vote. 2 of 3 must approve. No algorithms.' },
+              { num: '04', title: 'Earn Your Statue', text: 'Your rank rises. A statue is placed in your Hall. Reach Legend and stand in the Pantheon forever.' },
             ].map((step, i) => (
               <div key={i} className="lh__step">
                 <div className="lh__step-num">{step.num}</div>
@@ -97,7 +97,7 @@ const LandingHome: React.FC = () => {
           </div>
           <div className="lh__cta">
             <Link to="/beta" className="lh__btn lh__btn--primary">Request Invite</Link>
-            <Link to="/ranks" className="lh__btn lh__btn--ghost">See All Ranks →</Link>
+            <Link to="/ranks" className="lh__btn lh__btn--ghost">See All Ranks</Link>
           </div>
         </div>
       </section>
