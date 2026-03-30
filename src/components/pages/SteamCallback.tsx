@@ -29,7 +29,7 @@ const SteamCallback: React.FC<SteamCallbackProps> = ({ onSuccess, onError }) => 
         const avatar = params.get('avatar');
         const isPublic = params.get('public') === 'true';
 
-        // Direct callback with user data — success path
+        // Success path — Steam already verified by Edge Function
         if (steamId && username) {
           setStatus('checking');
           setMessage('Checking achievements...');
@@ -62,7 +62,8 @@ const SteamCallback: React.FC<SteamCallbackProps> = ({ onSuccess, onError }) => 
           return;
         }
 
-        // OpenID callback — verify with Edge Function
+        // OpenID callback — redirect browser to Edge Function
+        // Edge Function will verify and redirect back with steamId
         const claimedId = params.get('openid.claimed_id');
         if (!claimedId) {
           setStatus('error');
@@ -73,26 +74,9 @@ const SteamCallback: React.FC<SteamCallbackProps> = ({ onSuccess, onError }) => 
 
         setMessage('Verifying with Steam...');
 
-        const response = await fetch(
-          `${SUPABASE_URL}/functions/v1/steam-auth?${params.toString()}`,
-          {
-            headers: {
-              Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-            },
-          }
-        );
-
-        if (response.redirected) {
-          window.location.href = response.url;
-          return;
-        }
-
-        if (!response.ok) {
-          throw new Error('Auth failed');
-        }
-
-        const data = await response.json();
-        if (data.error) throw new Error(data.error);
+        // Redirect browser directly to Edge Function
+        // This avoids CORS issues with fetch + redirects
+        window.location.href = `${SUPABASE_URL}/functions/v1/steam-auth?${params.toString()}`;
 
       } catch (error) {
         console.error('Steam callback error:', error);
