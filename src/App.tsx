@@ -8,13 +8,13 @@ import Profile from './components/pages/Profile';
 import Admin from './components/pages/Admin';
 import JudgePanel from './components/pages/JudgePanel';
 import Sandbox from './components/pages/Sandbox';
-import FAQ from './components/pages/FAQ';
 import Sidebar, { Page } from './components/ui/Sidebar';
 import WelcomeScreen from './components/pages/WelcomeScreen';
 import LandingHome from './components/pages/LandingHome';
 import LandingRanks from './components/pages/LandingRanks';
 import LandingGames from './components/pages/LandingGames';
 import LandingBeta from './components/pages/LandingBeta';
+import LandingFAQ from './components/pages/LandingFAQ';
 
 const isSteamCallback = (): boolean => {
   const params = new URLSearchParams(window.location.search);
@@ -40,7 +40,6 @@ const AppShell: React.FC<{ user: SteamUser | null; onLogout: () => void }> = ({ 
     admin: 'Admin Panel',
     judge: 'Judge Panel',
     sandbox: 'Sandbox',
-    faq: 'About & FAQ',
   };
 
   const isFounder = user?.steamId === 'VOLAND_FOUNDER';
@@ -64,7 +63,6 @@ const AppShell: React.FC<{ user: SteamUser | null; onLogout: () => void }> = ({ 
             {page === 'admin' && <Admin user={user} />}
             {page === 'judge' && <JudgePanel user={user} />}
             {page === 'sandbox' && <Sandbox user={user} />}
-            {page === 'faq' && <FAQ />}
           </div>
         </div>
       </div>
@@ -113,6 +111,7 @@ const App: React.FC = () => {
         <Route path="/ranks" element={<LandingRanks />} />
         <Route path="/games" element={<LandingGames />} />
         <Route path="/beta" element={<LandingBeta />} />
+        <Route path="/faq" element={<LandingFAQ />} />
         <Route
           path="/app"
           element={

@@ -1,0 +1,125 @@
+.lfaq__page {
+  padding: 5rem 2rem 6rem;
+  min-height: calc(100vh - 65px);
+}
+
+.lfaq__inner {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.lfaq__label {
+  font-family: var(--font-display);
+  font-size: 10px;
+  letter-spacing: 0.4em;
+  color: var(--color-gold-dim);
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+
+.lfaq__title {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 5vw, 48px);
+  letter-spacing: 0.05em;
+  color: var(--color-text-primary);
+  margin: 0 0 1rem;
+  font-weight: 400;
+}
+
+.lfaq__subtitle {
+  font-size: 17px;
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+  margin-bottom: 4rem;
+}
+
+.lfaq__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-bottom: 4rem;
+}
+
+.lfaq__item {
+  border-bottom: 0.5px solid var(--color-border);
+  transition: background 0.2s;
+}
+
+.lfaq__item:first-child {
+  border-top: 0.5px solid var(--color-border);
+}
+
+.lfaq__item--open {
+  background: rgba(232,168,48,0.02);
+}
+
+.lfaq__question {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.2rem 0;
+  background: transparent;
+  border: none;
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  font-size: 16px;
+  cursor: pointer;
+  text-align: left;
+  gap: 1rem;
+  transition: color 0.2s;
+}
+
+.lfaq__question:hover {
+  color: var(--color-gold);
+}
+
+.lfaq__icon {
+  font-size: 20px;
+  color: var(--color-gold-dim);
+  flex-shrink: 0;
+  font-family: monospace;
+  width: 20px;
+  text-align: center;
+}
+
+.lfaq__answer {
+  padding: 0 0 1.5rem;
+  font-size: 15px;
+  color: var(--color-text-secondary);
+  line-height: 1.8;
+  max-width: 620px;
+}
+
+.lfaq__footer {
+  border-top: 0.5px solid var(--color-border-mid);
+  padding-top: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.lfaq__footer-title {
+  font-family: var(--font-display);
+  font-size: 12px;
+  letter-spacing: 0.25em;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+}
+
+.lfaq__footer-links {
+  display: flex;
+  gap: 2rem;
+}
+
+.lfaq__footer-link {
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--color-gold);
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: opacity 0.2s;
+}
+
+.lfaq__footer-link:hover { opacity: 0.7; }

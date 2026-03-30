@@ -21,6 +21,7 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ children }) => {
           <Link to="/" className={"ll__nav-link" + (isActive('/') ? ' ll__nav-link--active' : '')}>About</Link>
           <Link to="/ranks" className={"ll__nav-link" + (isActive('/ranks') ? ' ll__nav-link--active' : '')}>Ranks</Link>
           <Link to="/games" className={"ll__nav-link" + (isActive('/games') ? ' ll__nav-link--active' : '')}>Games</Link>
+          <Link to="/faq" className={"ll__nav-link" + (isActive('/faq') ? ' ll__nav-link--active' : '')}>FAQ</Link>
           <Link to="/beta" className="ll__nav-link ll__nav-link--cta">Request Invite</Link>
           <Link to="/app" className="ll__nav-link ll__nav-link--enter">Enter App →</Link>
         </div>
@@ -48,5 +49,3 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ children }) => {
 };
 
 export default LandingLayout;
-
-
