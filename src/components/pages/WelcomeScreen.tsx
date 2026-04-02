@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import './WelcomeScreen.css';
 import SteamAuth from '../ui/SteamAuth';
 import FounderLogin from './FounderLogin';
+import type { FounderUser } from '../../types';
+import { validateInviteCode } from '../../services/supabase';
 
 interface WelcomeScreenProps {
   onEnter: () => void;
-  onFounderLogin: (user: any) => void;
+  onFounderLogin: (user: FounderUser) => void;
 }
-
-const BETA_PASSWORD = 'pantheon2026';
 
 const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnter, onFounderLogin }) => {
   const [leaving, setLeaving] = useState(false);
@@ -20,14 +20,19 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnter, onFounderLogin }
   );
   const [betaInput, setBetaInput] = useState('');
   const [betaError, setBetaError] = useState('');
+  const [betaLoading, setBetaLoading] = useState(false);
 
-  const handleBetaSubmit = () => {
-    if (betaInput.trim().toLowerCase() === BETA_PASSWORD) {
+  const handleBetaSubmit = async () => {
+    if (!betaInput.trim()) return;
+    setBetaLoading(true);
+    setBetaError('');
+    const valid = await validateInviteCode(betaInput.trim());
+    setBetaLoading(false);
+    if (valid) {
       localStorage.setItem('pantheon_beta', 'true');
       setBetaUnlocked(true);
-      setBetaError('');
     } else {
-      setBetaError('Invalid access code.');
+      setBetaError('Invalid or already used invite code.');
       setBetaInput('');
     }
   };
@@ -74,8 +79,8 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnter, onFounderLogin }
               autoFocus
             />
             {betaError && <div className="welcome__beta-error">{betaError}</div>}
-            <button className="welcome__beta-btn" onClick={handleBetaSubmit}>
-              Enter
+            <button className="welcome__beta-btn" onClick={handleBetaSubmit} disabled={betaLoading}>
+              {betaLoading ? 'Checking...' : 'Enter'}
             </button>
             <a href="/" className="welcome__beta-back">← Back to site</a>
           </div>

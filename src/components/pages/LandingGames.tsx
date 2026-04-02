@@ -55,7 +55,7 @@ const LandingGames: React.FC = () => {
                 </div>
               </div>
               <div className="lg__game-desc">
-                The long-awaited sequel. Play as Hornet in a brand new kingdom filled with new enemies and challenges.
+                The long-awaited sequel. Play as Hornet in a brand-new kingdom filled with new enemies and challenges.
               </div>
             </div>
 

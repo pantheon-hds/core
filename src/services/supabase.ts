@@ -106,6 +106,45 @@ export async function submitJudgeApplication(
   return !error;
 }
 
+export async function submitWaitlist(email: string, reason: string): Promise<{ success: boolean; error?: string }> {
+  const { error } = await supabase.from('waitlist').insert({ email, reason: reason.trim() || null });
+  if (error) return { success: false, error: error.message };
+  return { success: true };
+}
+
+export async function validateInviteCode(code: string): Promise<boolean> {
+  const { data, error } = await supabase.rpc('validate_invite_code', { p_code: code.trim().toUpperCase() });
+  if (error) { console.error('Error validating invite code:', error); return false; }
+  return data === true;
+}
+
+export async function sendInvite(waitlistId: string, email: string): Promise<{ success: boolean; error?: string }> {
+  const response = await fetch(
+    `${SUPABASE_URL}/functions/v1/send-invite`,
+    {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ waitlistId, email }),
+    }
+  );
+  if (!response.ok) {
+    const data = await response.json();
+    return { success: false, error: data.error || 'Failed to send invite' };
+  }
+  return { success: true };
+}
+
+export async function rejectWaitlistEntry(id: string, rejectionReason: string): Promise<boolean> {
+  const { error } = await supabase
+    .from('waitlist')
+    .update({ status: 'rejected', rejection_reason: rejectionReason })
+    .eq('id', id);
+  return !error;
+}
+
 export async function assignJudges(submissionId: string): Promise<boolean> {
   const response = await fetch(
     `${SUPABASE_URL}/functions/v1/assign-judges`,

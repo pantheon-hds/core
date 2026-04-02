@@ -65,12 +65,12 @@ const LandingHome: React.FC = () => {
             <div className="lh__principle">
               <div className="lh__principle-num">02</div>
               <div className="lh__principle-title">Democracy</div>
-              <div className="lh__principle-text">The community decides who is a Legend. Not algorithms. Not money. Only the voice of players.</div>
+              <div className="lh__principle-text">The community decides who is a Legend. Not algorithms. Not money. Players decide. No one else.</div>
             </div>
             <div className="lh__principle">
               <div className="lh__principle-num">03</div>
               <div className="lh__principle-title">Skill</div>
-              <div className="lh__principle-text">One path to the Pantheon. Mastery. Proven. Recognized. Eternal.</div>
+              <div className="lh__principle-text">One path to the Pantheon. Earned. Proven. Recognized. Eternal.</div>
             </div>
           </div>
         </div>
@@ -83,7 +83,7 @@ const LandingHome: React.FC = () => {
           <h2 className="lh__title">From 100% to Legend</h2>
           <div className="lh__steps">
             {[
-              { num: '01', title: 'Connect Steam', text: 'Link your account. We automatically detect your 100% completions and award Gold rank.' },
+              { num: '01', title: 'Connect Steam', text: 'Link your account. We automatically detect your completed games and award Gold rank.' },
               { num: '02', title: 'Take Challenges', text: 'Community-created challenges push you beyond 100%. Record your attempt. Submit your video.' },
               { num: '03', title: 'Get Verified', text: 'Real judges watch your video anonymously and vote. 2 of 3 must approve. No algorithms.' },
               { num: '04', title: 'Earn Your Statue', text: 'Your rank rises. A statue is placed in your Hall. Reach Legend and stand in the Pantheon forever.' },

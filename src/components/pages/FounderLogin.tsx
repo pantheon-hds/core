@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import './FounderLogin.css';
+import type { FounderUser } from '../../types';
 
 const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.REACT_APP_SUPABASE_ANON_KEY;
 
 interface FounderLoginProps {
-  onSuccess: (user: any) => void;
+  onSuccess: (user: FounderUser) => void;
   onCancel: () => void;
 }
 

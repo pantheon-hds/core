@@ -2,16 +2,28 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import LandingLayout from '../layout/LandingLayout';
 import './LandingBeta.css';
+import { submitWaitlist } from '../../services/supabase';
 
 const LandingBeta: React.FC = () => {
   const [email, setEmail] = useState('');
   const [reason, setReason] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (!email.trim()) return;
-    // TODO: Save to Supabase waitlist table
+    setSubmitting(true);
+    setSubmitError('');
+    const result = await submitWaitlist(email.trim(), reason);
+    setSubmitting(false);
+    if (!result.success) {
+      setSubmitError(result.error === 'duplicate key value violates unique constraint "waitlist_email_key"'
+        ? 'This email is already on the waitlist.'
+        : 'Something went wrong. Please try again.');
+      return;
+    }
     setSubmitted(true);
   };
 
@@ -20,7 +32,7 @@ const LandingBeta: React.FC = () => {
       <div className="lb__page">
         <div className="lb__inner">
           <div className="lb__label">Closed Beta</div>
-          <h1 className="lb__title">Be Among the First</h1>
+          <h1 className="lb__title">Be One of the First</h1>
           <div className="lb__subtitle">
             Pantheon is being built in public, with the community. The first members shape everything:
             challenges, rules, culture. There are no second chances to be first.
@@ -53,8 +65,11 @@ const LandingBeta: React.FC = () => {
                       rows={4}
                     />
                   </div>
-                  <button className="lb__btn lb__btn--primary" type="submit">
-                    Request Invite
+                  {submitError && (
+                    <div className="lb__error">{submitError}</div>
+                  )}
+                  <button className="lb__btn lb__btn--primary" type="submit" disabled={submitting}>
+                    {submitting ? 'Sending...' : 'Request Invite'}
                   </button>
                 </form>
               </div>

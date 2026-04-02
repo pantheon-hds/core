@@ -152,7 +152,7 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
             </div>
             {selected.is_unique && (
               <div className="profile__modal-unique">
-                This statue is one of a kind. It exists only once in the entire platform history.
+                This statue is one of a kind. There's only one in existence across the entire platform.
               </div>
             )}
             <button className="profile__modal-close" onClick={() => setSelected(null)}>Close</button>

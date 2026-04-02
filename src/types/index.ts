@@ -97,3 +97,18 @@ export interface UserStatue {
   granted_at: string;
   game: Pick<Game, 'title'> | null;
 }
+
+export interface FounderUser {
+  steamId: string;
+  username: string;
+  avatarUrl: string;
+}
+
+export interface WaitlistEntry {
+  id: string;
+  email: string;
+  reason: string | null;
+  status: 'pending' | 'approved' | 'rejected';
+  rejection_reason: string | null;
+  applied_at: string;
+}

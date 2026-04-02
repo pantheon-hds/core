@@ -10,6 +10,7 @@ import JudgePanel from './components/pages/JudgePanel';
 import Sandbox from './components/pages/Sandbox';
 import Sidebar, { Page } from './components/ui/Sidebar';
 import WelcomeScreen from './components/pages/WelcomeScreen';
+import type { FounderUser } from './types';
 import LandingHome from './components/pages/LandingHome';
 import LandingRanks from './components/pages/LandingRanks';
 import LandingGames from './components/pages/LandingGames';
@@ -92,7 +93,7 @@ const App: React.FC = () => {
     window.location.href = '/';
   };
 
-  const handleFounderLogin = (founderUser: any) => {
+  const handleFounderLogin = (founderUser: FounderUser) => {
     const steamUser: SteamUser = {
       steamId: founderUser.steamId,
       username: founderUser.username,

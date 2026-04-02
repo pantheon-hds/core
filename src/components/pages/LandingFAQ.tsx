@@ -13,7 +13,7 @@ const faqData = [
   },
   {
     question: "Who are the judges and how do I become one?",
-    answer: "Judges are experienced players who have earned Platinum rank in a game and applied through their Profile page. They watch submitted videos anonymously and vote independently. 2 of 3 approvals required. To apply, go to your Profile, scroll to the Judge section, and submit your application with a short motivation."
+    answer: "Judges are experienced players who have earned Platinum rank in a game and applied through their Profile page. They watch submitted videos anonymously and vote independently. 2 of 3 approvals required. To apply, go to your Profile, scroll to the Judge section, and include a short note on why you want to judge."
   },
   {
     question: "Can I buy a rank?",

@@ -3,10 +3,11 @@ import './Admin.css';
 import { SteamUser } from './SteamCallback';
 import { supabase, getUserBySteamId } from '../../services/supabase';
 import { adminReviewSubmission, reviewJudgeApplication, appointJudgeBySteamId } from '../../services/submissionService';
+import { sendInvite, rejectWaitlistEntry } from '../../services/supabase';
 import { CHALLENGE_TIERS } from '../../constants/ranks';
 import { useToast } from '../../hooks/useToast';
 import { Toast } from '../ui/Toast';
-import type { Game, Challenge, Submission, JudgeApplication } from '../../types';
+import type { Game, Challenge, Submission, JudgeApplication, WaitlistEntry } from '../../types';
 
 interface AdminProps { user: SteamUser | null; }
 
@@ -16,8 +17,12 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
   const [games, setGames] = useState<Game[]>([]);
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const [activeTab, setActiveTab] = useState<'submissions' | 'challenges' | 'games' | 'judges'>('submissions');
+  const [activeTab, setActiveTab] = useState<'submissions' | 'challenges' | 'games' | 'judges' | 'waitlist'>('submissions');
   const [judgeApps, setJudgeApps] = useState<JudgeApplication[]>([]);
+  const [waitlist, setWaitlist] = useState<WaitlistEntry[]>([]);
+  const [rejectingId, setRejectingId] = useState<string | null>(null);
+  const [rejectReason, setRejectReason] = useState('');
+  const [approvingId, setApprovingId] = useState<string | null>(null);
   const [newChallenge, setNewChallenge] = useState({ title: '', description: '', tier: 'Platinum', game_id: '' });
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
@@ -50,6 +55,12 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
       .select('*, user:users(username, steam_id), game:games(title)')
       .order('applied_at', { ascending: false });
     setJudgeApps((judgeAppsData as unknown as JudgeApplication[]) || []);
+
+    const { data: waitlistData } = await supabase
+      .from('waitlist')
+      .select('*')
+      .order('applied_at', { ascending: false });
+    setWaitlist((waitlistData as WaitlistEntry[]) || []);
 
     setLoading(false);
   }, [user]);
@@ -117,8 +128,33 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
     setChallenges(prev => prev.filter(c => c.id !== id));
   };
 
+  const handleApproveWaitlist = async (entry: WaitlistEntry) => {
+    setApprovingId(entry.id);
+    const result = await sendInvite(entry.id, entry.email);
+    setApprovingId(null);
+    if (result.success) {
+      showToast(`Invite sent to ${entry.email}`, 'success');
+      setWaitlist(prev => prev.map(w => w.id === entry.id ? { ...w, status: 'approved' } : w));
+    } else {
+      showToast(result.error ?? 'Failed to send invite', 'error');
+    }
+  };
+
+  const handleRejectWaitlist = async (id: string) => {
+    if (!rejectReason) return;
+    const ok = await rejectWaitlistEntry(id, rejectReason);
+    if (ok) {
+      setWaitlist(prev => prev.map(w => w.id === id ? { ...w, status: 'rejected', rejection_reason: rejectReason } : w));
+      setRejectingId(null);
+      setRejectReason('');
+    } else {
+      showToast('Failed to reject entry', 'error');
+    }
+  };
+
   const pendingSubmissions = submissions.filter(s => s.status === 'pending').length;
   const pendingJudgeApps = judgeApps.filter(j => j.status === 'pending').length;
+  const pendingWaitlist = waitlist.filter(w => w.status === 'pending').length;
 
   if (loading) return <div className="admin__loading">Loading...</div>;
   if (!isAdmin) return <div className="admin__denied">Access denied.</div>;
@@ -144,6 +180,9 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
         </button>
         <button className={"admin__tab" + (activeTab === 'judges' ? ' admin__tab--active' : '')} onClick={() => setActiveTab('judges')}>
           Judges {pendingJudgeApps > 0 && <span className="admin__badge">{pendingJudgeApps}</span>}
+        </button>
+        <button className={"admin__tab" + (activeTab === 'waitlist' ? ' admin__tab--active' : '')} onClick={() => setActiveTab('waitlist')}>
+          Waitlist {pendingWaitlist > 0 && <span className="admin__badge">{pendingWaitlist}</span>}
         </button>
       </div>
 
@@ -254,6 +293,71 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'waitlist' && (
+        <div className="admin__section">
+          <div className="admin__list">
+            <div className="admin__list-title">
+              Beta Waitlist — {waitlist.length} total · {pendingWaitlist} pending
+            </div>
+            {waitlist.length === 0 ? (
+              <div className="admin__empty">No waitlist entries yet.</div>
+            ) : (
+              waitlist.map(entry => (
+                <div key={entry.id} className={"admin__item admin__item--submission" + (entry.status === 'pending' ? ' admin__item--pending' : '')}>
+                  <div className="admin__item-info">
+                    <div className="admin__item-title">{entry.email}</div>
+                    <div className="admin__item-meta">
+                      {new Date(entry.applied_at).toLocaleDateString()}
+                      · Status: <span style={{ color: entry.status === 'approved' ? '#6ab87a' : entry.status === 'rejected' ? '#e45a3a' : '#e8a830' }}>{entry.status}</span>
+                      {entry.rejection_reason && <span style={{ color: '#9a9080' }}> · {entry.rejection_reason}</span>}
+                    </div>
+                    {entry.reason && (
+                      <div className="admin__item-desc">"{entry.reason}"</div>
+                    )}
+                    {entry.status === 'pending' && rejectingId !== entry.id && (
+                      <div className="admin__action-btns" style={{ marginTop: '0.8rem' }}>
+                        <button
+                          className="admin__approve-btn"
+                          onClick={() => handleApproveWaitlist(entry)}
+                          disabled={approvingId === entry.id}
+                        >
+                          {approvingId === entry.id ? 'Sending...' : '✉ Send Invite'}
+                        </button>
+                        <button className="admin__reject-btn" onClick={() => { setRejectingId(entry.id); setRejectReason(''); }}>
+                          ✗ Reject
+                        </button>
+                      </div>
+                    )}
+                    {entry.status === 'pending' && rejectingId === entry.id && (
+                      <div className="admin__review-actions">
+                        <select
+                          className="admin__select"
+                          value={rejectReason}
+                          onChange={e => setRejectReason(e.target.value)}
+                        >
+                          <option value="">Select reason...</option>
+                          <option value="You don't fit our current tester profile">You don't fit our current tester profile</option>
+                          <option value="Too little information provided">Too little information provided</option>
+                          <option value="The beta is currently full — we'll keep your application on file">The beta is currently full — we'll keep your application on file</option>
+                        </select>
+                        <div className="admin__action-btns">
+                          <button className="admin__reject-btn" onClick={() => handleRejectWaitlist(entry.id)} disabled={!rejectReason}>
+                            Confirm Reject
+                          </button>
+                          <button className="admin__note-input" style={{ cursor: 'pointer', background: 'none', border: '1px solid #5a5048', color: '#9a9080', padding: '0.4rem 0.8rem' }} onClick={() => setRejectingId(null)}>
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       )}

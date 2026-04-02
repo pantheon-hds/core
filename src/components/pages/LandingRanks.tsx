@@ -44,8 +44,8 @@ const LandingRanks: React.FC = () => {
           <div className="lr__note">
             <div className="lr__note-title">How verification works</div>
             <div className="lr__note-text">
-              Gold rank is awarded automatically when you connect Steam and have 100% achievements.
-              Platinum and above require submitting a video proof of a community challenge.
+              Gold rank is awarded automatically when you connect Steam and have all achievements completed.
+              Platinum and above require submitting video proof of a community challenge.
               Three randomly selected judges watch your video anonymously and vote.
               2 of 3 approvals required. No exceptions.
             </div>
