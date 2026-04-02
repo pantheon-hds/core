@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { getClientIp, checkRateLimit, rateLimitedResponse } from '../_shared/rateLimit.ts'
 
 const STEAM_API_KEY = Deno.env.get('STEAM_API_KEY')
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
@@ -54,6 +55,11 @@ serve(async (req) => {
   }
 
   try {
+    const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_KEY!)
+    const ip = getClientIp(req)
+    const allowed = await checkRateLimit(supabase, ip, 'steam-auth', 10, 60)
+    if (!allowed) return rateLimitedResponse(corsHeaders)
+
     const url = new URL(req.url)
     const params = url.searchParams
 
@@ -88,8 +94,6 @@ serve(async (req) => {
         headers: { ...corsHeaders, Location: `${APP_URL}/app?error=profile_failed` }
       })
     }
-
-    const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_KEY!)
 
     const { data: existingUser } = await supabase
       .from('users')

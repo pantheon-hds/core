@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { getClientIp, checkRateLimit, rateLimitedResponse } from '../_shared/rateLimit.ts'
 
 const STEAM_API_KEY = Deno.env.get('STEAM_API_KEY')
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
@@ -29,6 +30,11 @@ serve(async (req: Request) => {
   }
 
   try {
+    const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_KEY!)
+    const ip = getClientIp(req)
+    const allowed = await checkRateLimit(supabase, ip, 'check-achievements', 20, 60)
+    if (!allowed) return rateLimitedResponse(corsHeaders)
+
     let steamId: string
     let appId: string
 
@@ -72,7 +78,6 @@ serve(async (req: Request) => {
     console.log(`${appId}: ${unlocked}/${total} = ${percentage}% → ${tier}`)
 
     if (tier) {
-      const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_KEY!)
 
       const { data: user } = await supabase
         .from('users')
