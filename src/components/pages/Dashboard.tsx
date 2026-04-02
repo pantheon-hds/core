@@ -4,6 +4,8 @@ import { SteamUser } from './SteamCallback';
 import { getUserBySteamId, getUserRanks, checkAchievements, assignJudges, supabase } from '../../services/supabase';
 import { TIER_COLORS, RANK_TIER_COLORS, getRankOrder } from '../../constants/ranks';
 import { getProgressInfo } from '../../utils/rankProgress';
+import { useToast } from '../../hooks/useToast';
+import { Toast } from '../ui/Toast';
 import type { UserRank, Challenge, Submission, SubmissionStatus } from '../../types';
 
 const ALLOWED_DOMAINS = ['youtube.com', 'youtu.be', 'twitch.tv'];
@@ -38,6 +40,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
+  const { toast, showToast } = useToast(5000);
 
   const loadChallenges = useCallback(async () => {
     const { data } = await supabase
@@ -75,6 +78,37 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
 
   useEffect(() => { loadChallenges(); }, [loadChallenges]);
   useEffect(() => { if (user) loadUserData(); }, [user, loadUserData]);
+
+  // Realtime: live status updates for user's submissions
+  useEffect(() => {
+    if (!dbUserId) return;
+
+    const channel = supabase
+      .channel(`submissions:${dbUserId}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'submissions', filter: `user_id=eq.${dbUserId}` },
+        (payload) => {
+          const updated = payload.new as Submission;
+
+          setSubmissions(prev =>
+            prev.map(s => s.id === updated.id ? { ...s, ...updated } : s)
+          );
+
+          if (updated.status === 'approved') {
+            showToast('Your submission was approved! Rank awarded.', 'success');
+            getUserRanks(dbUserId).then(setRanks);
+          } else if (updated.status === 'rejected') {
+            showToast('Your submission was not approved this time.', 'error');
+          } else if (updated.status === 'in_review') {
+            showToast('Your submission is now under review by judges.', 'info');
+          }
+        }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [dbUserId, showToast]);
 
   const getSubmissionStatus = (challengeId: string) => {
     return submissions.find(s => s.challenge_id === challengeId);
@@ -194,6 +228,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
 
   return (
     <div className="dashboard">
+      <Toast toast={toast} />
 
       {/* Challenge detail modal */}
       {activeChallenge && (
@@ -354,6 +389,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
               </div>
               <div className="dashboard__active-submission-status">
                 Status: {s.status === 'pending' ? 'Waiting for judges' : 'Under review'}
+                <span className="dashboard__live-badge">● Live</span>
               </div>
             </div>
             <button
