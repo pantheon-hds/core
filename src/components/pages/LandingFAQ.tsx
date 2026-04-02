@@ -74,6 +74,7 @@ const LandingFAQ: React.FC = () => {
             <div className="lfaq__footer-title">Still have questions?</div>
             <div className="lfaq__footer-links">
               <a href="https://discord.gg/pantheonhds" target="_blank" rel="noopener noreferrer" className="lfaq__footer-link">Discord</a>
+              <a href="https://x.com/pantheonhds" target="_blank" rel="noopener noreferrer" className="lfaq__footer-link">X</a>
               <a href="https://github.com/pantheon-hds/core/issues" target="_blank" rel="noopener noreferrer" className="lfaq__footer-link">GitHub Issues</a>
             </div>
           </div>

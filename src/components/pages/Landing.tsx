@@ -254,6 +254,7 @@ const Landing: React.FC<LandingProps> = ({ onEnterApp }) => {
           <div className="landing__footer-links">
             <a href="https://discord.gg/pantheonhds" target="_blank" rel="noopener noreferrer" className="landing__footer-link">Discord</a>
             <a href="https://reddit.com/r/PantheonHDS" target="_blank" rel="noopener noreferrer" className="landing__footer-link">Reddit</a>
+            <a href="https://x.com/pantheonhds" target="_blank" rel="noopener noreferrer" className="landing__footer-link">X</a>
             <a href="https://github.com/pantheon-hds/core" target="_blank" rel="noopener noreferrer" className="landing__footer-link">GitHub</a>
           </div>
           <div className="landing__footer-copy">
