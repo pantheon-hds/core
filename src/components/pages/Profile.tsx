@@ -1,36 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import './Profile.css';
 import { SteamUser } from './SteamCallback';
-import { getUserBySteamId, getUserStatues, getUserRanks, UserStatue, supabase, checkJudgeEligibility, submitJudgeApplication } from '../../services/supabase';
-
-
-const statueColors: Record<string, { primary: string; secondary: string; base: string }> = {
-  'Bronze I':   { primary: '#e8974a', secondary: '#a06030', base: '#3a2215' },
-  'Bronze II':  { primary: '#e8974a', secondary: '#a06030', base: '#3a2215' },
-  'Bronze III': { primary: '#e8974a', secondary: '#a06030', base: '#3a2215' },
-  'Silver I':   { primary: '#d8eaf8', secondary: '#8898a8', base: '#2a3040' },
-  'Silver II':  { primary: '#d8eaf8', secondary: '#8898a8', base: '#2a3040' },
-  'Silver III': { primary: '#d8eaf8', secondary: '#8898a8', base: '#2a3040' },
-  'Gold':       { primary: '#e8a830', secondary: '#b07820', base: '#3a2e1a' },
-  'Gold I':     { primary: '#e8a830', secondary: '#b07820', base: '#3a2e1a' },
-  'Platinum':   { primary: '#8ab4d4', secondary: '#6a94b4', base: '#1e2a3a' },
-  'Diamond':    { primary: '#a8d4f4', secondary: '#78b4e4', base: '#182030' },
-  'Legend':     { primary: '#c44a2a', secondary: '#a43a1a', base: '#2a1a0a' },
-  'Bronze':     { primary: '#c8874a', secondary: '#a06030', base: '#3a2215' },
-  'Silver':     { primary: '#c0c8d4', secondary: '#8898a8', base: '#2a3040' },
-};
-
-const getBaseColor = (tier: string) => {
-  if (tier.startsWith('Gold')) return statueColors['Gold'];
-  if (tier.startsWith('Silver')) return statueColors['Silver I'];
-  if (tier.startsWith('Bronze')) return statueColors['Bronze I'];
-  return statueColors[tier] || statueColors['Bronze I'];
-};
+import { getUserBySteamId, getUserStatues, getUserRanks, supabase, checkJudgeEligibility, submitJudgeApplication } from '../../services/supabase';
+import { getTierColorSet, TierColorSet } from '../../constants/ranks';
+import type { UserRank, UserStatue, Game, JudgeEligibility } from '../../types';
 
 interface StatueSVGProps { tier: string; size?: number; }
 
 const StatueSVG: React.FC<StatueSVGProps> = ({ tier, size = 80 }) => {
-  const c = getBaseColor(tier);
+  const c: TierColorSet = getTierColorSet(tier);
   const s = size;
   const cx = s / 2;
 
@@ -88,17 +66,15 @@ const StatueSVG: React.FC<StatueSVGProps> = ({ tier, size = 80 }) => {
 
 interface ProfileProps { user: SteamUser | null; }
 
-
 const Profile: React.FC<ProfileProps> = ({ user }) => {
   const [selected, setSelected] = useState<UserStatue | null>(null);
   const [statues, setStatues] = useState<UserStatue[]>([]);
-  const [ranks, setRanks] = useState<any[]>([]);
+  const [ranks, setRanks] = useState<UserRank[]>([]);
   const [loading, setLoading] = useState(false);
   const [dbUserId, setDbUserId] = useState<string | null>(null);
-  const [games, setGames] = useState<any[]>([]);
+  const [games, setGames] = useState<Game[]>([]);
 
-  // Judge application state
-  const [judgeEligibility, setJudgeEligibility] = useState<any>(null);
+  const [judgeEligibility, setJudgeEligibility] = useState<JudgeEligibility | null>(null);
   const [showJudgeForm, setShowJudgeForm] = useState(false);
   const [judgeGameId, setJudgeGameId] = useState('');
   const [judgeMotivation, setJudgeMotivation] = useState('');
@@ -119,11 +95,10 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
         setStatues(userStatues);
         setRanks(userRanks);
 
-        // Load games and judge eligibility
         const { data: gamesData } = await supabase.from('games').select('*');
-        setGames(gamesData || []);
+        setGames((gamesData as Game[]) || []);
 
-        const eligibility = await checkJudgeEligibility(dbUser.id, user.steamId);
+        const eligibility = await checkJudgeEligibility(dbUser.id);
         setJudgeEligibility(eligibility);
       }
     } catch (e) {
@@ -143,11 +118,7 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
       return;
     }
     setJudgeSubmitting(true);
-    const success = await submitJudgeApplication(
-      dbUserId,
-      parseInt(judgeGameId),
-      judgeMotivation
-    );
+    const success = await submitJudgeApplication(dbUserId, parseInt(judgeGameId), judgeMotivation);
     if (success) {
       setJudgeMessage('Application submitted! The admin will review it.');
       setShowJudgeForm(false);
@@ -171,7 +142,7 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
             <div className="profile__modal-statue">
               <StatueSVG tier={selected.tier} size={100} />
             </div>
-            <div className="profile__modal-tier" style={{ color: getBaseColor(selected.tier).primary }}>
+            <div className="profile__modal-tier" style={{ color: getTierColorSet(selected.tier).primary }}>
               {selected.tier}{selected.is_unique && ' · Unique'}
             </div>
             <div className="profile__modal-title">{selected.challenge}</div>
@@ -230,7 +201,6 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
         </div>
       </div>
 
-      {/* Judge Application Section */}
       {judgeEligibility && !judgeEligibility.isAlreadyJudge && (
         <div className="profile__judge-section">
           <div className="profile__judge-title">⚖ Become a Judge</div>
@@ -238,7 +208,7 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
           {!judgeEligibility.meetsRequirements ? (
             <div className="profile__judge-requirements">
               <div className="profile__judge-req-title">Requirements to apply:</div>
-              <div className={"profile__judge-req" + (judgeEligibility.hasGoldRank ? ' profile__judge-req--met' : '')}>
+              <div className={"profile__judge-req" + (judgeEligibility.hasPlatinumRank ? ' profile__judge-req--met' : '')}>
                 {judgeEligibility.hasPlatinumRank ? '✓' : '✗'} Platinum rank in at least one game
               </div>
               <div className={"profile__judge-req" + (judgeEligibility.accountAgeOk ? ' profile__judge-req--met' : '')}>
@@ -294,10 +264,7 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
                     >
                       {judgeSubmitting ? 'Submitting...' : 'Submit Application'}
                     </button>
-                    <button
-                      className="profile__judge-cancel"
-                      onClick={() => setShowJudgeForm(false)}
-                    >
+                    <button className="profile__judge-cancel" onClick={() => setShowJudgeForm(false)}>
                       Cancel
                     </button>
                   </div>
@@ -325,11 +292,11 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
               className={`profile__statue-card ${s.is_unique ? 'profile__statue-card--unique' : ''}`}
               onClick={() => setSelected(s)}
             >
-              {s.is_unique && <div className="profile__statue-card-glow" style={{ background: getBaseColor(s.tier).primary }} />}
+              {s.is_unique && <div className="profile__statue-card-glow" style={{ background: getTierColorSet(s.tier).primary }} />}
               <div className="profile__statue-figure">
                 <StatueSVG tier={s.tier} size={72} />
               </div>
-              <div className="profile__statue-tier" style={{ color: getBaseColor(s.tier).primary }}>
+              <div className="profile__statue-tier" style={{ color: getTierColorSet(s.tier).primary }}>
                 {s.tier}
               </div>
               <div className="profile__statue-game">{s.game?.title}</div>

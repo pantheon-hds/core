@@ -2,23 +2,13 @@ import React, { useState, useEffect, useCallback } from 'react';
 import './Admin.css';
 import { SteamUser } from './SteamCallback';
 import { supabase, getUserBySteamId } from '../../services/supabase';
+import { adminReviewSubmission, reviewJudgeApplication, appointJudgeBySteamId } from '../../services/submissionService';
+import { CHALLENGE_TIERS } from '../../constants/ranks';
+import { useToast } from '../../hooks/useToast';
+import { Toast } from '../ui/Toast';
+import type { Game, Challenge, Submission, JudgeApplication } from '../../types';
 
 interface AdminProps { user: SteamUser | null; }
-
-interface Game { id: number; title: string; steam_app_id: string; }
-interface Challenge { id: string; title: string; description: string; tier: string; game_id: number; game?: any; }
-interface Submission {
-  id: string;
-  video_url: string;
-  comment: string;
-  status: string;
-  submitted_at: string;
-  admin_note: string;
-  user: any;
-  challenge: any;
-}
-
-const TIERS = ['Platinum', 'Diamond', 'Master', 'Grandmaster', 'Legend'];
 
 const Admin: React.FC<AdminProps> = ({ user }) => {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -27,11 +17,13 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [activeTab, setActiveTab] = useState<'submissions' | 'challenges' | 'games' | 'judges'>('submissions');
-  const [judgeApps, setJudgeApps] = useState<any[]>([]);
+  const [judgeApps, setJudgeApps] = useState<JudgeApplication[]>([]);
   const [newChallenge, setNewChallenge] = useState({ title: '', description: '', tier: 'Platinum', game_id: '' });
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [adminNote, setAdminNote] = useState<Record<string, string>>({});
+  const [manualSteamId, setManualSteamId] = useState('');
+  const { toast, showToast } = useToast();
 
   const loadData = useCallback(async () => {
     if (!user) return;
@@ -41,23 +33,23 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
     setIsAdmin(true);
 
     const { data: gamesData } = await supabase.from('games').select('*').order('title');
-    setGames(gamesData || []);
+    setGames((gamesData as Game[]) || []);
 
     const { data: challengesData } = await supabase
-      .from('challenges').select('*, game:games(title)').order('created_at', { ascending: false });
-    setChallenges(challengesData || []);
+      .from('challenges').select('*, game:games(id, title)').order('created_at', { ascending: false });
+    setChallenges((challengesData as unknown as Challenge[]) || []);
 
     const { data: subsData } = await supabase
       .from('submissions')
       .select('*, user:users(username, steam_id), challenge:challenges(title, tier)')
       .order('submitted_at', { ascending: false });
-    setSubmissions(subsData || []);
+    setSubmissions((subsData as unknown as Submission[]) || []);
 
     const { data: judgeAppsData } = await supabase
       .from('judge_applications')
       .select('*, user:users(username, steam_id), game:games(title)')
       .order('applied_at', { ascending: false });
-    setJudgeApps(judgeAppsData || []);
+    setJudgeApps((judgeAppsData as unknown as JudgeApplication[]) || []);
 
     setLoading(false);
   }, [user]);
@@ -89,60 +81,52 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
   };
 
   const handleSubmissionAction = async (submissionId: string, action: 'approved' | 'rejected') => {
-    const note = adminNote[submissionId] || '';
-
-    await supabase.from('submissions')
-      .update({ status: action, admin_note: note })
-      .eq('id', submissionId);
-
-    if (action === 'approved') {
-      const { data: fullSub } = await supabase
-        .from('submissions')
-        .select('challenge_id, user_id')
-        .eq('id', submissionId)
-        .single();
-
-      if (fullSub) {
-        const { data: challenge } = await supabase
-          .from('challenges')
-          .select('*')
-          .eq('id', fullSub.challenge_id)
-          .single();
-
-        if (challenge) {
-          await supabase.from('ranks').upsert({
-            user_id: fullSub.user_id,
-            game_id: challenge.game_id,
-            tier: challenge.tier + ' I',
-            method: 'community_verified',
-          }, { onConflict: 'user_id,game_id' });
-
-          await supabase.from('statues').upsert({
-            user_id: fullSub.user_id,
-            game_id: challenge.game_id,
-            tier: challenge.tier + ' I',
-            challenge: challenge.title,
-            is_unique: challenge.tier === 'Legend',
-          }, { onConflict: 'user_id,game_id' });
-        }
-      }
+    const result = await adminReviewSubmission(submissionId, action, adminNote[submissionId] ?? '');
+    if (!result.success) {
+      showToast(`Error: ${result.error}`, 'error');
+      return;
     }
-    await loadData();
+    setSubmissions(prev =>
+      prev.map(s => s.id === submissionId
+        ? { ...s, status: action, admin_note: adminNote[submissionId] ?? '' }
+        : s
+      )
+    );
+  };
+
+  const handleJudgeAppReview = async (appId: string, userId: string, action: 'approved' | 'rejected') => {
+    const result = await reviewJudgeApplication(appId, userId, action);
+    if (!result.success) { showToast(`Error: ${result.error}`, 'error'); return; }
+    setJudgeApps(prev => prev.map(a => a.id === appId ? { ...a, status: action } : a));
+  };
+
+  const handleAppointJudge = async () => {
+    if (!manualSteamId.trim()) return;
+    const result = await appointJudgeBySteamId(manualSteamId.trim());
+    if (result.success) {
+      showToast(`${result.username} is now a Judge!`, 'success');
+      setManualSteamId('');
+    } else {
+      showToast(result.error ?? 'Unknown error', 'error');
+    }
   };
 
   const handleDeleteChallenge = async (id: string) => {
     if (!window.confirm('Delete this challenge?')) return;
     await supabase.from('challenges').delete().eq('id', id);
-    await loadData();
+    setChallenges(prev => prev.filter(c => c.id !== id));
   };
 
-  const pendingCount = submissions.filter(s => s.status === 'pending').length;
+  const pendingSubmissions = submissions.filter(s => s.status === 'pending').length;
+  const pendingJudgeApps = judgeApps.filter(j => j.status === 'pending').length;
 
   if (loading) return <div className="admin__loading">Loading...</div>;
   if (!isAdmin) return <div className="admin__denied">Access denied.</div>;
 
   return (
     <div className="admin">
+      <Toast toast={toast} />
+
       <div className="admin__header">
         <div className="admin__title">Admin Panel</div>
         <div className="admin__subtitle">Pantheon Management · Voland</div>
@@ -150,7 +134,7 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
 
       <div className="admin__tabs">
         <button className={"admin__tab" + (activeTab === 'submissions' ? ' admin__tab--active' : '')} onClick={() => setActiveTab('submissions')}>
-          Submissions {pendingCount > 0 && <span className="admin__badge">{pendingCount}</span>}
+          Submissions {pendingSubmissions > 0 && <span className="admin__badge">{pendingSubmissions}</span>}
         </button>
         <button className={"admin__tab" + (activeTab === 'challenges' ? ' admin__tab--active' : '')} onClick={() => setActiveTab('challenges')}>
           Challenges ({challenges.length})
@@ -159,7 +143,7 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
           Games ({games.length})
         </button>
         <button className={"admin__tab" + (activeTab === 'judges' ? ' admin__tab--active' : '')} onClick={() => setActiveTab('judges')}>
-          Judges {judgeApps.filter(j => j.status === 'pending').length > 0 && <span className="admin__badge">{judgeApps.filter(j => j.status === 'pending').length}</span>}
+          Judges {pendingJudgeApps > 0 && <span className="admin__badge">{pendingJudgeApps}</span>}
         </button>
       </div>
 
@@ -167,7 +151,7 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
         <div className="admin__section">
           <div className="admin__list">
             <div className="admin__list-title">
-              All Submissions — {submissions.length} total · {pendingCount} pending
+              All Submissions — {submissions.length} total · {pendingSubmissions} pending
             </div>
             {submissions.length === 0 ? (
               <div className="admin__empty">No submissions yet.</div>
@@ -227,7 +211,7 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
             <div className="admin__field">
               <label className="admin__label">Tier</label>
               <select className="admin__select" value={newChallenge.tier} onChange={e => setNewChallenge({ ...newChallenge, tier: e.target.value })}>
-                {TIERS.map(t => <option key={t} value={t}>{t}</option>)}
+                {CHALLENGE_TIERS.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
             <div className="admin__field">
@@ -294,17 +278,10 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
                     {app.motivation && <div className="admin__item-desc">"{app.motivation}"</div>}
                     {app.status === 'pending' && (
                       <div className="admin__action-btns" style={{ marginTop: '0.8rem' }}>
-                        <button className="admin__approve-btn" onClick={async () => {
-                          await supabase.from('judge_applications').update({ status: 'approved' }).eq('id', app.id);
-                          await supabase.from('users').update({ is_judge: true }).eq('id', app.user_id);
-                          await loadData();
-                        }}>
+                        <button className="admin__approve-btn" onClick={() => handleJudgeAppReview(app.id, app.user_id, 'approved')}>
                           ✓ Approve
                         </button>
-                        <button className="admin__reject-btn" onClick={async () => {
-                          await supabase.from('judge_applications').update({ status: 'rejected' }).eq('id', app.id);
-                          await loadData();
-                        }}>
+                        <button className="admin__reject-btn" onClick={() => handleJudgeAppReview(app.id, app.user_id, 'rejected')}>
                           ✗ Reject
                         </button>
                       </div>
@@ -324,23 +301,11 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
                 <input
                   className="admin__input"
                   placeholder="Steam ID of the player..."
-                  id="manual-judge-input"
+                  value={manualSteamId}
+                  onChange={e => setManualSteamId(e.target.value)}
                 />
               </div>
-              <button className="admin__btn" onClick={async () => {
-                const input = document.getElementById('manual-judge-input') as HTMLInputElement;
-                const steamId = input?.value?.trim();
-                if (!steamId) return;
-                const { data: targetUser } = await supabase.from('users').select('id, username').eq('steam_id', steamId).single();
-                if (targetUser) {
-                  await supabase.from('users').update({ is_judge: true }).eq('id', targetUser.id);
-                  alert(`${targetUser.username} is now a Judge!`);
-                  if (input) input.value = '';
-                  await loadData();
-                } else {
-                  alert('User not found. They must be registered on Pantheon first.');
-                }
-              }}>
+              <button className="admin__btn" onClick={handleAppointJudge}>
                 Appoint as Judge
               </button>
             </div>

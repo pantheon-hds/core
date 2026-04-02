@@ -1,3 +1,5 @@
+import type { RankTier } from '../constants/ranks';
+
 const STEAM_API_KEY = process.env.STEAM_API_KEY;
 const STEAM_API_BASE = 'https://api.steampowered.com';
 
@@ -17,14 +19,13 @@ export interface AchievementResult {
   isGold: boolean;
 }
 
-// Get all achievements for a game
 export async function getPlayerAchievements(
   steamId: string,
   appId: string
 ): Promise<AchievementResult | null> {
   try {
     const url = `${STEAM_API_BASE}/ISteamUserStats/GetPlayerAchievements/v1/?key=${STEAM_API_KEY}&steamid=${steamId}&appid=${appId}&l=english`;
-    
+
     const response = await fetch(url);
     const data = await response.json();
 
@@ -51,11 +52,10 @@ export async function getPlayerAchievements(
   }
 }
 
-// Get Steam user profile
 export async function getSteamProfile(steamId: string) {
   try {
     const url = `${STEAM_API_BASE}/ISteamUser/GetPlayerSummaries/v2/?key=${STEAM_API_KEY}&steamids=${steamId}`;
-    
+
     const response = await fetch(url);
     const data = await response.json();
 
@@ -64,7 +64,7 @@ export async function getSteamProfile(steamId: string) {
     }
 
     const player = data.response.players[0];
-    
+
     return {
       steamId: player.steamid,
       username: player.personaname,
@@ -79,8 +79,8 @@ export async function getSteamProfile(steamId: string) {
 }
 
 // Determine rank based on achievement percentage
-export function determineRank(percentage: number): string {
-  if (percentage === 100) return 'Gold I';
+export function determineRank(percentage: number): RankTier {
+  if (percentage === 100) return 'Gold';
   if (percentage >= 95) return 'Silver III';
   if (percentage >= 90) return 'Silver II';
   if (percentage >= 75) return 'Silver I';

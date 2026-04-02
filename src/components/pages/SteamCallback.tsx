@@ -54,7 +54,7 @@ const SteamCallback: React.FC<SteamCallbackProps> = ({ onSuccess, onError }) => 
               }
             );
           } catch (e) {
-            console.log('Achievement check failed:', e);
+            console.warn('Achievement check failed (will retry on dashboard load):', e);
           }
 
           window.history.replaceState({}, '', '/app');

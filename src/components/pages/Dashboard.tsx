@@ -1,29 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import './Dashboard.css';
 import { SteamUser } from './SteamCallback';
-import { getUserBySteamId, getUserRanks, checkAchievements, UserRank, supabase, assignJudges } from '../../services/supabase';
-
-const TIER_COLORS: Record<string, string> = {
-  Platinum: '#9ac4e4',
-  Diamond: '#b8e4ff',
-  Master: '#d4a8f4',
-  Grandmaster: '#f4d4a8',
-  Legend: '#e45a3a',
-};
-
-const STATUE_COLORS: Record<string, string> = {
-  Gold: '#e8a830',
-  'Silver III': '#d8eaf8',
-  'Silver II': '#d8eaf8',
-  'Silver I': '#d8eaf8',
-  'Bronze III': '#e8974a',
-  'Bronze II': '#e8974a',
-  'Bronze I': '#e8974a',
-  'Platinum I': '#9ac4e4',
-  'Diamond I': '#b8e4ff',
-  'Master I': '#d4a8f4',
-  'Grandmaster': '#f4d4a8',
-};
+import { getUserBySteamId, getUserRanks, checkAchievements, assignJudges, supabase } from '../../services/supabase';
+import { TIER_COLORS, RANK_TIER_COLORS, getRankOrder } from '../../constants/ranks';
+import { getProgressInfo } from '../../utils/rankProgress';
+import type { UserRank, Challenge, Submission, SubmissionStatus } from '../../types';
 
 const ALLOWED_DOMAINS = ['youtube.com', 'youtu.be', 'twitch.tv'];
 
@@ -41,63 +22,14 @@ const GAMES = [
   { appId: '1030300', title: 'Hollow Knight: Silksong' },
 ];
 
-// Progress to next rank based on current rank
-function getProgressInfo(currentTier: string, approvedSubmissions: any[], challenges: any[]) {
-  const isBronze = currentTier.startsWith('Bronze');
-  const isSilver = currentTier.startsWith('Silver');
-  const isGold = currentTier === 'Gold';
-  const isPlatinum = currentTier.startsWith('Platinum');
-  const isDiamond = currentTier.startsWith('Diamond');
-  const isMaster = currentTier.startsWith('Master');
-  const isGrandmaster = currentTier === 'Grandmaster';
-
-  if (isGrandmaster) {
-    return { nextRank: 'Legend', required: 0, completed: 0, challengeTier: null, isLegend: true };
-  }
-
-  let required = 0;
-  let challengeTier = '';
-  let nextRank = '';
-
-  if (isBronze) { required = 5; challengeTier = 'Platinum'; nextRank = 'Platinum'; }
-  else if (isSilver) { required = 4; challengeTier = 'Platinum'; nextRank = 'Platinum'; }
-  else if (isGold) { required = 3; challengeTier = 'Platinum'; nextRank = 'Platinum'; }
-  else if (isPlatinum) { required = 2; challengeTier = 'Diamond'; nextRank = 'Diamond'; }
-  else if (isDiamond) { required = 2; challengeTier = 'Master'; nextRank = 'Master'; }
-  else if (isMaster) { required = 1; challengeTier = 'Grandmaster'; nextRank = 'Grandmaster'; }
-
-  const approvedChallengeIds = approvedSubmissions.map(s => s.challenge_id);
-  const completed = challenges.filter(c =>
-    c.tier === challengeTier && approvedChallengeIds.includes(c.id)
-  ).length;
-
-  return { nextRank, required, completed, challengeTier, isLegend: false };
-}
-
-interface DBChallenge {
-  id: string;
-  title: string;
-  description: string;
-  tier: string;
-  attempts: number;
-  game: any;
-}
-
-interface Submission {
-  id: string;
-  challenge_id: string;
-  status: string;
-  cooldown_until: string | null;
-}
-
 interface DashboardProps { user: SteamUser | null; }
 
 const Dashboard: React.FC<DashboardProps> = ({ user }) => {
-  const [activeChallenge, setActiveChallenge] = useState<DBChallenge | null>(null);
-  const [submitChallenge, setSubmitChallenge] = useState<DBChallenge | null>(null);
+  const [activeChallenge, setActiveChallenge] = useState<Challenge | null>(null);
+  const [submitChallenge, setSubmitChallenge] = useState<Challenge | null>(null);
   const [filter, setFilter] = useState<string>('All');
   const [ranks, setRanks] = useState<UserRank[]>([]);
-  const [challenges, setChallenges] = useState<DBChallenge[]>([]);
+  const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(false);
   const [dbUserId, setDbUserId] = useState<string | null>(null);
@@ -110,9 +42,9 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   const loadChallenges = useCallback(async () => {
     const { data } = await supabase
       .from('challenges')
-      .select('*, game:games(title)')
+      .select('*, game:games(id, title)')
       .order('tier', { ascending: true });
-    setChallenges(data || []);
+    setChallenges((data as unknown as Challenge[]) || []);
   }, []);
 
   const loadSubmissions = useCallback(async (userId: string) => {
@@ -120,7 +52,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
       .from('submissions')
       .select('id, challenge_id, status, cooldown_until')
       .eq('user_id', userId);
-    setSubmissions(data || []);
+    setSubmissions((data as unknown as Submission[]) || []);
   }, []);
 
   const loadUserData = useCallback(async () => {
@@ -229,7 +161,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
 
     await supabase.from('submissions')
       .update({
-        status: 'withdrawn',
+        status: 'withdrawn' as SubmissionStatus,
         withdrawn_at: new Date().toISOString(),
         cooldown_until: cooldownUntil.toISOString(),
       })
@@ -238,17 +170,14 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
     if (dbUserId) await loadSubmissions(dbUserId);
   };
 
-  const topRank = [...ranks].sort((a, b) => {
-    const order = ['Grandmaster', 'Master I', 'Diamond I', 'Platinum I', 'Gold', 'Silver III', 'Silver II', 'Silver I', 'Bronze III', 'Bronze II', 'Bronze I'];
-    return order.indexOf(a.tier) - order.indexOf(b.tier);
-  })[0];
-
-  const statueColor = topRank ? (STATUE_COLORS[topRank.tier] || '#c9922a') : '#3a3020';
+  const topRank = [...ranks].sort((a, b) => getRankOrder(a.tier) - getRankOrder(b.tier))[0];
+  const statueColor = topRank ? (RANK_TIER_COLORS[topRank.tier] || '#c9922a') : '#3a3020';
   const tiers = ['All', ...Array.from(new Set(challenges.map(c => c.tier)))];
   const filtered = filter === 'All' ? challenges : challenges.filter(c => c.tier === filter);
 
   const approvedSubmissions = submissions.filter(s => s.status === 'approved');
-  const progress = topRank ? getProgressInfo(topRank.tier, approvedSubmissions, challenges) : null;
+  const approvedChallengeIds = approvedSubmissions.map(s => s.challenge_id);
+  const progress = topRank ? getProgressInfo(topRank.tier, approvedChallengeIds, challenges) : null;
 
   return (
     <div className="dashboard">
@@ -432,7 +361,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
             {ranks.map(rank => (
               <div key={rank.id} className="dashboard__game-item">
                 <span className="dashboard__game-title">{rank.game?.title}</span>
-                <span className="dashboard__game-rank" style={{ color: STATUE_COLORS[rank.tier] || '#c9922a' }}>
+                <span className="dashboard__game-rank" style={{ color: RANK_TIER_COLORS[rank.tier] || '#c9922a' }}>
                   {rank.tier}
                 </span>
               </div>
@@ -452,7 +381,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
           <div className="dashboard__stat-label">Challenges</div>
         </div>
         <div className="dashboard__stat">
-          <div className="dashboard__stat-value">{submissions.filter(s => s.status === 'approved').length}</div>
+          <div className="dashboard__stat-value">{approvedSubmissions.length}</div>
           <div className="dashboard__stat-label">Completed</div>
         </div>
       </div>

@@ -214,7 +214,7 @@ if (newJudge) {
             min={1}
             max={10}
             value={judgeCount}
-            onChange={e => setJudgeCount(parseInt(e.target.value))}
+            onChange={e => { const v = parseInt(e.target.value); if (!isNaN(v)) setJudgeCount(Math.min(10, Math.max(1, v))); }}
           />
           <button className="sandbox__btn" onClick={handleCreateJudges} disabled={loading}>
             Create {judgeCount} Test Judge{judgeCount !== 1 ? 's' : ''}

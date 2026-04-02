@@ -21,6 +21,8 @@ const Sidebar: React.FC<SidebarProps> = ({ current, onChange, user, onLogout }) 
     getUserBySteamId(user.steamId).then(dbUser => {
       setIsAdmin(dbUser?.is_admin || false);
       setIsJudge(dbUser?.is_judge || false);
+    }).catch(e => {
+      console.warn('Failed to load user roles:', e);
     });
   }, [user]);
 

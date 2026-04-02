@@ -2,31 +2,20 @@ import React, { useState, useEffect, useCallback } from 'react';
 import './JudgePanel.css';
 import { SteamUser } from './SteamCallback';
 import { getUserBySteamId, supabase } from '../../services/supabase';
+import { recordJudgeVote } from '../../services/submissionService';
+import { useToast } from '../../hooks/useToast';
+import { Toast } from '../ui/Toast';
+import type { JudgeAssignment } from '../../types';
 
 interface JudgePanelProps { user: SteamUser | null; }
-
-interface Assignment {
-  id: string;
-  assigned_at: string;
-  vote: string | null;
-  timestamp_note: string | null;
-  submission: {
-    id: string;
-    video_url: string;
-    comment: string;
-    submitted_at: string;
-    user: { username: string };
-    challenge: { title: string; tier: string; description: string };
-  };
-}
 
 const JudgePanel: React.FC<JudgePanelProps> = ({ user }) => {
   const [isJudge, setIsJudge] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [assignments, setAssignments] = useState<JudgeAssignment[]>([]);
   const [timestamps, setTimestamps] = useState<Record<string, string>>({});
   const [voting, setVoting] = useState<Record<string, boolean>>({});
-  const [message, setMessage] = useState('');
+  const { toast, showToast } = useToast();
 
   const loadAssignments = useCallback(async () => {
     if (!user) return;
@@ -59,7 +48,7 @@ const JudgePanel: React.FC<JudgePanelProps> = ({ user }) => {
       .eq('judge_user_id', dbUser.id)
       .order('assigned_at', { ascending: false });
 
-    setAssignments((data as any[]) || []);
+    setAssignments((data as unknown as JudgeAssignment[]) || []);
     setLoading(false);
   }, [user]);
 
@@ -70,71 +59,26 @@ const JudgePanel: React.FC<JudgePanelProps> = ({ user }) => {
   const handleVote = async (assignmentId: string, submissionId: string, vote: 'approved' | 'rejected') => {
     const timestamp = timestamps[assignmentId]?.trim();
     if (!timestamp) {
-      setMessage('Please provide a timestamp before voting.');
-      setTimeout(() => setMessage(''), 3000);
+      showToast('Please provide a timestamp before voting.', 'error');
       return;
     }
 
-    setVoting({ ...voting, [assignmentId]: true });
+    setVoting(prev => ({ ...prev, [assignmentId]: true }));
 
-    await supabase
-      .from('submission_judges')
-      .update({
-        vote,
-        timestamp_note: timestamp,
-        voted_at: new Date().toISOString(),
-      })
-      .eq('id', assignmentId);
+    const result = await recordJudgeVote(assignmentId, submissionId, vote, timestamp);
 
-    // Check if all judges voted
-    const { data: allVotes } = await supabase
-      .from('submission_judges')
-      .select('vote')
-      .eq('submission_id', submissionId);
-
-    if (allVotes) {
-      const totalVoted = allVotes.filter(v => v.vote !== null).length;
-      const approvedVotes = allVotes.filter(v => v.vote === 'approved').length;
-      const totalJudges = allVotes.length;
-
-      if (totalVoted === totalJudges) {
-        const finalStatus = approvedVotes >= Math.ceil(totalJudges / 2) ? 'approved' : 'rejected';
-        await supabase
-          .from('submissions')
-          .update({ status: finalStatus })
-          .eq('id', submissionId);
-
-        if (finalStatus === 'approved') {
-          // Get submission details and assign rank
-          const { data: sub } = await supabase
-            .from('submissions')
-            .select('user_id, challenge:challenges(tier, game_id)')
-            .eq('id', submissionId)
-            .single();
-
-          if (sub) {
-            const challenge = (sub as any).challenge;
-            await supabase.from('ranks').upsert({
-              user_id: sub.user_id,
-              game_id: challenge.game_id,
-              tier: challenge.tier + ' I',
-              method: 'community_verified',
-            }, { onConflict: 'user_id,game_id' });
-
-            await supabase.from('statues').upsert({
-              user_id: sub.user_id,
-              game_id: challenge.game_id,
-              tier: challenge.tier + ' I',
-              challenge: challenge.title,
-              is_unique: challenge.tier === 'Legend',
-            }, { onConflict: 'user_id,game_id' });
-          }
-        }
+    if (!result.success) {
+      showToast(`Error: ${result.error}`, 'error');
+    } else {
+      setAssignments(prev =>
+        prev.map(a => a.id === assignmentId ? { ...a, vote, timestamp_note: timestamp } : a)
+      );
+      if (result.finalised) {
+        showToast(`Submission ${vote}! All judges have voted.`, vote === 'approved' ? 'success' : 'info');
       }
     }
 
-    setVoting({ ...voting, [assignmentId]: false });
-    await loadAssignments();
+    setVoting(prev => ({ ...prev, [assignmentId]: false }));
   };
 
   const pendingCount = assignments.filter(a => !a.vote).length;
@@ -144,6 +88,8 @@ const JudgePanel: React.FC<JudgePanelProps> = ({ user }) => {
 
   return (
     <div className="judge">
+      <Toast toast={toast} />
+
       <div className="judge__header">
         <div className="judge__title">⚖ Judge Panel</div>
         <div className="judge__subtitle">
@@ -152,8 +98,6 @@ const JudgePanel: React.FC<JudgePanelProps> = ({ user }) => {
             : 'No pending submissions'}
         </div>
       </div>
-
-      {message && <div className="judge__message">{message}</div>}
 
       <div className="judge__list">
         {assignments.length === 0 ? (
