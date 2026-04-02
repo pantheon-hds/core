@@ -11,6 +11,7 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
 }
 
+// Must stay in sync with determineRank() in src/services/steamApi.ts
 function getTier(percentage: number): string | null {
   if (percentage === 100) return 'Gold'
   if (percentage >= 95) return 'Silver III'
@@ -19,10 +20,10 @@ function getTier(percentage: number): string | null {
   if (percentage >= 50) return 'Bronze III'
   if (percentage >= 25) return 'Bronze II'
   if (percentage >= 1)  return 'Bronze I'
-  return null
+  return null // 0% achievements — no rank granted
 }
 
-serve(async (req) => {
+serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -62,9 +63,9 @@ serve(async (req) => {
       )
     }
 
-    const achievements = data.playerstats.achievements || []
+    const achievements: { achieved: number }[] = data.playerstats.achievements || []
     const total = achievements.length
-    const unlocked = achievements.filter((a: any) => a.achieved === 1).length
+    const unlocked = achievements.filter(a => a.achieved === 1).length
     const percentage = total > 0 ? Math.round((unlocked / total) * 100) : 0
     const tier = getTier(percentage)
 
@@ -87,7 +88,6 @@ serve(async (req) => {
           .single()
 
         if (game) {
-          // Check existing rank
           const { data: existingRank } = await supabase
             .from('ranks')
             .select('id, tier, method')
@@ -95,28 +95,36 @@ serve(async (req) => {
             .eq('game_id', game.id)
             .single()
 
+          const statueChallenge = `${percentage}% Steam Achievements`
+
           if (!existingRank) {
-  await supabase.from('ranks').upsert({
-    user_id: user.id,
-    game_id: game.id,
-    tier,
-    method: 'steam_auto',
-  }, { onConflict: 'user_id,game_id' });
+            // First time seeing this user+game — create rank and statue
+            await supabase.from('ranks').upsert({
+              user_id: user.id,
+              game_id: game.id,
+              tier,
+              method: 'steam_auto',
+            }, { onConflict: 'user_id,game_id' })
 
-  await supabase.from('statues').upsert({
-    user_id: user.id,
-    game_id: game.id,
-    tier,
-    challenge: `${percentage}% Steam Achievements`,
-    is_unique: false,
-  }, { onConflict: 'user_id,game_id' });
+            await supabase.from('statues').upsert({
+              user_id: user.id,
+              game_id: game.id,
+              tier,
+              challenge: statueChallenge,
+              is_unique: false,
+            }, { onConflict: 'user_id,game_id' })
 
-} else if (existingRank.method !== 'community_verified' && existingRank.tier !== tier) {
-  // Only update if not community verified
-  await supabase.from('ranks')
-    .update({ tier, method: 'steam_auto' })
-    .eq('id', existingRank.id);
-}
+          } else if (existingRank.method !== 'community_verified' && existingRank.tier !== tier) {
+            // Steam rank improved — update both rank and statue
+            await supabase.from('ranks')
+              .update({ tier, method: 'steam_auto' })
+              .eq('id', existingRank.id)
+
+            await supabase.from('statues')
+              .update({ tier, challenge: statueChallenge })
+              .eq('user_id', user.id)
+              .eq('game_id', game.id)
+          }
         }
       }
     }
@@ -129,7 +137,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error:', error)
     return new Response(
-      JSON.stringify({ error: 'Internal error', details: error.message }),
+      JSON.stringify({ error: 'Internal error', details: (error as Error).message }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }

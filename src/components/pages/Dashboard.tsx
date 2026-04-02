@@ -116,39 +116,52 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
     }
 
     setSubmitting(true);
-    const { error } = await supabase.from('submissions').insert({
-      user_id: dbUserId,
+
+    // Optimistic update: show the submission as pending immediately
+    const optimisticId = `optimistic_${Date.now()}`;
+    const optimisticSubmission: Submission = {
+      id: optimisticId,
       challenge_id: submitChallenge.id,
+      status: 'pending',
+      cooldown_until: null,
       video_url: videoUrl.trim(),
       comment: comment.trim() || null,
-      status: 'pending',
-    });
+      submitted_at: new Date().toISOString(),
+      admin_note: null,
+      user_id: dbUserId,
+      user: null,
+      challenge: null,
+    };
+    setSubmissions(prev => [...prev, optimisticSubmission]);
+    setSubmitChallenge(null);
+
+    const { data: inserted, error } = await supabase
+      .from('submissions')
+      .insert({
+        user_id: dbUserId,
+        challenge_id: submitChallenge.id,
+        video_url: videoUrl.trim(),
+        comment: comment.trim() || null,
+        status: 'pending',
+      })
+      .select('id')
+      .single();
 
     if (error) {
+      // Rollback optimistic update
+      setSubmissions(prev => prev.filter(s => s.id !== optimisticId));
+      setSubmitChallenge(submitChallenge);
       setSubmitMessage(`Error: ${error.message}`);
     } else {
-      const { data: newSub } = await supabase
-        .from('submissions')
-        .select('id')
-        .eq('user_id', dbUserId)
-        .eq('challenge_id', submitChallenge.id)
-        .eq('status', 'pending')
-        .order('submitted_at', { ascending: false })
-        .limit(1)
-        .single();
-
-      if (newSub) {
-        await assignJudges(newSub.id);
+      if (inserted) {
+        await assignJudges(inserted.id);
+        // Replace optimistic entry with real ID
+        setSubmissions(prev =>
+          prev.map(s => s.id === optimisticId ? { ...s, id: inserted.id } : s)
+        );
       }
-
-      setSubmitMessage('Submission sent! Judges have been assigned and will review your video.');
       setVideoUrl('');
       setComment('');
-      await loadSubmissions(dbUserId);
-      setTimeout(() => {
-        setSubmitChallenge(null);
-        setSubmitMessage('');
-      }, 2000);
     }
     setSubmitting(false);
   };

@@ -26,7 +26,7 @@ export type SubmissionStatus =
 export interface Submission {
   id: string;
   video_url: string;
-  comment: string;
+  comment: string | null;
   status: SubmissionStatus;
   submitted_at: string;
   admin_note: string | null;
