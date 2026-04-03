@@ -233,17 +233,20 @@ export async function getPublicProfile(username: string): Promise<PublicProfileD
       .order('granted_at', { ascending: false }),
   ]);
 
+  type RankRow = { tier: string; granted_at: string; game: { title: string } | null };
+  type StatueRow = { id: string; tier: string; is_unique: boolean | null; granted_at: string; game: { title: string } | null };
+
   return {
     username: user.username,
     avatarUrl: user.avatar_url,
     steamId: user.steam_id,
     createdAt: user.created_at ?? '',
-    ranks: (ranks as any[] || []).map(r => ({
+    ranks: ((ranks as RankRow[]) || []).map(r => ({
       tier: r.tier,
       gameTitle: r.game?.title ?? '—',
       grantedAt: r.granted_at,
     })),
-    statues: (statues as any[] || []).map(s => ({
+    statues: ((statues as StatueRow[]) || []).map(s => ({
       id: s.id,
       tier: s.tier,
       gameTitle: s.game?.title ?? '—',
@@ -276,8 +279,16 @@ export async function getPantheonData(): Promise<PantheonEntry[]> {
     .from('statues')
     .select('user_id, is_unique');
 
+  type StatueCount = { user_id: string; is_unique: boolean | null };
+  type PantheonRankRow = {
+    user_id: string;
+    tier: string;
+    game: { title: string } | null;
+    user: { id: string; username: string; avatar_url: string | null; steam_id: string } | null;
+  };
+
   const statueCounts: Record<string, { total: number; unique: number }> = {};
-  (statues || []).forEach((s: any) => {
+  ((statues || []) as StatueCount[]).forEach(s => {
     if (!statueCounts[s.user_id]) statueCounts[s.user_id] = { total: 0, unique: 0 };
     statueCounts[s.user_id].total++;
     if (s.is_unique) statueCounts[s.user_id].unique++;
@@ -292,7 +303,7 @@ export async function getPantheonData(): Promise<PantheonEntry[]> {
 
   const byUser: Record<string, PantheonEntry> = {};
 
-  (ranks as any[]).forEach(r => {
+  (ranks as PantheonRankRow[]).forEach(r => {
     const user = r.user;
     if (!user) return;
     const existing = byUser[user.id];
