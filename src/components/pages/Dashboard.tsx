@@ -1,13 +1,15 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import './Dashboard.css';
 import { SteamUser } from './SteamCallback';
-import { getUserBySteamId, getUserRanks, getUserStatues, checkAchievements, assignJudges, supabase } from '../../services/supabase';
+import { assignJudges, getUserRanks, supabase } from '../../services/supabase';
 import { TIER_COLORS, RANK_TIER_COLORS, getRankOrder } from '../../constants/ranks';
 import { getProgressInfo } from '../../utils/rankProgress';
-import { useToast } from '../../hooks/useToast';
 import { Toast } from '../ui/Toast';
 import StatueSVG from '../ui/StatueSVG';
-import type { UserRank, UserStatue, Challenge, Submission, SubmissionStatus } from '../../types';
+import { useChallenges } from '../../hooks/useChallenges';
+import { useUserData } from '../../hooks/useUserData';
+import { useSubmissions } from '../../hooks/useSubmissions';
+import type { Challenge, Submission, SubmissionStatus } from '../../types';
 
 const ALLOWED_DOMAINS = ['youtube.com', 'youtu.be', 'twitch.tv'];
 
@@ -28,116 +30,21 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   const [activeChallenge, setActiveChallenge] = useState<Challenge | null>(null);
   const [submitChallenge, setSubmitChallenge] = useState<Challenge | null>(null);
   const [filter, setFilter] = useState<string>('All');
-  const [ranks, setRanks] = useState<UserRank[]>([]);
-  const [statues, setStatues] = useState<UserStatue[]>([]);
-  const [challenges, setChallenges] = useState<Challenge[]>([]);
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const [games, setGames] = useState<{ id: number; steam_app_id: string; title: string }[]>([]);
-  const [dbUserId, setDbUserId] = useState<string | null>(null);
-  const [dbUsername, setDbUsername] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-
   const [videoUrl, setVideoUrl] = useState('');
   const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
-  const { toast, showToast } = useToast(5000);
 
-  const loadChallenges = useCallback(async () => {
-    const { data } = await supabase
-      .from('challenges')
-      .select('*, game:games(id, title)')
-      .order('tier', { ascending: true });
-    setChallenges((data as Challenge[]) || []);
-  }, []);
+  const { challenges, games } = useChallenges();
+  const { dbUserId, dbUsername, ranks, statues, setRanks } = useUserData(user, games);
 
-  const loadGames = useCallback(async () => {
-    const { data } = await supabase
-      .from('games')
-      .select('id, steam_app_id, title')
-      .eq('active', true);
-    setGames(data || []);
-  }, []);
+  const handleApproved = useCallback(() => {
+    if (dbUserId) getUserRanks(dbUserId).then(setRanks);
+  }, [dbUserId, setRanks]);
 
-  const loadSubmissions = useCallback(async (userId: string) => {
-    const { data } = await supabase
-      .from('submissions')
-      .select('id, challenge_id, status, cooldown_until')
-      .eq('user_id', userId);
-    setSubmissions((data as Submission[]) || []);
-  }, []);
-
-  const loadUserData = useCallback(async () => {
-    if (!user) return;
-    try {
-      const dbUser = await getUserBySteamId(user.steamId);
-      if (dbUser) {
-        setDbUserId(dbUser.id);
-        setDbUsername(dbUser.username);
-        await Promise.all(games.map(g => checkAchievements(user.steamId, g.steam_app_id)));
-        const [userRanks, userStatues] = await Promise.all([
-          getUserRanks(dbUser.id),
-          getUserStatues(dbUser.id),
-        ]);
-        setRanks(userRanks);
-        setStatues(userStatues);
-        await loadSubmissions(dbUser.id);
-      }
-    } catch (e) {
-      console.error('Failed to load user data:', e);
-    }
-  }, [user, games, loadSubmissions]);
-
-  useEffect(() => { loadChallenges(); }, [loadChallenges]);
-  useEffect(() => { loadGames(); }, [loadGames]);
-  useEffect(() => { if (user && games.length > 0) loadUserData(); }, [user, games, loadUserData]);
-
-  // Realtime: live status updates for user's submissions
-  useEffect(() => {
-    if (!dbUserId) return;
-
-    const channel = supabase
-      .channel(`submissions:${dbUserId}`)
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'submissions', filter: `user_id=eq.${dbUserId}` },
-        (payload) => {
-          const updated = payload.new as Submission;
-
-          setSubmissions(prev =>
-            prev.map(s => s.id === updated.id ? { ...s, ...updated } : s)
-          );
-
-          if (updated.status === 'approved') {
-            showToast('Your submission was approved! Rank awarded.', 'success');
-            getUserRanks(dbUserId).then(setRanks);
-          } else if (updated.status === 'rejected') {
-            showToast('Your submission was not approved this time.', 'error');
-          } else if (updated.status === 'in_review') {
-            showToast('Your submission is now under review by judges.', 'info');
-          }
-        }
-      )
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
-  }, [dbUserId, showToast]);
-
-  const getSubmissionStatus = (challengeId: number) => {
-    return submissions.find(s => s.challenge_id === challengeId);
-  };
-
-  const hasActiveSubmission = () => {
-    return submissions.some(s => s.status === 'pending' || s.status === 'in_review');
-  };
-
-  const isOnCooldown = () => {
-    const latest = submissions
-      .filter(s => s.cooldown_until)
-      .sort((a, b) => new Date(b.cooldown_until!).getTime() - new Date(a.cooldown_until!).getTime())[0];
-    if (!latest?.cooldown_until) return false;
-    return new Date(latest.cooldown_until) > new Date();
-  };
+  const { submissions, toast, setSubmissions, loadSubmissions, getSubmissionStatus, hasActiveSubmission, isOnCooldown } =
+    useSubmissions(dbUserId, handleApproved);
 
   const handleSubmit = async () => {
     if (!dbUserId || !submitChallenge) return;
