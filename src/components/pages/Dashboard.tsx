@@ -2,13 +2,15 @@ import React, { useState, useCallback, useMemo } from 'react';
 import './Dashboard.css';
 import { SteamUser } from './SteamCallback';
 import { assignJudges, getUserRanks, supabase } from '../../services/supabase';
-import { TIER_COLORS, RANK_TIER_COLORS, getRankOrder } from '../../constants/ranks';
-import { getProgressInfo } from '../../utils/rankProgress';
+import { RANK_TIER_COLORS, getRankOrder } from '../../constants/ranks';
 import { Toast } from '../ui/Toast';
-import StatueSVG from '../ui/StatueSVG';
 import { useChallenges } from '../../hooks/useChallenges';
 import { useUserData } from '../../hooks/useUserData';
 import { useSubmissions } from '../../hooks/useSubmissions';
+import ChallengeDetailModal from '../dashboard/ChallengeDetailModal';
+import SubmitModal from '../dashboard/SubmitModal';
+import RankCard from '../dashboard/RankCard';
+import ChallengeList from '../dashboard/ChallengeList';
 import type { Challenge, Submission, SubmissionStatus } from '../../types';
 
 const ALLOWED_DOMAINS = ['youtube.com', 'youtu.be', 'twitch.tv'];
@@ -142,194 +144,52 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
     [ranks]
   );
   const tiers = ['All', ...Array.from(new Set(challenges.map(c => c.tier)))];
-  const filtered = filter === 'All' ? challenges : challenges.filter(c => c.tier === filter);
-
   const approvedSubmissions = submissions.filter(s => s.status === 'approved');
   const approvedChallengeIds = approvedSubmissions.map(s => s.challenge_id);
-  const progress = topRank ? getProgressInfo(topRank.tier, approvedChallengeIds, challenges) : null;
 
   return (
     <div className="dashboard">
       <Toast toast={toast} />
 
-      {/* Challenge detail modal */}
       {activeChallenge && (
-        <div className="dashboard__modal-overlay" onClick={() => setActiveChallenge(null)}>
-          <div className="dashboard__modal" onClick={e => e.stopPropagation()}>
-            <div className="dashboard__modal-tier" style={{ color: TIER_COLORS[activeChallenge.tier] || '#c9922a' }}>
-              {activeChallenge.tier}
-            </div>
-            <div className="dashboard__modal-title">{activeChallenge.title}</div>
-            <div className="dashboard__modal-desc">{activeChallenge.description}</div>
-            <div className="dashboard__modal-meta">{activeChallenge.game?.title}</div>
-            <div className="dashboard__modal-actions">
-              {getSubmissionStatus(activeChallenge.id)?.status === 'approved' ? (
-                <div className="dashboard__modal-completed">✓ Completed</div>
-              ) : (
-                <button
-                  className="dashboard__modal-submit-btn"
-                  onClick={() => {
-                    setActiveChallenge(null);
-                    setSubmitChallenge(activeChallenge);
-                  }}
-                >
-                  Submit Attempt
-                </button>
-              )}
-              <button className="dashboard__modal-close" onClick={() => setActiveChallenge(null)}>
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
+        <ChallengeDetailModal
+          challenge={activeChallenge}
+          submissionStatus={getSubmissionStatus(activeChallenge.id)}
+          onClose={() => setActiveChallenge(null)}
+          onSubmit={(c) => setSubmitChallenge(c)}
+        />
       )}
 
-      {/* Submit form modal */}
       {submitChallenge && (
-        <div className="dashboard__modal-overlay" onClick={() => { setSubmitChallenge(null); setSubmitMessage(''); }}>
-          <div className="dashboard__modal dashboard__modal--submit" onClick={e => e.stopPropagation()}>
-            <div className="dashboard__modal-tier" style={{ color: TIER_COLORS[submitChallenge.tier] || '#c9922a' }}>
-              Submit — {submitChallenge.tier}
-            </div>
-            <div className="dashboard__modal-title">{submitChallenge.title}</div>
-            <div className="dashboard__modal-game">{submitChallenge.game?.title}</div>
-
-            <div className="dashboard__submit-field">
-              <label className="dashboard__submit-label">Video URL *</label>
-              <input
-                className="dashboard__submit-input"
-                placeholder="YouTube or Twitch link only"
-                value={videoUrl}
-                onChange={e => setVideoUrl(e.target.value)}
-              />
-              <div className="dashboard__submit-hint">Only youtube.com, youtu.be, twitch.tv are accepted</div>
-            </div>
-
-            <div className="dashboard__submit-field">
-              <label className="dashboard__submit-label">Comment (optional)</label>
-              <textarea
-                className="dashboard__submit-textarea"
-                placeholder="Any notes for the judges..."
-                value={comment}
-                onChange={e => setComment(e.target.value)}
-                rows={3}
-              />
-            </div>
-
-            {submitMessage && (
-              <div className={"dashboard__submit-message" + (submitMessage.includes('Error') || submitMessage.includes('Only') || submitMessage.includes('already') || submitMessage.includes('cooldown') ? ' dashboard__submit-message--error' : ' dashboard__submit-message--success')}>
-                {submitMessage}
-              </div>
-            )}
-
-            <div className="dashboard__modal-actions">
-              <button
-                className="dashboard__modal-submit-btn"
-                onClick={handleSubmit}
-                disabled={submitting}
-              >
-                {submitting ? 'Submitting...' : 'Submit'}
-              </button>
-              <button
-                className="dashboard__modal-close"
-                onClick={() => { setSubmitChallenge(null); setSubmitMessage(''); }}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
+        <SubmitModal
+          challenge={submitChallenge}
+          videoUrl={videoUrl}
+          comment={comment}
+          submitting={submitting}
+          submitMessage={submitMessage}
+          onVideoUrlChange={setVideoUrl}
+          onCommentChange={setComment}
+          onSubmit={handleSubmit}
+          onClose={() => { setSubmitChallenge(null); setSubmitMessage(''); }}
+        />
       )}
 
-      {/* Rank card */}
-      <div className="dashboard__rank-card">
-        <div className="dashboard__rank-statues">
-          {statues.length > 0
-            ? statues.map(s => (
-                <div key={s.id} className="dashboard__rank-statue-item">
-                  <StatueSVG tier={s.tier} size={80} unique={s.is_unique} />
-                  <div className="dashboard__rank-statue-tier"
-                    style={{ color: RANK_TIER_COLORS[s.tier] || '#c9922a' }}>
-                    {s.tier}
-                  </div>
-                  <div className="dashboard__rank-statue-game">{s.game?.title}</div>
-                </div>
-              ))
-            : (
-                <div className="dashboard__rank-statue-item">
-                  <StatueSVG tier="Bronze I" size={80} />
-                  <div className="dashboard__rank-statue-tier" style={{ color: '#c9922a' }}>No rank yet</div>
-                  <div className="dashboard__rank-statue-game">Play games to earn ranks</div>
-                </div>
-              )
-          }
-        </div>
-        <div className="dashboard__rank-info">
-          <div className="dashboard__rank-xp">
-            {ranks.length} rank{ranks.length !== 1 ? 's' : ''} earned across {games.length} game{games.length !== 1 ? 's' : ''}
-          </div>
-          {dbUsername && (
-            <div className="dashboard__profile-share">
-              <div className="dashboard__profile-share-label">Your public profile · share with anyone</div>
-              <div className="dashboard__profile-share-row">
-                <a
-                  href={`/u/${dbUsername}`}
-                  className="dashboard__profile-link"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  pantheonhds.com/u/{dbUsername}
-                </a>
-                <button
-                  className="dashboard__copy-btn"
-                  onClick={() => {
-                    navigator.clipboard.writeText(`https://pantheonhds.com/u/${dbUsername}`);
-                    setCopied(true);
-                    setTimeout(() => setCopied(false), 2000);
-                  }}
-                >
-                  {copied ? 'Copied!' : 'Copy'}
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
+      <RankCard
+        ranks={ranks}
+        statues={statues}
+        games={games}
+        challenges={challenges}
+        dbUsername={dbUsername}
+        copied={copied}
+        onCopy={() => {
+          navigator.clipboard.writeText(`https://pantheonhds.com/u/${dbUsername}`);
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        }}
+        topRank={topRank}
+        approvedChallengeIds={approvedChallengeIds}
+      />
 
-      {/* Progress to next rank */}
-      {progress && !progress.isLegend && progress.required > 0 && (
-        <div className="dashboard__progress">
-          <div className="dashboard__progress-header">
-            <span className="dashboard__progress-label">Path to {progress.nextRank}</span>
-            <span className="dashboard__progress-count">
-              {progress.completed} / {progress.required} {progress.challengeTier} challenges
-            </span>
-          </div>
-          <div className="dashboard__progress-dots">
-            {Array.from({ length: progress.required }).map((_, i) => (
-              <div
-                key={i}
-                className={"dashboard__progress-dot" + (i < progress.completed ? ' dashboard__progress-dot--done' : '')}
-                style={i < progress.completed ? { background: TIER_COLORS[progress.challengeTier!] || '#c9922a' } : {}}
-              />
-            ))}
-          </div>
-          {progress.completed >= progress.required && (
-            <div className="dashboard__progress-ready">
-              Ready to advance! Submit your next challenge to unlock {progress.nextRank}.
-            </div>
-          )}
-        </div>
-      )}
-
-      {progress?.isLegend && (
-        <div className="dashboard__progress dashboard__progress--legend">
-          <div className="dashboard__progress-label">You are Grandmaster. The path to Legend awaits.</div>
-          <div className="dashboard__progress-legend-text">Legend rank is granted by community vote only.</div>
-        </div>
-      )}
-
-      {/* Active submissions */}
       {submissions.filter(s => s.status === 'pending' || s.status === 'in_review').map(s => {
         const challenge = challenges.find(c => c.id === s.challenge_id);
         return (
@@ -343,17 +203,13 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                 <span className="dashboard__live-badge">● Live</span>
               </div>
             </div>
-            <button
-              className="dashboard__withdraw-btn"
-              onClick={() => handleWithdraw(s.id)}
-            >
+            <button className="dashboard__withdraw-btn" onClick={() => handleWithdraw(s.id)}>
               Withdraw
             </button>
           </div>
         );
       })}
 
-      {/* Ranks per game */}
       {ranks.length > 0 && (
         <div className="dashboard__games">
           <div className="dashboard__games-title">Your Ranks</div>
@@ -370,7 +226,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
         </div>
       )}
 
-      {/* Stats */}
       <div className="dashboard__stats">
         <div className="dashboard__stat">
           <div className="dashboard__stat-value">{ranks.length * 100}</div>
@@ -386,60 +241,14 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
         </div>
       </div>
 
-      {/* Challenges */}
-      <div className="dashboard__challenges-header">
-        <span className="dashboard__challenges-title">Community Challenges</span>
-        <div className="dashboard__filters">
-          {tiers.map(t => (
-            <button
-              key={t}
-              className={"dashboard__filter" + (filter === t ? " dashboard__filter--active" : "")}
-              onClick={() => setFilter(t)}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="dashboard__challenges">
-        {filtered.length === 0 ? (
-          <div className="dashboard__empty">
-            No challenges yet. Add some from the Admin panel.
-          </div>
-        ) : (
-          filtered.map(challenge => {
-            const submission = getSubmissionStatus(challenge.id);
-            return (
-              <div
-                key={challenge.id}
-                className="dashboard__challenge"
-                onClick={() => setActiveChallenge(challenge)}
-              >
-                <div
-                  className="dashboard__challenge-dot"
-                  style={{ background: TIER_COLORS[challenge.tier] || '#c9922a' }}
-                />
-                <span className="dashboard__challenge-title">{challenge.title}</span>
-                <span className="dashboard__challenge-game">{challenge.game?.title}</span>
-                <span className="dashboard__challenge-tier">{challenge.tier}</span>
-                {submission && (
-                  <span className="dashboard__challenge-status" style={{
-                    color: submission.status === 'approved' ? '#6ab87a' :
-                           submission.status === 'rejected' ? '#e45a3a' :
-                           '#c9922a'
-                  }}>
-                    {submission.status === 'pending' ? '⏳' :
-                     submission.status === 'approved' ? '✓' :
-                     submission.status === 'rejected' ? '✗' :
-                     submission.status === 'in_review' ? '👁' : ''}
-                  </span>
-                )}
-              </div>
-            );
-          })
-        )}
-      </div>
+      <ChallengeList
+        challenges={challenges}
+        filter={filter}
+        tiers={tiers}
+        onFilterChange={setFilter}
+        onChallengeClick={setActiveChallenge}
+        getSubmissionStatus={getSubmissionStatus}
+      />
     </div>
   );
 };
