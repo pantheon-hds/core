@@ -411,7 +411,7 @@
 }
 
 .profile__judge-req--met {
-  color: #6ab87a;
+  color: var(--color-success);
 }
 
 .profile__judge-status {

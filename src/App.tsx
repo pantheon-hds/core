@@ -33,6 +33,7 @@ const getSavedUser = (): SteamUser | null => {
 
 const AppShell: React.FC<{ user: SteamUser | null; onLogout: () => void }> = ({ user, onLogout }) => {
   const [page, setPage] = useState<Page>('dashboard');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const titles: Record<Page, string> = {
     dashboard: 'Dashboard',
@@ -48,9 +49,19 @@ const AppShell: React.FC<{ user: SteamUser | null; onLogout: () => void }> = ({ 
   return (
     <div className="app">
       <div className="app__layout app__layout--visible">
-        <Sidebar current={page} onChange={setPage} user={user} onLogout={onLogout} />
+        {sidebarOpen && (
+          <div className="app__sidebar-overlay" onClick={() => setSidebarOpen(false)} />
+        )}
+        <Sidebar
+          current={page}
+          onChange={(p) => { setPage(p); setSidebarOpen(false); }}
+          user={user}
+          onLogout={onLogout}
+          isOpen={sidebarOpen}
+        />
         <div className="app__main">
           <div className="app__topbar">
+            <button className="app__hamburger" onClick={() => setSidebarOpen(o => !o)}>≡</button>
             <span className="app__topbar-title">{titles[page]}</span>
             <div className="app__topbar-tags">
               {isFounder && <span className="app__tag app__tag--founder">⚜ Founder</span>}

@@ -10,9 +10,10 @@ interface SidebarProps {
   onChange: (page: Page) => void;
   user: SteamUser | null;
   onLogout?: () => void;
+  isOpen?: boolean;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ current, onChange, user, onLogout }) => {
+const Sidebar: React.FC<SidebarProps> = ({ current, onChange, user, onLogout, isOpen }) => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isJudge, setIsJudge] = useState(false);
 
@@ -31,7 +32,7 @@ const Sidebar: React.FC<SidebarProps> = ({ current, onChange, user, onLogout }) 
     : 'HR';
 
   return (
-    <aside className="sidebar">
+    <aside className={"sidebar" + (isOpen ? " sidebar--open" : "")}>
       <div className="sidebar__logo">
         <span className="sidebar__logo-word">Honor</span>
         <span className="sidebar__logo-word sidebar__logo-word--mid">Democracy</span>

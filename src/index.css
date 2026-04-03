@@ -1,23 +1,53 @@
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap');
 
 :root {
+  /* Backgrounds */
   --color-bg: #08080e;
   --color-bg-surface: #0d0d14;
   --color-bg-elevated: #111118;
+
+  /* Borders */
   --color-border: #2a2218;
   --color-border-mid: #3a3225;
   --color-border-strong: #4a3e28;
+
+  /* Brand colors */
   --color-gold: #e8a830;
   --color-gold-dim: #c9922a;
   --color-gold-dark: #a07020;
   --color-platinum: #9ac4e4;
   --color-legend: #e45a3a;
+
+  /* Success (approve/completed) */
+  --color-success: #6ab87a;
+  --color-success-bg: #0a1a10;
+  --color-success-border: #3a6a4a;
+  --color-approve-btn: #4a9a5a;
+  --color-approve-btn-hover: #3a8a4a;
+
+  /* Error (reject/warning) */
+  --color-error: #e45a3a;
+  --color-error-bg: #1a0a08;
+  --color-error-border: #6a2a1a;
+  --color-reject-btn: #8a2a1a;
+  --color-reject-btn-hover: #6a1a10;
+
+  /* Text */
   --color-text-primary: #f0e0b0;
   --color-text-secondary: #b09870;
   --color-text-dim: #807060;
   --color-text-muted: #605040;
+
+  /* Fonts */
   --font-display: 'Cinzel', serif;
   --font-body: 'Crimson Pro', serif;
+
+  /* Z-index layers */
+  --z-base: 1;
+  --z-nav: 100;
+  --z-overlay: 150;
+  --z-modal: 200;
+  --z-toast: 9999;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }

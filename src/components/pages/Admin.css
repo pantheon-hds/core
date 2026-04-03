@@ -134,15 +134,15 @@
 }
 
 .admin__message--success {
-  color: #6ab87a;
-  border-color: #3a6a4a;
-  background: #0a1a10;
+  color: var(--color-success);
+  border-color: var(--color-success-border);
+  background: var(--color-success-bg);
 }
 
 .admin__message--error {
-  color: var(--color-legend);
-  border-color: #6a2a1a;
-  background: #1a0a08;
+  color: var(--color-error);
+  border-color: var(--color-error-border);
+  background: var(--color-error-bg);
 }
 
 .admin__btn {
@@ -217,7 +217,7 @@
   text-transform: uppercase;
   color: var(--color-legend);
   background: transparent;
-  border: 0.5px solid #6a2a1a;
+  border: 0.5px solid var(--color-error-border);
   padding: 0.4rem 0.8rem;
   cursor: pointer;
   flex-shrink: 0;
@@ -290,15 +290,15 @@
   font-size: 10px;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: #08080e;
-  background: #4a9a5a;
+  color: var(--color-bg);
+  background: var(--color-approve-btn);
   border: none;
   padding: 0.5rem 1.2rem;
   cursor: pointer;
   transition: opacity 0.2s;
 }
 
-.admin__approve-btn:hover { opacity: 0.85; }
+.admin__approve-btn:hover { background: var(--color-approve-btn-hover); }
 
 .admin__reject-btn {
   font-family: var(--font-display);
@@ -306,14 +306,14 @@
   letter-spacing: 0.15em;
   text-transform: uppercase;
   color: white;
-  background: #8a2a1a;
+  background: var(--color-reject-btn);
   border: none;
   padding: 0.5rem 1.2rem;
   cursor: pointer;
   transition: opacity 0.2s;
 }
 
-.admin__reject-btn:hover { opacity: 0.85; }
+.admin__reject-btn:hover { background: var(--color-reject-btn-hover); }
 
 .admin__item-note {
   font-size: 12px;

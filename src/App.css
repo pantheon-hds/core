@@ -65,7 +65,54 @@
 }
 
 .app__tag--founder {
-  color: #e8a830;
-  border-color: #8b6914;
+  color: var(--color-gold);
+  border-color: var(--color-gold-dark);
   font-size: 12px !important;
+}
+
+/* Hamburger button — mobile only */
+.app__hamburger {
+  display: none;
+  background: transparent;
+  border: 0.5px solid var(--color-border-mid);
+  color: var(--color-text-secondary);
+  padding: 0.4rem 0.6rem;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.18s, border-color 0.18s;
+}
+
+.app__hamburger:hover {
+  color: var(--color-gold-dim);
+  border-color: var(--color-gold-dim);
+}
+
+/* Overlay behind sidebar on mobile */
+.app__sidebar-overlay {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .app__hamburger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .app__sidebar-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: var(--z-overlay);
+  }
+
+  .app__topbar {
+    padding: 0.75rem 1rem;
+  }
+
+  .app__content {
+    overflow-y: auto;
+  }
 }
