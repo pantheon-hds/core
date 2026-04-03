@@ -21,29 +21,29 @@ describe('RANK_TIERS', () => {
     expect(RANK_TIERS.length).toBe(12);
   });
 
-  it('has Grandmaster above Master I', () => {
-    expect(getRankOrder('Grandmaster')).toBeLessThan(getRankOrder('Master I'));
+  it('has Grandmaster above Master', () => {
+    expect(getRankOrder('Grandmaster')).toBeLessThan(getRankOrder('Master'));
   });
 });
 
 describe('challengeTierToRankTier', () => {
-  it('appends " I" to Platinum', () => {
-    expect(challengeTierToRankTier('Platinum')).toBe('Platinum I');
+  it('returns Platinum as-is', () => {
+    expect(challengeTierToRankTier('Platinum')).toBe('Platinum');
   });
 
-  it('appends " I" to Diamond', () => {
-    expect(challengeTierToRankTier('Diamond')).toBe('Diamond I');
+  it('returns Diamond as-is', () => {
+    expect(challengeTierToRankTier('Diamond')).toBe('Diamond');
   });
 
-  it('appends " I" to Master', () => {
-    expect(challengeTierToRankTier('Master')).toBe('Master I');
+  it('returns Master as-is', () => {
+    expect(challengeTierToRankTier('Master')).toBe('Master');
   });
 
-  it('does NOT append " I" to Grandmaster', () => {
+  it('returns Grandmaster as-is', () => {
     expect(challengeTierToRankTier('Grandmaster')).toBe('Grandmaster');
   });
 
-  it('does NOT append " I" to Legend', () => {
+  it('returns Legend as-is', () => {
     expect(challengeTierToRankTier('Legend')).toBe('Legend');
   });
 
@@ -58,10 +58,10 @@ describe('challengeTierToRankTier', () => {
 describe('getRankOrder', () => {
   it('returns lower index for higher rank', () => {
     expect(getRankOrder('Legend')).toBeLessThan(getRankOrder('Grandmaster'));
-    expect(getRankOrder('Grandmaster')).toBeLessThan(getRankOrder('Master I'));
-    expect(getRankOrder('Master I')).toBeLessThan(getRankOrder('Diamond I'));
-    expect(getRankOrder('Diamond I')).toBeLessThan(getRankOrder('Platinum I'));
-    expect(getRankOrder('Platinum I')).toBeLessThan(getRankOrder('Gold'));
+    expect(getRankOrder('Grandmaster')).toBeLessThan(getRankOrder('Master'));
+    expect(getRankOrder('Master')).toBeLessThan(getRankOrder('Diamond'));
+    expect(getRankOrder('Diamond')).toBeLessThan(getRankOrder('Platinum'));
+    expect(getRankOrder('Platinum')).toBeLessThan(getRankOrder('Gold'));
     expect(getRankOrder('Gold')).toBeLessThan(getRankOrder('Silver III'));
     expect(getRankOrder('Silver III')).toBeLessThan(getRankOrder('Silver II'));
     expect(getRankOrder('Silver II')).toBeLessThan(getRankOrder('Silver I'));

@@ -18,7 +18,7 @@ describe('getProgressInfo', () => {
       const result = getProgressInfo('Bronze I', [], challenges);
       expect(result.required).toBe(5);
       expect(result.challengeTier).toBe('Platinum');
-      expect(result.nextRank).toBe('Platinum I');
+      expect(result.nextRank).toBe('Platinum');
     });
 
     it('counts completed Platinum challenges', () => {
@@ -40,7 +40,7 @@ describe('getProgressInfo', () => {
       const result = getProgressInfo('Silver I', [], challenges);
       expect(result.required).toBe(4);
       expect(result.challengeTier).toBe('Platinum');
-      expect(result.nextRank).toBe('Platinum I');
+      expect(result.nextRank).toBe('Platinum');
     });
 
     it('works for all Silver sub-tiers', () => {
@@ -56,7 +56,7 @@ describe('getProgressInfo', () => {
       const result = getProgressInfo('Gold', [], challenges);
       expect(result.required).toBe(3);
       expect(result.challengeTier).toBe('Platinum');
-      expect(result.nextRank).toBe('Platinum I');
+      expect(result.nextRank).toBe('Platinum');
     });
 
     it('counts only Platinum challenges, not other tiers', () => {
@@ -67,30 +67,30 @@ describe('getProgressInfo', () => {
 
   describe('Platinum tier', () => {
     it('requires 2 Diamond challenges to advance', () => {
-      const result = getProgressInfo('Platinum I', [], challenges);
+      const result = getProgressInfo('Platinum', [], challenges);
       expect(result.required).toBe(2);
       expect(result.challengeTier).toBe('Diamond');
-      expect(result.nextRank).toBe('Diamond I');
+      expect(result.nextRank).toBe('Diamond');
     });
 
     it('counts completed Diamond challenges', () => {
-      const result = getProgressInfo('Platinum I', ['d1', 'd2', 'p1'], challenges);
+      const result = getProgressInfo('Platinum', ['d1', 'd2', 'p1'], challenges);
       expect(result.completed).toBe(2);
     });
   });
 
   describe('Diamond tier', () => {
     it('requires 2 Master challenges to advance', () => {
-      const result = getProgressInfo('Diamond I', [], challenges);
+      const result = getProgressInfo('Diamond', [], challenges);
       expect(result.required).toBe(2);
       expect(result.challengeTier).toBe('Master');
-      expect(result.nextRank).toBe('Master I');
+      expect(result.nextRank).toBe('Master');
     });
   });
 
   describe('Master tier', () => {
     it('requires 1 Grandmaster challenge to advance', () => {
-      const result = getProgressInfo('Master I', [], challenges);
+      const result = getProgressInfo('Master', [], challenges);
       expect(result.required).toBe(1);
       expect(result.challengeTier).toBe('Grandmaster');
       expect(result.nextRank).toBe('Grandmaster');
@@ -132,7 +132,7 @@ describe('getProgressInfo', () => {
 
   describe('isLegend flag', () => {
     it('is false for all non-Grandmaster tiers', () => {
-      const tiers = ['Bronze I', 'Silver II', 'Gold', 'Platinum I', 'Diamond I', 'Master I'];
+      const tiers = ['Bronze I', 'Silver II', 'Gold', 'Platinum', 'Diamond', 'Master'];
       for (const tier of tiers) {
         expect(getProgressInfo(tier, [], challenges).isLegend).toBe(false);
       }

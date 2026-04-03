@@ -8,9 +8,9 @@ import StatueSVG from '../ui/StatueSVG';
 const TIER_GROUPS = [
   { label: 'Legends',      tiers: ['Legend'],                       special: true  },
   { label: 'Grandmasters', tiers: ['Grandmaster'],                  special: false },
-  { label: 'Masters',      tiers: ['Master I'],                     special: false },
-  { label: 'Diamond',      tiers: ['Diamond I'],                    special: false },
-  { label: 'Platinum',     tiers: ['Platinum I'],                   special: false },
+  { label: 'Masters',      tiers: ['Master'],                       special: false },
+  { label: 'Diamond',      tiers: ['Diamond'],                      special: false },
+  { label: 'Platinum',     tiers: ['Platinum'],                     special: false },
   { label: 'Champions',    tiers: ['Gold', 'Silver III', 'Silver II', 'Silver I', 'Bronze III', 'Bronze II', 'Bronze I'], special: false },
 ];
 

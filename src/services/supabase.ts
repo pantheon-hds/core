@@ -64,7 +64,7 @@ export async function checkJudgeEligibility(userId: string): Promise<JudgeEligib
     .from('ranks')
     .select('id')
     .eq('user_id', userId)
-    .eq('tier', 'Platinum I')
+    .eq('tier', 'Platinum')
     .limit(1);
 
   const { data: user } = await supabase
@@ -295,8 +295,8 @@ export async function getPantheonData(): Promise<PantheonEntry[]> {
   });
 
   const TIER_ORDER = [
-    'Legend', 'Grandmaster', 'Master I',
-    'Diamond I', 'Platinum I',
+    'Legend', 'Grandmaster', 'Master',
+    'Diamond', 'Platinum',
     'Gold', 'Silver III', 'Silver II', 'Silver I',
     'Bronze III', 'Bronze II', 'Bronze I',
   ];

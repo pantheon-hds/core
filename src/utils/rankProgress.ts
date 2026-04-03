@@ -32,11 +32,11 @@ export function getProgressInfo(
   let challengeTier = '';
   let nextRank = '';
 
-  if (isBronze)    { required = 5; challengeTier = 'Platinum'; nextRank = 'Platinum I'; }
-  else if (isSilver)    { required = 4; challengeTier = 'Platinum'; nextRank = 'Platinum I'; }
-  else if (isGold)      { required = 3; challengeTier = 'Platinum'; nextRank = 'Platinum I'; }
-  else if (isPlatinum)  { required = 2; challengeTier = 'Diamond';  nextRank = 'Diamond I'; }
-  else if (isDiamond)   { required = 2; challengeTier = 'Master';   nextRank = 'Master I'; }
+  if (isBronze)    { required = 5; challengeTier = 'Platinum'; nextRank = 'Platinum'; }
+  else if (isSilver)    { required = 4; challengeTier = 'Platinum'; nextRank = 'Platinum'; }
+  else if (isGold)      { required = 3; challengeTier = 'Platinum'; nextRank = 'Platinum'; }
+  else if (isPlatinum)  { required = 2; challengeTier = 'Diamond';  nextRank = 'Diamond'; }
+  else if (isDiamond)   { required = 2; challengeTier = 'Master';   nextRank = 'Master'; }
   else if (isMaster)    { required = 1; challengeTier = 'Grandmaster'; nextRank = 'Grandmaster'; }
 
   const completed = challenges.filter(
