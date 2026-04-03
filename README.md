@@ -195,6 +195,7 @@ This project has no investors and no advertising. If you believe in the idea, yo
 
 - **Discord:** discord.gg/pantheonhds
 - **Reddit:** reddit.com/r/PantheonHDS
+- **X (Twitter):** x.com/pantheonhds
 - **Platform:** pantheonhds.com
 
 ---
