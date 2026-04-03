@@ -5,13 +5,18 @@ import { supabase } from '../../services/supabase';
 
 interface SandboxProps { user: SteamUser | null; }
 
+interface SandboxJudge { id: string; username: string; steam_id: string; is_judge: boolean; }
+interface SandboxSubmission { id: string; status: string; submitted_at: string; is_test: boolean; challenge: { title: string; tier: string } | null; }
+interface SandboxChallenge { id: number; title: string; tier: string; game: { title: string } | null; }
+interface SandboxAssignment { id: string; is_test: boolean; judge: { username: string } | null; submission: { is_test: boolean } | null; }
+
 const Sandbox: React.FC<SandboxProps> = ({ user }) => {
   const isFounder = user?.steamId === 'VOLAND_FOUNDER';
 
-  const [judges, setJudges] = useState<any[]>([]);
-  const [submissions, setSubmissions] = useState<any[]>([]);
-  const [challenges, setChallenges] = useState<any[]>([]);
-  const [assignments, setAssignments] = useState<any[]>([]);
+  const [judges, setJudges] = useState<SandboxJudge[]>([]);
+  const [submissions, setSubmissions] = useState<SandboxSubmission[]>([]);
+  const [challenges, setChallenges] = useState<SandboxChallenge[]>([]);
+  const [assignments, setAssignments] = useState<SandboxAssignment[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [selectedChallenge, setSelectedChallenge] = useState('');

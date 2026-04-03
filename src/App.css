@@ -67,7 +67,7 @@
 .app__tag--founder {
   color: var(--color-gold);
   border-color: var(--color-gold-dark);
-  font-size: 12px !important;
+  font-size: 12px;
 }
 
 /* Hamburger button — mobile only */

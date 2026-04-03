@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import './Dashboard.css';
 import { SteamUser } from './SteamCallback';
 import { getUserBySteamId, getUserRanks, getUserStatues, checkAchievements, assignJudges, supabase } from '../../services/supabase';
@@ -230,7 +230,10 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
     if (dbUserId) await loadSubmissions(dbUserId);
   };
 
-  const topRank = [...ranks].sort((a, b) => getRankOrder(a.tier) - getRankOrder(b.tier))[0];
+  const topRank = useMemo(
+    () => [...ranks].sort((a, b) => getRankOrder(a.tier) - getRankOrder(b.tier))[0],
+    [ranks]
+  );
   const tiers = ['All', ...Array.from(new Set(challenges.map(c => c.tier)))];
   const filtered = filter === 'All' ? challenges : challenges.filter(c => c.tier === filter);
 

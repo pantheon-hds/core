@@ -17,12 +17,12 @@ const TIER_GROUPS = [
 const Pantheon: React.FC = () => {
   const [entries, setEntries] = useState<PantheonEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
-    getPantheonData().then(data => {
-      setEntries(data);
-      setLoading(false);
-    });
+    getPantheonData()
+      .then(data => { setEntries(data); setLoading(false); })
+      .catch(() => { setError(true); setLoading(false); });
   }, []);
 
   const hasAny = entries.length > 0;
@@ -41,6 +41,13 @@ const Pantheon: React.FC = () => {
       {loading && (
         <div className="pantheon__empty">
           <div className="pantheon__empty-title">Loading...</div>
+        </div>
+      )}
+
+      {!loading && error && (
+        <div className="pantheon__empty">
+          <div className="pantheon__empty-title">Failed to load</div>
+          <div className="pantheon__empty-sub">Check your connection and try again.</div>
         </div>
       )}
 

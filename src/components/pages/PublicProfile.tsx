@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import LandingLayout from '../layout/LandingLayout';
 import StatueSVG from '../ui/StatueSVG';
@@ -21,9 +21,10 @@ const PublicProfile: React.FC = () => {
     });
   }, [username]);
 
-  const topRank = profile?.ranks
-    .slice()
-    .sort((a, b) => getRankOrder(a.tier) - getRankOrder(b.tier))[0];
+  const topRank = useMemo(
+    () => profile?.ranks.slice().sort((a, b) => getRankOrder(a.tier) - getRankOrder(b.tier))[0],
+    [profile]
+  );
 
   return (
     <LandingLayout>
