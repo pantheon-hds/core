@@ -34,6 +34,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [games, setGames] = useState<{ id: number; steam_app_id: string; title: string }[]>([]);
   const [dbUserId, setDbUserId] = useState<string | null>(null);
+  const [dbUsername, setDbUsername] = useState<string | null>(null);
 
   const [videoUrl, setVideoUrl] = useState('');
   const [comment, setComment] = useState('');
@@ -71,6 +72,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
       const dbUser = await getUserBySteamId(user.steamId);
       if (dbUser) {
         setDbUserId(dbUser.id);
+        setDbUsername(dbUser.username);
         await Promise.all(games.map(g => checkAchievements(user.steamId, g.steam_app_id)));
         const [userRanks, userStatues] = await Promise.all([
           getUserRanks(dbUser.id),
@@ -355,6 +357,16 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
           <div className="dashboard__rank-xp">
             {ranks.length} rank{ranks.length !== 1 ? 's' : ''} earned across {games.length} game{games.length !== 1 ? 's' : ''}
           </div>
+          {dbUsername && (
+            <a
+              href={`/u/${dbUsername}`}
+              className="dashboard__profile-link"
+              target="_blank"
+              rel="noreferrer"
+            >
+              pantheonhds.com/u/{dbUsername}
+            </a>
+          )}
         </div>
       </div>
 

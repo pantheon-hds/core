@@ -346,6 +346,21 @@
   color: var(--color-text-secondary) !important;
 }
 
+.dashboard__profile-link {
+  display: inline-block;
+  margin-top: 0.4rem;
+  font-size: 11px;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  font-style: italic;
+  letter-spacing: 0.03em;
+  transition: color 0.2s;
+}
+
+.dashboard__profile-link:hover {
+  color: var(--color-gold-dim);
+}
+
 .dashboard__stat-value {
   font-size: 30px !important;
 }

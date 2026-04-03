@@ -11,6 +11,7 @@ import Sandbox from './components/pages/Sandbox';
 import Sidebar, { Page } from './components/ui/Sidebar';
 import WelcomeScreen from './components/pages/WelcomeScreen';
 import type { FounderUser } from './types';
+import { supabase } from './services/supabase';
 import LandingHome from './components/pages/LandingHome';
 import LandingRanks from './components/pages/LandingRanks';
 import LandingGames from './components/pages/LandingGames';
@@ -89,8 +90,18 @@ const App: React.FC = () => {
   if (isSteamCallback()) {
     return (
       <SteamCallback
-        onSuccess={(steamUser) => {
+        onSuccess={async (steamUser) => {
+          const { data } = await supabase
+            .from('users')
+            .select('id')
+            .eq('steam_id', steamUser.steamId)
+            .maybeSingle();
+          if (!data) {
+            window.location.href = '/beta?reason=no_access';
+            return;
+          }
           localStorage.setItem('pantheon_user', JSON.stringify(steamUser));
+          localStorage.setItem('pantheon_beta', 'true');
           setUser(steamUser);
           window.location.href = '/app';
         }}

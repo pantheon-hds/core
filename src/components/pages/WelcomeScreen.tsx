@@ -82,6 +82,8 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnter, onFounderLogin }
             <button className="welcome__beta-btn" onClick={handleBetaSubmit} disabled={betaLoading}>
               {betaLoading ? 'Checking...' : 'Enter'}
             </button>
+            <div className="welcome__beta-divider">or</div>
+            <SteamAuth />
             <a href="/" className="welcome__beta-back">← Back to site</a>
           </div>
         </div>
