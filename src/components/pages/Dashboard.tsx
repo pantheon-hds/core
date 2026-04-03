@@ -358,14 +358,17 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
             {ranks.length} rank{ranks.length !== 1 ? 's' : ''} earned across {games.length} game{games.length !== 1 ? 's' : ''}
           </div>
           {dbUsername && (
-            <a
-              href={`/u/${dbUsername}`}
-              className="dashboard__profile-link"
-              target="_blank"
-              rel="noreferrer"
-            >
-              pantheonhds.com/u/{dbUsername}
-            </a>
+            <div className="dashboard__profile-share">
+              <div className="dashboard__profile-share-label">Your public profile · share with anyone</div>
+              <a
+                href={`/u/${dbUsername}`}
+                className="dashboard__profile-link"
+                target="_blank"
+                rel="noreferrer"
+              >
+                pantheonhds.com/u/{dbUsername}
+              </a>
+            </div>
           )}
         </div>
       </div>
