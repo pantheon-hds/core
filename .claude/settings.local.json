@@ -3,7 +3,12 @@
     "allow": [
       "Bash(grep -v \"import\\\\|export\\\\|//\")",
       "Bash(npx supabase:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(wc -l src/components/pages/*.css src/components/pages/*.tsx src/services/*.ts src/types/*.ts)",
+      "Bash(grep -r \"!important\" src/components/pages/*.css)",
+      "Bash(grep -r \"as any\" src/components/pages/*.tsx src/services/*.ts)",
+      "Bash(grep -r \"console\\\\.\" src/components/pages/*.tsx src/services/*.ts)",
+      "Bash(grep -rn \"as any\" src/components/pages/*.tsx src/services/*.ts)"
     ]
   }
 }
