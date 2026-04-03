@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import './LandingLayout.css';
 
@@ -8,6 +8,7 @@ interface LandingLayoutProps {
 
 const LandingLayout: React.FC<LandingLayoutProps> = ({ children }) => {
   const location = useLocation();
+  const [menuOpen, setMenuOpen] = useState(false);
   const isActive = (path: string) => location.pathname === path;
 
   return (
@@ -25,7 +26,22 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ children }) => {
           <Link to="/beta" className="ll__nav-link ll__nav-link--cta">Request Invite</Link>
           <Link to="/app" className="ll__nav-link ll__nav-link--enter">Enter App →</Link>
         </div>
+        <button className="ll__nav-hamburger" onClick={() => setMenuOpen(o => !o)} aria-label="Menu">
+          {menuOpen ? '✕' : '≡'}
+        </button>
       </nav>
+
+      {menuOpen && (
+        <div className="ll__mobile-menu">
+          <Link to="/" className={"ll__mobile-link" + (isActive('/') ? ' ll__mobile-link--active' : '')} onClick={() => setMenuOpen(false)}>About</Link>
+          <Link to="/ranks" className={"ll__mobile-link" + (isActive('/ranks') ? ' ll__mobile-link--active' : '')} onClick={() => setMenuOpen(false)}>Ranks</Link>
+          <Link to="/games" className={"ll__mobile-link" + (isActive('/games') ? ' ll__mobile-link--active' : '')} onClick={() => setMenuOpen(false)}>Games</Link>
+          <Link to="/faq" className={"ll__mobile-link" + (isActive('/faq') ? ' ll__mobile-link--active' : '')} onClick={() => setMenuOpen(false)}>FAQ</Link>
+          <Link to="/beta" className="ll__mobile-link ll__mobile-link--cta" onClick={() => setMenuOpen(false)}>Request Invite</Link>
+          <Link to="/app" className="ll__mobile-link ll__mobile-link--enter" onClick={() => setMenuOpen(false)}>Enter App →</Link>
+        </div>
+      )}
+
 
       <main className="ll__main">{children}</main>
 
