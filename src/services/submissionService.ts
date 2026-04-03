@@ -16,7 +16,7 @@ export interface VoteResult extends ServiceResult {
 // adminReviewSubmission and recordJudgeVote.
 export async function awardRankForChallenge(
   userId: string,
-  challengeId: string
+  challengeId: number
 ): Promise<ServiceResult> {
   const { data: challenge } = await supabase
     .from('challenges')
@@ -69,7 +69,7 @@ export async function adminReviewSubmission(
       .eq('id', submissionId)
       .single();
 
-    if (!sub) return { success: false, error: 'Submission not found after update' };
+    if (!sub || !sub.challenge_id) return { success: false, error: 'Submission not found after update' };
 
     return awardRankForChallenge(sub.user_id, sub.challenge_id);
   }
@@ -122,6 +122,7 @@ export async function recordJudgeVote(
 
   if (finalStatus === 'approved') {
     const sub = updated[0];
+    if (!sub.challenge_id) return { success: true, finalised: true };
     const awardResult = await awardRankForChallenge(sub.user_id, sub.challenge_id);
     if (!awardResult.success) return { ...awardResult, finalised: true };
   }

@@ -120,7 +120,7 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
     }
   };
 
-  const handleDeleteChallenge = async (id: string) => {
+  const handleDeleteChallenge = async (id: number) => {
     if (!window.confirm('Delete this challenge?')) return;
     await supabase.from('challenges').delete().eq('id', id);
     setChallenges(prev => prev.filter(c => c.id !== id));

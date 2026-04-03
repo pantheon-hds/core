@@ -122,7 +122,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
     return () => { supabase.removeChannel(channel); };
   }, [dbUserId, showToast]);
 
-  const getSubmissionStatus = (challengeId: string) => {
+  const getSubmissionStatus = (challengeId: number) => {
     return submissions.find(s => s.challenge_id === challengeId);
   };
 
@@ -360,14 +360,22 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
           {dbUsername && (
             <div className="dashboard__profile-share">
               <div className="dashboard__profile-share-label">Your public profile · share with anyone</div>
-              <a
-                href={`/u/${dbUsername}`}
-                className="dashboard__profile-link"
-                target="_blank"
-                rel="noreferrer"
-              >
-                pantheonhds.com/u/{dbUsername}
-              </a>
+              <div className="dashboard__profile-share-row">
+                <a
+                  href={`/u/${dbUsername}`}
+                  className="dashboard__profile-link"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  pantheonhds.com/u/{dbUsername}
+                </a>
+                <button
+                  className="dashboard__copy-btn"
+                  onClick={() => navigator.clipboard.writeText(`https://pantheonhds.com/u/${dbUsername}`)}
+                >
+                  Copy
+                </button>
+              </div>
             </div>
           )}
         </div>

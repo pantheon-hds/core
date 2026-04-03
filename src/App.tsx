@@ -12,6 +12,7 @@ import Sidebar, { Page } from './components/ui/Sidebar';
 import WelcomeScreen from './components/pages/WelcomeScreen';
 import type { FounderUser } from './types';
 import { supabase } from './services/supabase';
+import ErrorBoundary from './components/ui/ErrorBoundary';
 import LandingHome from './components/pages/LandingHome';
 import LandingRanks from './components/pages/LandingRanks';
 import LandingGames from './components/pages/LandingGames';
@@ -71,12 +72,14 @@ const AppShell: React.FC<{ user: SteamUser | null; onLogout: () => void }> = ({ 
             </div>
           </div>
           <div className="app__content">
-            {page === 'dashboard' && <Dashboard user={user} />}
-            {page === 'pantheon' && <Pantheon />}
-            {page === 'profile' && <Profile user={user} />}
-            {page === 'admin' && <Admin user={user} />}
-            {page === 'judge' && <JudgePanel user={user} />}
-            {page === 'sandbox' && <Sandbox user={user} />}
+            <ErrorBoundary key={page}>
+              {page === 'dashboard' && <Dashboard user={user} />}
+              {page === 'pantheon' && <Pantheon />}
+              {page === 'profile' && <Profile user={user} />}
+              {page === 'admin' && <Admin user={user} />}
+              {page === 'judge' && <JudgePanel user={user} />}
+              {page === 'sandbox' && <Sandbox user={user} />}
+            </ErrorBoundary>
           </div>
         </div>
       </div>

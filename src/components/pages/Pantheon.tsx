@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Pantheon.css';
 import { getPantheonData, PantheonEntry } from '../../services/supabase';
 import { RANK_TIER_COLORS } from '../../constants/ranks';
@@ -107,9 +108,13 @@ interface PlayerCardProps {
 
 const PlayerCard: React.FC<PlayerCardProps> = ({ entry, featured }) => {
   const tierColor = RANK_TIER_COLORS[entry.bestTier] || '#c9922a';
+  const navigate = useNavigate();
 
   return (
-    <div className={`pantheon__card${featured ? ' pantheon__card--legend' : ''}`}>
+    <div
+      className={`pantheon__card pantheon__card--clickable${featured ? ' pantheon__card--legend' : ''}`}
+      onClick={() => navigate(`/u/${entry.username}`)}
+    >
       {featured && <div className="pantheon__card-top" />}
 
       <div className="pantheon__card-inner">

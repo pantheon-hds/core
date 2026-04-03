@@ -7,7 +7,7 @@ export interface Game {
 }
 
 export interface Challenge {
-  id: string;
+  id: number;
   title: string;
   description: string;
   tier: string;
@@ -30,7 +30,7 @@ export interface Submission {
   status: SubmissionStatus;
   submitted_at: string;
   admin_note: string | null;
-  challenge_id: string;
+  challenge_id: number | null;
   user_id: string;
   cooldown_until: string | null;
   user: Pick<DBUser, 'username' | 'steam_id'> | null;

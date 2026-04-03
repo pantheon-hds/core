@@ -57,6 +57,7 @@
 }
 
 .pantheon__card:hover { border-color: var(--color-border-mid); }
+.pantheon__card--clickable { cursor: pointer; }
 
 .pantheon__card--legend { border-color: var(--color-border-strong); }
 

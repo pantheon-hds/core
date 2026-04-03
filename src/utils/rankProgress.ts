@@ -7,13 +7,13 @@ export interface ProgressInfo {
 }
 
 interface ChallengeRef {
-  id: string;
+  id: number;
   tier: string;
 }
 
 export function getProgressInfo(
   currentTier: string,
-  approvedChallengeIds: string[],
+  approvedChallengeIds: (number | null)[],
   challenges: ChallengeRef[]
 ): ProgressInfo {
   const isBronze = currentTier.startsWith('Bronze');

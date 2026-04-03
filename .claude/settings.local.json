@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(grep -v \"import\\\\|export\\\\|//\")",
-      "Bash(npx supabase:*)"
+      "Bash(npx supabase:*)",
+      "Bash(npx tsc:*)"
     ]
   }
 }
