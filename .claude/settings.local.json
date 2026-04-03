@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(grep -v \"import\\\\|export\\\\|//\")"
+      "Bash(grep -v \"import\\\\|export\\\\|//\")",
+      "Bash(npx supabase:*)"
     ]
   }
 }

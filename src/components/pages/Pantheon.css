@@ -199,3 +199,68 @@
   font-style: italic;
   margin-top: 1rem;
 }
+
+.pantheon__group {
+  margin-bottom: 2rem;
+}
+
+.pantheon__grid--legend {
+  grid-template-columns: 1fr;
+}
+
+.pantheon__card-inner {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.pantheon__card-statue {
+  flex-shrink: 0;
+}
+
+.pantheon__card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.pantheon__card-tier {
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
+}
+
+.pantheon__card-stats {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.pantheon__card-stat {
+  font-family: var(--font-display);
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.pantheon__card-stat--unique {
+  color: var(--color-gold-dim);
+}
+
+.pantheon__legend-empty {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: var(--color-bg-surface);
+  border: 0.5px solid var(--color-border);
+  opacity: 0.6;
+}
+
+.pantheon__legend-empty-text {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  font-style: italic;
+}

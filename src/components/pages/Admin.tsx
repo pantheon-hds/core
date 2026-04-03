@@ -42,19 +42,19 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
 
     const { data: challengesData } = await supabase
       .from('challenges').select('*, game:games(id, title)').order('created_at', { ascending: false });
-    setChallenges((challengesData as unknown as Challenge[]) || []);
+    setChallenges((challengesData as Challenge[]) || []);
 
     const { data: subsData } = await supabase
       .from('submissions')
       .select('*, user:users(username, steam_id), challenge:challenges(title, tier)')
       .order('submitted_at', { ascending: false });
-    setSubmissions((subsData as unknown as Submission[]) || []);
+    setSubmissions((subsData as Submission[]) || []);
 
     const { data: judgeAppsData } = await supabase
       .from('judge_applications')
       .select('*, user:users(username, steam_id), game:games(title)')
       .order('applied_at', { ascending: false });
-    setJudgeApps((judgeAppsData as unknown as JudgeApplication[]) || []);
+    setJudgeApps((judgeAppsData as JudgeApplication[]) || []);
 
     const { data: waitlistData } = await supabase
       .rpc('get_waitlist_admin', { p_steam_id: user?.steamId ?? '' });

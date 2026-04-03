@@ -38,26 +38,7 @@ serve(async (req: Request) => {
     }
     const code = `${segment()}-${segment()}-${segment()}`
 
-    // Save code
-    const { error: codeError } = await supabase
-      .from('invite_codes')
-      .insert({ code, email })
-
-    if (codeError) {
-      console.error('Error saving invite code:', codeError)
-      return new Response(
-        JSON.stringify({ error: codeError.message }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    // Mark waitlist entry as approved
-    await supabase
-      .from('waitlist')
-      .update({ status: 'approved' })
-      .eq('id', waitlistId)
-
-    // Send email via Resend
+    // Send email FIRST — only save code if delivery succeeds
     const emailRes = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -108,6 +89,25 @@ serve(async (req: Request) => {
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
+
+    // Email delivered — now save the code and mark as approved
+    const { error: codeError } = await supabase
+      .from('invite_codes')
+      .insert({ code, email })
+
+    if (codeError) {
+      console.error('Error saving invite code:', codeError)
+      return new Response(
+        JSON.stringify({ error: codeError.message }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Mark waitlist entry as approved
+    await supabase
+      .from('waitlist')
+      .update({ status: 'approved' })
+      .eq('id', waitlistId)
 
     console.log(`Invite sent to ${email}, code: ${code}`)
 

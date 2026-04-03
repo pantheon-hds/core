@@ -6,7 +6,7 @@ const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')!
 const APP_URL = Deno.env.get('APP_URL') || 'https://pantheonhds.com'
 
-const REAPPLY_DAYS = 30
+const REAPPLY_DAYS = 30 // keep in sync with REAPPLY_DAYS in src/services/supabase.ts
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',

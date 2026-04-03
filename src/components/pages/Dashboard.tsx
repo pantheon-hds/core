@@ -22,11 +22,6 @@ function isValidVideoUrl(url: string): boolean {
   }
 }
 
-const GAMES = [
-  { appId: '367520', title: 'Hollow Knight' },
-  { appId: '1030300', title: 'Hollow Knight: Silksong' },
-];
-
 interface DashboardProps { user: SteamUser | null; }
 
 const Dashboard: React.FC<DashboardProps> = ({ user }) => {
@@ -37,6 +32,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   const [statues, setStatues] = useState<UserStatue[]>([]);
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [games, setGames] = useState<{ id: number; steam_app_id: string; title: string }[]>([]);
   const [dbUserId, setDbUserId] = useState<string | null>(null);
 
   const [videoUrl, setVideoUrl] = useState('');
@@ -50,7 +46,15 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
       .from('challenges')
       .select('*, game:games(id, title)')
       .order('tier', { ascending: true });
-    setChallenges((data as unknown as Challenge[]) || []);
+    setChallenges((data as Challenge[]) || []);
+  }, []);
+
+  const loadGames = useCallback(async () => {
+    const { data } = await supabase
+      .from('games')
+      .select('id, steam_app_id, title')
+      .eq('active', true);
+    setGames(data || []);
   }, []);
 
   const loadSubmissions = useCallback(async (userId: string) => {
@@ -58,7 +62,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
       .from('submissions')
       .select('id, challenge_id, status, cooldown_until')
       .eq('user_id', userId);
-    setSubmissions((data as unknown as Submission[]) || []);
+    setSubmissions((data as Submission[]) || []);
   }, []);
 
   const loadUserData = useCallback(async () => {
@@ -67,7 +71,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
       const dbUser = await getUserBySteamId(user.steamId);
       if (dbUser) {
         setDbUserId(dbUser.id);
-        await Promise.all(GAMES.map(g => checkAchievements(user.steamId, g.appId)));
+        await Promise.all(games.map(g => checkAchievements(user.steamId, g.steam_app_id)));
         const [userRanks, userStatues] = await Promise.all([
           getUserRanks(dbUser.id),
           getUserStatues(dbUser.id),
@@ -79,10 +83,11 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
     } catch (e) {
       console.error('Failed to load user data:', e);
     }
-  }, [user, loadSubmissions]);
+  }, [user, games, loadSubmissions]);
 
   useEffect(() => { loadChallenges(); }, [loadChallenges]);
-  useEffect(() => { if (user) loadUserData(); }, [user, loadUserData]);
+  useEffect(() => { loadGames(); }, [loadGames]);
+  useEffect(() => { if (user && games.length > 0) loadUserData(); }, [user, games, loadUserData]);
 
   // Realtime: live status updates for user's submissions
   useEffect(() => {
@@ -348,7 +353,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
         </div>
         <div className="dashboard__rank-info">
           <div className="dashboard__rank-xp">
-            {ranks.length} rank{ranks.length !== 1 ? 's' : ''} earned across {GAMES.length} games
+            {ranks.length} rank{ranks.length !== 1 ? 's' : ''} earned across {games.length} game{games.length !== 1 ? 's' : ''}
           </div>
         </div>
       </div>

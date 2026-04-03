@@ -1,10 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
+import type { Database } from '../types/database.types';
 import type { UserRank, UserStatue, JudgeEligibility } from '../types';
 
 const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL!;
 const SUPABASE_ANON_KEY = process.env.REACT_APP_SUPABASE_ANON_KEY!;
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Re-export types so existing imports from this file keep working
 export type { UserRank, UserStatue };
@@ -17,7 +18,7 @@ export async function getUserRanks(userId: string): Promise<UserRank[]> {
     .order('granted_at', { ascending: false });
 
   if (error) { console.error('Error fetching ranks:', error); return []; }
-  return (data as unknown as UserRank[]) || [];
+  return (data as UserRank[]) || [];
 }
 
 export async function getUserStatues(userId: string): Promise<UserStatue[]> {
@@ -28,7 +29,7 @@ export async function getUserStatues(userId: string): Promise<UserStatue[]> {
     .order('granted_at', { ascending: false });
 
   if (error) { console.error('Error fetching statues:', error); return []; }
-  return (data as unknown as UserStatue[]) || [];
+  return (data as UserStatue[]) || [];
 }
 
 export async function getUserBySteamId(steamId: string) {
@@ -106,7 +107,7 @@ export async function submitJudgeApplication(
   return !error;
 }
 
-const REAPPLY_DAYS = 30;
+export const REAPPLY_DAYS = 30;
 
 export async function submitWaitlist(email: string, reason: string): Promise<{ success: boolean; error?: string }> {
   // Check if email already exists
@@ -199,4 +200,71 @@ export async function assignJudges(submissionId: string): Promise<boolean> {
     }
   );
   return response.ok;
+}
+
+export interface PantheonEntry {
+  userId: string;
+  username: string;
+  avatarUrl: string | null;
+  steamId: string;
+  bestTier: string;
+  bestGame: string;
+  statueCount: number;
+  uniqueStatueCount: number;
+}
+
+export async function getPantheonData(): Promise<PantheonEntry[]> {
+  const { data: ranks, error } = await supabase
+    .from('ranks')
+    .select('user_id, tier, game:games(title), user:users(id, username, avatar_url, steam_id)')
+    .order('granted_at', { ascending: true });
+
+  if (error || !ranks) return [];
+
+  const { data: statues } = await supabase
+    .from('statues')
+    .select('user_id, is_unique');
+
+  const statueCounts: Record<string, { total: number; unique: number }> = {};
+  (statues || []).forEach((s: any) => {
+    if (!statueCounts[s.user_id]) statueCounts[s.user_id] = { total: 0, unique: 0 };
+    statueCounts[s.user_id].total++;
+    if (s.is_unique) statueCounts[s.user_id].unique++;
+  });
+
+  const TIER_ORDER = [
+    'Legend', 'Grandmaster', 'Master I',
+    'Diamond I', 'Platinum I',
+    'Gold', 'Silver III', 'Silver II', 'Silver I',
+    'Bronze III', 'Bronze II', 'Bronze I',
+  ];
+
+  const byUser: Record<string, PantheonEntry> = {};
+
+  (ranks as any[]).forEach(r => {
+    const user = r.user;
+    if (!user) return;
+    const existing = byUser[user.id];
+    const currentOrder = TIER_ORDER.indexOf(r.tier);
+    const existingOrder = existing ? TIER_ORDER.indexOf(existing.bestTier) : Infinity;
+    if (!existing || currentOrder < existingOrder) {
+      const counts = statueCounts[user.id] || { total: 0, unique: 0 };
+      byUser[user.id] = {
+        userId: user.id,
+        username: user.username,
+        avatarUrl: user.avatar_url,
+        steamId: user.steam_id,
+        bestTier: r.tier,
+        bestGame: r.game?.title || '—',
+        statueCount: counts.total,
+        uniqueStatueCount: counts.unique,
+      };
+    }
+  });
+
+  return Object.values(byUser).sort((a, b) => {
+    const ai = TIER_ORDER.indexOf(a.bestTier);
+    const bi = TIER_ORDER.indexOf(b.bestTier);
+    return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+  });
 }

@@ -48,7 +48,7 @@ const JudgePanel: React.FC<JudgePanelProps> = ({ user }) => {
       .eq('judge_user_id', dbUser.id)
       .order('assigned_at', { ascending: false });
 
-    setAssignments((data as unknown as JudgeAssignment[]) || []);
+    setAssignments((data as JudgeAssignment[]) || []);
     setLoading(false);
   }, [user]);
 
