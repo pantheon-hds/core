@@ -57,9 +57,7 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
     setJudgeApps((judgeAppsData as unknown as JudgeApplication[]) || []);
 
     const { data: waitlistData } = await supabase
-      .from('waitlist')
-      .select('*')
-      .order('applied_at', { ascending: false });
+      .rpc('get_waitlist_admin', { p_steam_id: user?.steamId ?? '' });
     setWaitlist((waitlistData as WaitlistEntry[]) || []);
 
     setLoading(false);
