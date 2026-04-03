@@ -1,0 +1,112 @@
+/* ── Base float animation — all statues ── */
+.statue-svg {
+  display: block;
+  animation: statueFloat 4s ease-in-out infinite;
+  transform-origin: 50% 98%;
+}
+
+@keyframes statueFloat {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-5px); }
+}
+
+/* ── Unique: glow pulse matching tier color ── */
+.statue-svg--unique {
+  animation: statueFloat 4s ease-in-out infinite,
+             statueGlowPulse 2.6s ease-in-out infinite;
+}
+
+@keyframes statueGlowPulse {
+  0%, 100% { filter: drop-shadow(0 2px 3px rgba(0,0,0,0.6)); }
+  50%       { filter: drop-shadow(0 0 10px var(--glow, rgba(232,168,48,0.8))); }
+}
+
+/* ── Legend ── */
+.statue-svg--legend {
+  animation: statueFloat 4s ease-in-out infinite;
+}
+
+.statue-svg--legend.statue-svg--unique {
+  animation: statueFloat 4s ease-in-out infinite,
+             legendGlow 2.2s ease-in-out infinite;
+}
+
+@keyframes legendGlow {
+  0%, 100% { filter: drop-shadow(0 0 5px rgba(196,74,42,0.55)); }
+  50%       { filter: drop-shadow(0 0 16px rgba(196,74,42,0.95)); }
+}
+
+.statue-svg--legend .statue-aura {
+  animation: legendAura 2.8s ease-in-out infinite;
+}
+
+@keyframes legendAura {
+  0%, 100% { opacity: 0.35; }
+  50%       { opacity: 1.00; }
+}
+
+/* ── Grandmaster ── */
+.statue-svg--grandmaster {
+  animation: statueFloat 4.5s ease-in-out infinite;
+}
+
+.statue-svg--grandmaster.statue-svg--unique {
+  animation: statueFloat 4.5s ease-in-out infinite,
+             grandmasterGlow 2.8s ease-in-out infinite;
+}
+
+@keyframes grandmasterGlow {
+  0%, 100% { filter: drop-shadow(0 0 4px rgba(244,212,168,0.50)); }
+  50%       { filter: drop-shadow(0 0 14px rgba(244,212,168,0.90)); }
+}
+
+/* ── Master: orb pulse ── */
+.statue-svg--master .statue-orb {
+  animation: masterOrb 2.2s ease-in-out infinite;
+}
+.statue-svg--master .statue-orb:last-of-type {
+  animation-delay: 0.3s;
+}
+
+@keyframes masterOrb {
+  0%, 100% { opacity: 0.30; }
+  50%       { opacity: 0.85; }
+}
+
+.statue-svg--master.statue-svg--unique {
+  animation: statueFloat 4s ease-in-out infinite,
+             masterGlow 2.4s ease-in-out infinite;
+}
+
+@keyframes masterGlow {
+  0%, 100% { filter: drop-shadow(0 0 4px rgba(212,168,244,0.50)); }
+  50%       { filter: drop-shadow(0 0 14px rgba(212,168,244,0.90)); }
+}
+
+/* ── Diamond: sparkle particles ── */
+.statue-svg--diamond .statue-sparkle {
+  animation: diamondSparkle 2.2s ease-in-out infinite;
+  transform-origin: center;
+}
+.statue-svg--diamond .statue-sparkle:nth-of-type(2) { animation-delay: 0.73s; }
+.statue-svg--diamond .statue-sparkle:nth-of-type(3) { animation-delay: 1.47s; }
+
+@keyframes diamondSparkle {
+  0%, 100% { opacity: 0;   transform: scale(0.2); }
+  50%       { opacity: 1.0; transform: scale(1.0); }
+}
+
+.statue-svg--diamond.statue-svg--unique {
+  animation: statueFloat 4s ease-in-out infinite,
+             diamondGlow 2.5s ease-in-out infinite;
+}
+
+@keyframes diamondGlow {
+  0%, 100% { filter: drop-shadow(0 0 4px rgba(168,212,244,0.50)); }
+  50%       { filter: drop-shadow(0 0 14px rgba(168,212,244,0.90)); }
+}
+
+/* ── Platinum: slower, heavier feel ── */
+.statue-svg--platinum {
+  animation: statueFloat 5.5s ease-in-out infinite;
+}

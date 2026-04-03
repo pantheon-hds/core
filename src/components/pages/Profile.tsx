@@ -2,67 +2,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import './Profile.css';
 import { SteamUser } from './SteamCallback';
 import { getUserBySteamId, getUserStatues, getUserRanks, supabase, checkJudgeEligibility, submitJudgeApplication } from '../../services/supabase';
-import { getTierColorSet, TierColorSet } from '../../constants/ranks';
+import { getTierColorSet } from '../../constants/ranks';
+import StatueSVG from '../ui/StatueSVG';
 import type { UserRank, UserStatue, Game, JudgeEligibility } from '../../types';
 
-interface StatueSVGProps { tier: string; size?: number; }
-
-const StatueSVG: React.FC<StatueSVGProps> = ({ tier, size = 80 }) => {
-  const c: TierColorSet = getTierColorSet(tier);
-  const s = size;
-  const cx = s / 2;
-
-  if (tier === 'Legend') {
-    return (
-      <svg width={s} height={s * 1.2} viewBox={`0 0 ${s} ${s * 1.2}`} fill="none">
-        <rect x={s*0.22} y={s*1.05} width={s*0.56} height={s*0.12} rx="2" fill={c.base}/>
-        <rect x={s*0.32} y={s*0.88} width={s*0.36} height={s*0.18} rx="2" fill={c.base} opacity="0.8"/>
-        <ellipse cx={cx} cy={s*0.26} rx={s*0.18} ry={s*0.2} fill={c.primary} opacity="0.95"/>
-        <rect x={s*0.34} y={s*0.44} width={s*0.32} height={s*0.44} rx="3" fill={c.secondary}/>
-        <line x1={s*0.28} y1={s*0.44} x2={s*0.2} y2={s*0.56} stroke={c.primary} strokeWidth="2.5" strokeLinecap="round"/>
-        <line x1={s*0.72} y1={s*0.44} x2={s*0.8} y2={s*0.52} stroke={c.primary} strokeWidth="2.5" strokeLinecap="round"/>
-        <circle cx={cx} cy={s*0.18} r="4" fill="#ffddcc" opacity="0.5"/>
-      </svg>
-    );
-  }
-
-  if (tier.startsWith('Diamond')) {
-    return (
-      <svg width={s} height={s * 1.2} viewBox={`0 0 ${s} ${s * 1.2}`} fill="none">
-        <rect x={s*0.22} y={s*1.05} width={s*0.56} height={s*0.12} rx="2" fill={c.base}/>
-        <rect x={s*0.32} y={s*0.88} width={s*0.36} height={s*0.18} rx="2" fill={c.base} opacity="0.8"/>
-        <ellipse cx={cx} cy={s*0.26} rx={s*0.17} ry={s*0.19} fill={c.primary} opacity="0.9"/>
-        <rect x={s*0.35} y={s*0.44} width={s*0.3} height={s*0.44} rx="3" fill={c.secondary}/>
-        <polygon points={`${cx},${s*0.08} ${cx+s*0.1},${s*0.18} ${cx},${s*0.28} ${cx-s*0.1},${s*0.18}`} fill={c.primary} opacity="0.6"/>
-        <circle cx={cx} cy={s*0.18} r="3" fill="#e8f4ff" opacity="0.6"/>
-      </svg>
-    );
-  }
-
-  if (tier.startsWith('Platinum')) {
-    return (
-      <svg width={s} height={s * 1.2} viewBox={`0 0 ${s} ${s * 1.2}`} fill="none">
-        <rect x={s*0.22} y={s*1.05} width={s*0.56} height={s*0.12} rx="2" fill={c.base}/>
-        <rect x={s*0.32} y={s*0.88} width={s*0.36} height={s*0.18} rx="2" fill={c.base} opacity="0.8"/>
-        <ellipse cx={cx} cy={s*0.26} rx={s*0.16} ry={s*0.18} fill={c.primary} opacity="0.9"/>
-        <rect x={s*0.36} y={s*0.43} width={s*0.28} height={s*0.45} rx="3" fill={c.secondary}/>
-        <circle cx={cx} cy={s*0.18} r="3.5" fill="#e8f4ff" opacity="0.5"/>
-      </svg>
-    );
-  }
-
-  return (
-    <svg width={s} height={s * 1.2} viewBox={`0 0 ${s} ${s * 1.2}`} fill="none">
-      <rect x={s*0.22} y={s*1.05} width={s*0.56} height={s*0.12} rx="2" fill={c.base}/>
-      <rect x={s*0.32} y={s*0.88} width={s*0.36} height={s*0.18} rx="2" fill={c.base} opacity="0.8"/>
-      <ellipse cx={cx} cy={s*0.26} rx={s*0.15} ry={s*0.17} fill={c.primary} opacity="0.9"/>
-      <rect x={s*0.37} y={s*0.42} width={s*0.26} height={s*0.46} rx="3" fill={c.secondary}/>
-      <line x1={s*0.3} y1={s*0.46} x2={s*0.24} y2={s*0.54} stroke={c.primary} strokeWidth="2" strokeLinecap="round"/>
-      <line x1={s*0.7} y1={s*0.46} x2={s*0.76} y2={s*0.54} stroke={c.primary} strokeWidth="2" strokeLinecap="round"/>
-      <circle cx={cx} cy={s*0.18} r="3" fill="#e8d5a0" opacity="0.25"/>
-    </svg>
-  );
-};
 
 interface ProfileProps { user: SteamUser | null; }
 
@@ -140,7 +83,7 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
         <div className="profile__overlay" onClick={() => setSelected(null)}>
           <div className="profile__modal" onClick={e => e.stopPropagation()}>
             <div className="profile__modal-statue">
-              <StatueSVG tier={selected.tier} size={100} />
+              <StatueSVG tier={selected.tier} size={100} unique={selected.is_unique} />
             </div>
             <div className="profile__modal-tier" style={{ color: getTierColorSet(selected.tier).primary }}>
               {selected.tier}{selected.is_unique && ' · Unique'}
@@ -294,7 +237,7 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
             >
               {s.is_unique && <div className="profile__statue-card-glow" style={{ background: getTierColorSet(s.tier).primary }} />}
               <div className="profile__statue-figure">
-                <StatueSVG tier={s.tier} size={72} />
+                <StatueSVG tier={s.tier} size={72} unique={s.is_unique} />
               </div>
               <div className="profile__statue-tier" style={{ color: getTierColorSet(s.tier).primary }}>
                 {s.tier}
