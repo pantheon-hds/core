@@ -29,8 +29,13 @@ serve(async (req: Request) => {
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
-    // Generate a short, readable invite code e.g. "A3F9-BK72-X1QM"
-    const segment = () => Math.random().toString(36).slice(2, 6).toUpperCase()
+    // Generate a cryptographically secure invite code e.g. "A3F9-BK72-X1QM"
+    const CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789' // no 0/O/1/I to avoid confusion
+    const segment = () => {
+      const bytes = new Uint8Array(4)
+      crypto.getRandomValues(bytes)
+      return Array.from(bytes).map(b => CHARS[b % CHARS.length]).join('')
+    }
     const code = `${segment()}-${segment()}-${segment()}`
 
     // Save code
