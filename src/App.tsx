@@ -16,6 +16,7 @@ import LandingRanks from './components/pages/LandingRanks';
 import LandingGames from './components/pages/LandingGames';
 import LandingBeta from './components/pages/LandingBeta';
 import LandingFAQ from './components/pages/LandingFAQ';
+import PublicProfile from './components/pages/PublicProfile';
 
 const isSteamCallback = (): boolean => {
   const params = new URLSearchParams(window.location.search);
@@ -135,6 +136,7 @@ const App: React.FC = () => {
                 />
           }
         />
+        <Route path="/u/:username" element={<PublicProfile />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

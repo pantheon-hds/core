@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import './Pantheon.css';
 import { getPantheonData, PantheonEntry } from '../../services/supabase';
-import { RANK_TIER_COLORS, getRankOrder } from '../../constants/ranks';
+import { RANK_TIER_COLORS } from '../../constants/ranks';
 import StatueSVG from '../ui/StatueSVG';
 
 const TIER_GROUPS = [
