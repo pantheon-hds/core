@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import './Dashboard.css';
 import { SteamUser } from './SteamCallback';
-import { getUserBySteamId, getUserRanks, checkAchievements, assignJudges, supabase } from '../../services/supabase';
+import { getUserBySteamId, getUserRanks, getUserStatues, checkAchievements, assignJudges, supabase } from '../../services/supabase';
 import { TIER_COLORS, RANK_TIER_COLORS, getRankOrder } from '../../constants/ranks';
 import { getProgressInfo } from '../../utils/rankProgress';
 import { useToast } from '../../hooks/useToast';
 import { Toast } from '../ui/Toast';
-import type { UserRank, Challenge, Submission, SubmissionStatus } from '../../types';
+import StatueSVG from '../ui/StatueSVG';
+import type { UserRank, UserStatue, Challenge, Submission, SubmissionStatus } from '../../types';
 
 const ALLOWED_DOMAINS = ['youtube.com', 'youtu.be', 'twitch.tv'];
 
@@ -31,6 +32,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   const [submitChallenge, setSubmitChallenge] = useState<Challenge | null>(null);
   const [filter, setFilter] = useState<string>('All');
   const [ranks, setRanks] = useState<UserRank[]>([]);
+  const [statues, setStatues] = useState<UserStatue[]>([]);
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(false);
@@ -66,8 +68,12 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
       if (dbUser) {
         setDbUserId(dbUser.id);
         await Promise.all(GAMES.map(g => checkAchievements(user.steamId, g.appId)));
-        const userRanks = await getUserRanks(dbUser.id);
+        const [userRanks, userStatues] = await Promise.all([
+          getUserRanks(dbUser.id),
+          getUserStatues(dbUser.id),
+        ]);
         setRanks(userRanks);
+        setStatues(userStatues);
         await loadSubmissions(dbUser.id);
       }
     } catch (e) {
@@ -218,7 +224,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   };
 
   const topRank = [...ranks].sort((a, b) => getRankOrder(a.tier) - getRankOrder(b.tier))[0];
-  const statueColor = topRank ? (RANK_TIER_COLORS[topRank.tier] || '#c9922a') : '#3a3020';
   const tiers = ['All', ...Array.from(new Set(challenges.map(c => c.tier)))];
   const filtered = filter === 'All' ? challenges : challenges.filter(c => c.tier === filter);
 
@@ -322,12 +327,10 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
       {/* Rank card */}
       <div className="dashboard__rank-card">
         <div className="dashboard__rank-statue">
-          <svg viewBox="0 0 60 80" fill="none" xmlns="http://www.w3.org/2000/svg" width="48" height="64">
-            <ellipse cx="30" cy="72" rx="18" ry="5" fill="#1a1508" opacity="0.5"/>
-            <rect x="15" y="58" width="30" height="12" rx="2" fill={topRank ? statueColor : '#2a2215'} opacity="0.7"/>
-            <ellipse cx="30" cy="44" rx="12" ry="16" fill={statueColor}/>
-            <circle cx="30" cy="24" r="10" fill={statueColor}/>
-          </svg>
+          {topRank
+            ? <StatueSVG tier={topRank.tier} size={56} />
+            : <StatueSVG tier="Bronze I" size={56} />
+          }
         </div>
         <div className="dashboard__rank-info">
           <div className="dashboard__rank-title">
@@ -434,6 +437,25 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
           <div className="dashboard__stat-label">Completed</div>
         </div>
       </div>
+
+      {/* Statues */}
+      {statues.length > 0 && (
+        <div className="dashboard__statues-section">
+          <div className="dashboard__statues-title">Hall of Statues</div>
+          <div className="dashboard__statues-grid">
+            {statues.map(statue => (
+              <div key={statue.id} className={`dashboard__statue-card${statue.is_unique ? ' dashboard__statue-card--unique' : ''}`}>
+                <StatueSVG tier={statue.tier} size={60} unique={statue.is_unique} />
+                <div className="dashboard__statue-tier"
+                  style={{ color: RANK_TIER_COLORS[statue.tier] || '#c9922a' }}>
+                  {statue.tier}
+                </div>
+                <div className="dashboard__statue-game">{statue.game?.title}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Challenges */}
       <div className="dashboard__challenges-header">
