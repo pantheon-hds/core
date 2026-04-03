@@ -326,9 +326,11 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
 
       {/* Rank card */}
       <div className="dashboard__rank-card">
-        <div className="dashboard__rank-statue">
-          {topRank
-            ? <StatueSVG tier={topRank.tier} size={56} />
+        <div className="dashboard__rank-statues">
+          {statues.length > 0
+            ? statues.map(s => (
+                <StatueSVG key={s.id} tier={s.tier} size={56} unique={s.is_unique} />
+              ))
             : <StatueSVG tier="Bronze I" size={56} />
           }
         </div>
@@ -437,25 +439,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
           <div className="dashboard__stat-label">Completed</div>
         </div>
       </div>
-
-      {/* Statues */}
-      {statues.length > 0 && (
-        <div className="dashboard__statues-section">
-          <div className="dashboard__statues-title">Hall of Statues</div>
-          <div className="dashboard__statues-grid">
-            {statues.map(statue => (
-              <div key={statue.id} className={`dashboard__statue-card${statue.is_unique ? ' dashboard__statue-card--unique' : ''}`}>
-                <StatueSVG tier={statue.tier} size={60} unique={statue.is_unique} />
-                <div className="dashboard__statue-tier"
-                  style={{ color: RANK_TIER_COLORS[statue.tier] || '#c9922a' }}>
-                  {statue.tier}
-                </div>
-                <div className="dashboard__statue-game">{statue.game?.title}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Challenges */}
       <div className="dashboard__challenges-header">

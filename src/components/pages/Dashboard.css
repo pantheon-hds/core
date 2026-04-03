@@ -21,6 +21,14 @@
 
 .dashboard__statue { flex-shrink: 0; }
 
+.dashboard__rank-statues {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
 .dashboard__rank-info { flex: 1; }
 
 .dashboard__rank-name {
