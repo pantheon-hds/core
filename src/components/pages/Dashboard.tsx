@@ -330,7 +330,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
           {statues.length > 0
             ? statues.map(s => (
                 <div key={s.id} className="dashboard__rank-statue-item">
-                  <StatueSVG tier={s.tier} size={56} unique={s.is_unique} />
+                  <StatueSVG tier={s.tier} size={80} unique={s.is_unique} />
                   <div className="dashboard__rank-statue-tier"
                     style={{ color: RANK_TIER_COLORS[s.tier] || '#c9922a' }}>
                     {s.tier}
@@ -338,19 +338,16 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                   <div className="dashboard__rank-statue-game">{s.game?.title}</div>
                 </div>
               ))
-            : <StatueSVG tier="Bronze I" size={56} />
+            : (
+                <div className="dashboard__rank-statue-item">
+                  <StatueSVG tier="Bronze I" size={80} />
+                  <div className="dashboard__rank-statue-tier" style={{ color: '#c9922a' }}>No rank yet</div>
+                  <div className="dashboard__rank-statue-game">Play games to earn ranks</div>
+                </div>
+              )
           }
         </div>
         <div className="dashboard__rank-info">
-          <div className="dashboard__rank-title">
-            {loading ? 'Checking achievements...' : topRank ? topRank.tier : 'No rank yet'}
-          </div>
-          <div className="dashboard__rank-game">
-            {loading ? 'Please wait' : topRank ? topRank.game?.title : 'Play games to earn ranks'}
-          </div>
-          <div className="dashboard__rank-bar">
-            <div className="dashboard__rank-bar-fill" style={{ width: topRank ? '100%' : '0%' }} />
-          </div>
           <div className="dashboard__rank-xp">
             {ranks.length} rank{ranks.length !== 1 ? 's' : ''} earned across {GAMES.length} games
           </div>
