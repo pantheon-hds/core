@@ -13,8 +13,10 @@ const ALLOWED_DOMAINS = ['youtube.com', 'youtu.be', 'twitch.tv'];
 
 function isValidVideoUrl(url: string): boolean {
   try {
-    const domain = new URL(url).hostname.replace('www.', '');
-    return ALLOWED_DOMAINS.some(d => domain.includes(d));
+    const { hostname, protocol } = new URL(url);
+    if (protocol !== 'https:') return false;
+    const domain = hostname.replace(/^www\./, '');
+    return ALLOWED_DOMAINS.some(d => domain === d || domain.endsWith('.' + d));
   } catch {
     return false;
   }
