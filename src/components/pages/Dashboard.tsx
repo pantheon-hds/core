@@ -35,7 +35,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   const [statues, setStatues] = useState<UserStatue[]>([]);
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const [loading, setLoading] = useState(false);
   const [dbUserId, setDbUserId] = useState<string | null>(null);
 
   const [videoUrl, setVideoUrl] = useState('');
@@ -62,7 +61,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
 
   const loadUserData = useCallback(async () => {
     if (!user) return;
-    setLoading(true);
     try {
       const dbUser = await getUserBySteamId(user.steamId);
       if (dbUser) {
@@ -79,7 +77,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
     } catch (e) {
       console.error('Failed to load user data:', e);
     }
-    setLoading(false);
   }, [user, loadSubmissions]);
 
   useEffect(() => { loadChallenges(); }, [loadChallenges]);
