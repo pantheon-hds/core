@@ -329,7 +329,14 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
         <div className="dashboard__rank-statues">
           {statues.length > 0
             ? statues.map(s => (
-                <StatueSVG key={s.id} tier={s.tier} size={56} unique={s.is_unique} />
+                <div key={s.id} className="dashboard__rank-statue-item">
+                  <StatueSVG tier={s.tier} size={56} unique={s.is_unique} />
+                  <div className="dashboard__rank-statue-tier"
+                    style={{ color: RANK_TIER_COLORS[s.tier] || '#c9922a' }}>
+                    {s.tier}
+                  </div>
+                  <div className="dashboard__rank-statue-game">{s.game?.title}</div>
+                </div>
               ))
             : <StatueSVG tier="Bronze I" size={56} />
           }
