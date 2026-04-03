@@ -14,6 +14,7 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
   const [statues, setStatues] = useState<UserStatue[]>([]);
   const [ranks, setRanks] = useState<UserRank[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
   const [dbUserId, setDbUserId] = useState<string | null>(null);
   const [games, setGames] = useState<Game[]>([]);
 
@@ -46,6 +47,7 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
       }
     } catch (e) {
       console.error('Failed to load profile:', e);
+      setError(true);
     }
     setLoading(false);
   }, [user]);
@@ -76,6 +78,12 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
   const topRank = ranks[0];
   const username = user?.username || 'Guest';
   const initials = username.slice(0, 2).toUpperCase();
+
+  if (error) {
+    return (
+      <div className="profile__empty">Failed to load profile. Check your connection and try again.</div>
+    );
+  }
 
   return (
     <div className="profile">

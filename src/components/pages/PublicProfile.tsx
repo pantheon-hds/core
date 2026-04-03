@@ -21,10 +21,11 @@ const PublicProfile: React.FC = () => {
     });
   }, [username]);
 
-  const topRank = useMemo(
-    () => profile?.ranks.slice().sort((a, b) => getRankOrder(a.tier) - getRankOrder(b.tier))[0],
+  const sortedRanks = useMemo(
+    () => profile?.ranks.slice().sort((a, b) => getRankOrder(a.tier) - getRankOrder(b.tier)) ?? [],
     [profile]
   );
+  const topRank = sortedRanks[0];
 
   return (
     <LandingLayout>
@@ -101,10 +102,7 @@ const PublicProfile: React.FC = () => {
               <div className="pubprofile__section">
                 <div className="pubprofile__section-title">Ranks</div>
                 <div className="pubprofile__ranks">
-                  {profile.ranks
-                    .slice()
-                    .sort((a, b) => getRankOrder(a.tier) - getRankOrder(b.tier))
-                    .map((r, i) => (
+                  {sortedRanks.map((r, i) => (
                       <div key={i} className="pubprofile__rank-row">
                         <span className="pubprofile__rank-game">{r.gameTitle}</span>
                         <span className="pubprofile__rank-tier"

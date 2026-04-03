@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import './App.css';
 import SteamCallback, { SteamUser } from './components/pages/SteamCallback';
 import Dashboard from './components/pages/Dashboard';
@@ -87,10 +87,56 @@ const AppShell: React.FC<{ user: SteamUser | null; onLogout: () => void }> = ({ 
   );
 };
 
-const App: React.FC = () => {
+const AppRoutes: React.FC = () => {
+  const navigate = useNavigate();
   const [user, setUser] = useState<SteamUser | null>(getSavedUser());
 
+  const handleLogout = () => {
+    localStorage.removeItem('pantheon_user');
+    setUser(null);
+    navigate('/');
+  };
+
+  const handleFounderLogin = (founderUser: FounderUser) => {
+    const steamUser: SteamUser = {
+      steamId: founderUser.steamId,
+      username: founderUser.username,
+      avatarUrl: founderUser.avatarUrl,
+      isPublic: true,
+    };
+    localStorage.setItem('pantheon_user', JSON.stringify(steamUser));
+    setUser(steamUser);
+    navigate('/app');
+  };
+
+  return (
+    <Routes>
+      <Route path="/" element={<LandingHome />} />
+      <Route path="/ranks" element={<LandingRanks />} />
+      <Route path="/games" element={<LandingGames />} />
+      <Route path="/beta" element={<LandingBeta />} />
+      <Route path="/faq" element={<LandingFAQ />} />
+      <Route
+        path="/app"
+        element={
+          user
+            ? <AppShell user={user} onLogout={handleLogout} />
+            : <WelcomeScreen
+                onEnter={() => {}}
+                onFounderLogin={handleFounderLogin}
+              />
+        }
+      />
+      <Route path="/u/:username" element={<PublicProfile />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+};
+
+const App: React.FC = () => {
   if (isSteamCallback()) {
+    // Full-page redirect after OAuth — window.location.href intentional here
+    // to clear OAuth params from the URL bar
     return (
       <SteamCallback
         onSuccess={async (steamUser) => {
@@ -105,7 +151,6 @@ const App: React.FC = () => {
           }
           localStorage.setItem('pantheon_user', JSON.stringify(steamUser));
           localStorage.setItem('pantheon_beta', 'true');
-          setUser(steamUser);
           window.location.href = '/app';
         }}
         onError={() => { window.location.href = '/app'; }}
@@ -113,46 +158,9 @@ const App: React.FC = () => {
     );
   }
 
-  const handleLogout = () => {
-    localStorage.removeItem('pantheon_user');
-    setUser(null);
-    window.location.href = '/';
-  };
-
-  const handleFounderLogin = (founderUser: FounderUser) => {
-    const steamUser: SteamUser = {
-      steamId: founderUser.steamId,
-      username: founderUser.username,
-      avatarUrl: founderUser.avatarUrl,
-      isPublic: true,
-    };
-    localStorage.setItem('pantheon_user', JSON.stringify(steamUser));
-    setUser(steamUser);
-    window.location.href = '/app';
-  };
-
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<LandingHome />} />
-        <Route path="/ranks" element={<LandingRanks />} />
-        <Route path="/games" element={<LandingGames />} />
-        <Route path="/beta" element={<LandingBeta />} />
-        <Route path="/faq" element={<LandingFAQ />} />
-        <Route
-          path="/app"
-          element={
-            user
-              ? <AppShell user={user} onLogout={handleLogout} />
-              : <WelcomeScreen
-                  onEnter={() => {}}
-                  onFounderLogin={handleFounderLogin}
-                />
-          }
-        />
-        <Route path="/u/:username" element={<PublicProfile />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <AppRoutes />
     </BrowserRouter>
   );
 };
