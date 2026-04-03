@@ -408,3 +408,8 @@ entrypoint = "./functions/check-achievements/index.ts"
 enabled = true
 verify_jwt = true
 entrypoint = "./functions/send-invite/index.ts"
+
+[functions.send-rejection]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/send-rejection/index.ts"

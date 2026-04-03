@@ -106,8 +106,42 @@ export async function submitJudgeApplication(
   return !error;
 }
 
+const REAPPLY_DAYS = 30;
+
 export async function submitWaitlist(email: string, reason: string): Promise<{ success: boolean; error?: string }> {
-  const { error } = await supabase.from('waitlist').insert({ email, reason: reason.trim() || null });
+  // Check if email already exists
+  const { data: existing } = await supabase
+    .from('waitlist')
+    .select('id, status, rejected_at')
+    .eq('email', email.trim().toLowerCase())
+    .maybeSingle();
+
+  if (existing) {
+    if (existing.status === 'pending') {
+      return { success: false, error: 'This email is already on the waitlist.' };
+    }
+    if (existing.status === 'approved') {
+      return { success: false, error: 'This email has already been approved. Check your inbox for the invite code.' };
+    }
+    if (existing.status === 'rejected') {
+      const rejectedAt = existing.rejected_at ? new Date(existing.rejected_at) : new Date(0);
+      const daysSince = (Date.now() - rejectedAt.getTime()) / (1000 * 60 * 60 * 24);
+      if (daysSince < REAPPLY_DAYS) {
+        const reapplyDate = new Date(rejectedAt.getTime() + REAPPLY_DAYS * 24 * 60 * 60 * 1000);
+        const dateStr = reapplyDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        return { success: false, error: `You can reapply after ${dateStr}.` };
+      }
+      // 30 days passed — reset to pending
+      const { error } = await supabase
+        .from('waitlist')
+        .update({ status: 'pending', reason: reason.trim() || null, rejection_reason: null, rejected_at: null, applied_at: new Date().toISOString() })
+        .eq('id', existing.id);
+      if (error) return { success: false, error: error.message };
+      return { success: true };
+    }
+  }
+
+  const { error } = await supabase.from('waitlist').insert({ email: email.trim().toLowerCase(), reason: reason.trim() || null });
   if (error) return { success: false, error: error.message };
   return { success: true };
 }
@@ -138,11 +172,18 @@ export async function sendInvite(waitlistId: string, email: string): Promise<{ s
 }
 
 export async function rejectWaitlistEntry(id: string, rejectionReason: string): Promise<boolean> {
-  const { error } = await supabase
-    .from('waitlist')
-    .update({ status: 'rejected', rejection_reason: rejectionReason })
-    .eq('id', id);
-  return !error;
+  const response = await fetch(
+    `${SUPABASE_URL}/functions/v1/send-rejection`,
+    {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ waitlistId: id, rejectionReason }),
+    }
+  );
+  return response.ok;
 }
 
 export async function assignJudges(submissionId: string): Promise<boolean> {
