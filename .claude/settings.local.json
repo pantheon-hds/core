@@ -8,7 +8,13 @@
       "Bash(grep -r \"!important\" src/components/pages/*.css)",
       "Bash(grep -r \"as any\" src/components/pages/*.tsx src/services/*.ts)",
       "Bash(grep -r \"console\\\\.\" src/components/pages/*.tsx src/services/*.ts)",
-      "Bash(grep -rn \"as any\" src/components/pages/*.tsx src/services/*.ts)"
+      "Bash(grep -rn \"as any\" src/components/pages/*.tsx src/services/*.ts)",
+      "Bash(gh issue:*)",
+      "Bash(npm install:*)",
+      "Bash(npx playwright:*)",
+      "Bash(npm run:*)",
+      "Bash(ls \"c:\\\\Users\\\\user\\\\Documents\\\\GitHub\\\\core\\\\.env\"*)",
+      "Bash(ls -la c:/Users/user/Documents/GitHub/core/.env*)"
     ]
   }
 }

@@ -35,6 +35,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   const [games, setGames] = useState<{ id: number; steam_app_id: string; title: string }[]>([]);
   const [dbUserId, setDbUserId] = useState<string | null>(null);
   const [dbUsername, setDbUsername] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const [videoUrl, setVideoUrl] = useState('');
   const [comment, setComment] = useState('');
@@ -371,9 +372,13 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                 </a>
                 <button
                   className="dashboard__copy-btn"
-                  onClick={() => navigator.clipboard.writeText(`https://pantheonhds.com/u/${dbUsername}`)}
+                  onClick={() => {
+                    navigator.clipboard.writeText(`https://pantheonhds.com/u/${dbUsername}`);
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 2000);
+                  }}
                 >
-                  Copy
+                  {copied ? 'Copied!' : 'Copy'}
                 </button>
               </div>
             </div>
