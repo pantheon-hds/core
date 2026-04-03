@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import './App.css';
 import SteamCallback, { SteamUser } from './components/pages/SteamCallback';
 import Dashboard from './components/pages/Dashboard';
@@ -19,6 +20,10 @@ import LandingGames from './components/pages/LandingGames';
 import LandingBeta from './components/pages/LandingBeta';
 import LandingFAQ from './components/pages/LandingFAQ';
 import PublicProfile from './components/pages/PublicProfile';
+
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { staleTime: 5 * 60 * 1000 } }, // cache 5 minutes
+});
 
 const isSteamCallback = (): boolean => {
   const params = new URLSearchParams(window.location.search);
@@ -159,9 +164,11 @@ const App: React.FC = () => {
   }
 
   return (
-    <BrowserRouter>
-      <AppRoutes />
-    </BrowserRouter>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <AppRoutes />
+      </BrowserRouter>
+    </QueryClientProvider>
   );
 };
 
