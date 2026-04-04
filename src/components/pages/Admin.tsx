@@ -24,6 +24,7 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
   const [rejectReason, setRejectReason] = useState('');
   const [approvingId, setApprovingId] = useState<string | null>(null);
   const [newChallenge, setNewChallenge] = useState({ title: '', description: '', tier: 'Platinum', game_id: '' });
+  const [editingChallenge, setEditingChallenge] = useState<{ id: number; title: string; description: string; tier: string; game_id: string } | null>(null);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [adminNote, setAdminNote] = useState<Record<string, string>>({});
@@ -155,6 +156,32 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
     if (!window.confirm('Delete this challenge?')) return;
     await supabase.from('challenges').delete().eq('id', id);
     setChallenges(prev => prev.filter(c => c.id !== id));
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingChallenge) return;
+    if (!editingChallenge.title || !editingChallenge.description || !editingChallenge.game_id) {
+      setMessage('Please fill all fields'); return;
+    }
+    setSaving(true);
+    const { error } = await supabase.from('challenges').update({
+      title: editingChallenge.title,
+      description: editingChallenge.description,
+      tier: editingChallenge.tier,
+      game_id: parseInt(editingChallenge.game_id),
+    }).eq('id', editingChallenge.id);
+    if (error) {
+      setMessage(`Error: ${error.message}`);
+    } else {
+      setChallenges(prev => prev.map(c => c.id === editingChallenge.id
+        ? { ...c, title: editingChallenge.title, description: editingChallenge.description, tier: editingChallenge.tier, game_id: parseInt(editingChallenge.game_id) }
+        : c
+      ));
+      setEditingChallenge(null);
+      setMessage('Challenge updated!');
+      setTimeout(() => setMessage(''), 3000);
+    }
+    setSaving(false);
   };
 
   const handleApproveWaitlist = async (entry: WaitlistEntry) => {
@@ -335,16 +362,50 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
             <button className="admin__btn" onClick={handleAddChallenge} disabled={saving}>{saving ? 'Saving...' : 'Add Challenge'}</button>
           </div>
 
+          {editingChallenge && (
+            <div className="admin__form" style={{ marginTop: '1.5rem', borderColor: '#c9922a' }}>
+              <div className="admin__form-title">Edit Challenge</div>
+              <div className="admin__field">
+                <label className="admin__label">Game</label>
+                <select className="admin__select" value={editingChallenge.game_id} onChange={e => setEditingChallenge({ ...editingChallenge, game_id: e.target.value })}>
+                  {games.map(g => <option key={g.id} value={g.id}>{g.title}</option>)}
+                </select>
+              </div>
+              <div className="admin__field">
+                <label className="admin__label">Tier</label>
+                <select className="admin__select" value={editingChallenge.tier} onChange={e => setEditingChallenge({ ...editingChallenge, tier: e.target.value })}>
+                  {CHALLENGE_TIERS.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
+              <div className="admin__field">
+                <label className="admin__label">Title</label>
+                <input className="admin__input" value={editingChallenge.title} onChange={e => setEditingChallenge({ ...editingChallenge, title: e.target.value })} />
+              </div>
+              <div className="admin__field">
+                <label className="admin__label">Description</label>
+                <textarea className="admin__textarea" value={editingChallenge.description} onChange={e => setEditingChallenge({ ...editingChallenge, description: e.target.value })} rows={3} />
+              </div>
+              {message && <div className={"admin__message" + (message.includes('Error') ? ' admin__message--error' : ' admin__message--success')}>{message}</div>}
+              <div className="admin__action-btns">
+                <button className="admin__approve-btn" onClick={handleSaveEdit} disabled={saving}>{saving ? 'Saving...' : '✓ Save Changes'}</button>
+                <button className="admin__delete-btn" onClick={() => { setEditingChallenge(null); setMessage(''); }}>Cancel</button>
+              </div>
+            </div>
+          )}
+
           <div className="admin__list">
             <div className="admin__list-title">All Challenges</div>
             {challenges.map(c => (
-              <div key={c.id} className="admin__item">
+              <div key={c.id} className={"admin__item" + (editingChallenge?.id === c.id ? ' admin__item--pending' : '')}>
                 <div className="admin__item-info">
                   <div className="admin__item-title">{c.title}</div>
                   <div className="admin__item-meta">{c.game?.title} · {c.tier}</div>
                   <div className="admin__item-desc">{c.description}</div>
                 </div>
-                <button className="admin__delete-btn" onClick={() => handleDeleteChallenge(c.id)}>Delete</button>
+                <div className="admin__action-btns" style={{ flexDirection: 'column', gap: '0.4rem' }}>
+                  <button className="admin__approve-btn" onClick={() => setEditingChallenge({ id: c.id, title: c.title, description: c.description, tier: c.tier, game_id: String(c.game_id) })}>Edit</button>
+                  <button className="admin__delete-btn" onClick={() => handleDeleteChallenge(c.id)}>Delete</button>
+                </div>
               </div>
             ))}
           </div>
