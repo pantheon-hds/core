@@ -152,6 +152,74 @@ npm run test:e2e # E2E tests (requires npm start running)
 
 ---
 
+## Project Structure
+
+```
+src/
+├── App.tsx                          # Root component, routing, QueryClient
+├── components/
+│   ├── dashboard/                   # Dashboard sub-components
+│   │   ├── ChallengeDetailModal.tsx # Challenge info + submit button
+│   │   ├── ChallengeList.tsx        # Tier filter + challenge cards
+│   │   ├── RankCard.tsx             # Player rank, statues, progress bar
+│   │   └── SubmitModal.tsx          # Video URL + comment submission form
+│   ├── layout/
+│   │   └── LandingLayout.tsx        # Shared wrapper for landing pages
+│   ├── pages/                       # Route-level page components
+│   │   ├── Admin.tsx                # Admin panel
+│   │   ├── Dashboard.tsx            # Main player dashboard
+│   │   ├── JudgePanel.tsx           # Judge voting interface
+│   │   ├── Landing.tsx              # Landing page router
+│   │   ├── Pantheon.tsx             # Public leaderboard
+│   │   ├── Profile.tsx              # Personal profile
+│   │   ├── PublicProfile.tsx        # Shareable /u/username page
+│   │   ├── Sandbox.tsx              # Developer testing environment
+│   │   ├── SteamCallback.tsx        # Steam OpenID callback handler
+│   │   └── WelcomeScreen.tsx        # Post-login onboarding
+│   └── ui/                          # Shared reusable components
+│       ├── ErrorBoundary.tsx
+│       ├── Sidebar.tsx
+│       ├── StatueSVG.tsx
+│       ├── SteamAuth.tsx
+│       └── Toast.tsx
+├── constants/
+│   └── ranks.ts                     # Rank tiers, colors, ordering
+├── hooks/                           # Custom React hooks
+│   ├── useChallenges.ts             # Fetch challenges + games via react-query
+│   ├── useSubmissions.ts            # Submissions state + Supabase Realtime
+│   ├── useToast.ts                  # Toast notification state
+│   └── useUserData.ts               # DB user, ranks, statues via react-query
+├── services/                        # External integrations
+│   ├── steamApi.ts                  # Steam Web API calls
+│   ├── submissionService.ts         # Submission CRUD operations
+│   └── supabase.ts                  # Supabase client + DB query functions
+├── types/
+│   ├── database.types.ts            # Auto-generated Supabase types
+│   └── index.ts                     # Shared TypeScript interfaces
+└── utils/
+    └── rankProgress.ts              # Rank progress calculation helpers
+```
+
+---
+
+## Database Schema
+
+| Table | Description |
+|-------|-------------|
+| `users` | Registered players (Steam ID, username, path, judge status) |
+| `ranks` | Player ranks per game (tier, game ID, earned date) |
+| `statues` | Statues selected by players for their profile |
+| `challenges` | Community challenges (title, tier, game, description) |
+| `games` | Supported games (title, Steam App ID) |
+| `submissions` | Rank submission requests (video URL, status, player ID) |
+| `submission_judges` | Judge assignments per submission (blind, anonymous) |
+| `judge_applications` | Applications to become a judge |
+| `waitlist` | Early access waitlist signups |
+
+All tables have Row Level Security (RLS) enabled via Supabase.
+
+---
+
 ## What We Will Never Do
 
 - Sell ranks or statues for money
