@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import './Admin.css';
 import { SteamUser } from './SteamCallback';
 import { supabase, getUserBySteamId } from '../../services/supabase';
-import { adminReviewSubmission, reviewJudgeApplication, appointJudgeBySteamId, banUser, unbanUser } from '../../services/submissionService';
+import { adminReviewSubmission, reviewJudgeApplication, appointJudgeBySteamId, banUser, unbanUser, removeJudge } from '../../services/submissionService';
 import { sendInvite, rejectWaitlistEntry } from '../../services/supabase';
 import { CHALLENGE_TIERS } from '../../constants/ranks';
 import { useToast } from '../../hooks/useToast';
@@ -29,6 +29,7 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
   const [adminNote, setAdminNote] = useState<Record<string, string>>({});
   const [manualSteamId, setManualSteamId] = useState('');
   const [users, setUsers] = useState<DBUser[]>([]);
+  const [judges, setJudges] = useState<DBUser[]>([]);
   const [banningUserId, setBanningUserId] = useState<string | null>(null);
   const [banReason, setBanReason] = useState('');
   const [banDuration, setBanDuration] = useState<'week' | 'month' | 'year' | 'permanent'>('week');
@@ -69,6 +70,13 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
       .select('id, username, steam_id, is_admin, is_judge, is_test, is_banned, ban_reason, banned_until, created_at')
       .order('created_at', { ascending: false });
     setUsers((usersData as DBUser[]) || []);
+
+    const { data: judgesData } = await supabase
+      .from('users')
+      .select('id, username, steam_id, is_admin, is_judge, is_test, is_banned, ban_reason, banned_until, created_at')
+      .eq('is_judge', true)
+      .order('username');
+    setJudges((judgesData as DBUser[]) || []);
 
     setLoading(false);
   }, [user]);
@@ -125,8 +133,21 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
     if (result.success) {
       showToast(`${result.username} is now a Judge!`, 'success');
       setManualSteamId('');
+      await loadData();
     } else {
       showToast(result.error ?? 'Unknown error', 'error');
+    }
+  };
+
+  const handleRemoveJudge = async (userId: string, username: string) => {
+    if (!window.confirm(`Remove judge status from ${username}?`)) return;
+    const result = await removeJudge(userId);
+    if (result.success) {
+      showToast(`${username} is no longer a Judge`, 'success');
+      setJudges(prev => prev.filter(j => j.id !== userId));
+      setUsers(prev => prev.map(u => u.id === userId ? { ...u, is_judge: false } : u));
+    } else {
+      showToast(result.error ?? 'Failed to remove judge', 'error');
     }
   };
 
@@ -525,7 +546,7 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
           </div>
 
           <div className="admin__list" style={{ marginTop: '2rem' }}>
-            <div className="admin__list-title">Current Judges</div>
+            <div className="admin__list-title">Current Judges — {judges.length}</div>
             <div className="admin__form" style={{ padding: '1rem' }}>
               <div className="admin__form-title">Appoint Judge Manually</div>
               <div className="admin__field">
@@ -541,6 +562,24 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
                 Appoint as Judge
               </button>
             </div>
+            {judges.length === 0 ? (
+              <div className="admin__empty">No active judges.</div>
+            ) : (
+              judges.map(j => (
+                <div key={j.id} className="admin__item">
+                  <div className="admin__item-info">
+                    <div className="admin__item-title">{j.username}</div>
+                    <div className="admin__item-meta">Steam: {j.steam_id}</div>
+                  </div>
+                  <button
+                    className="admin__reject-btn"
+                    onClick={() => handleRemoveJudge(j.id, j.username)}
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))
+            )}
           </div>
         </div>
       )}

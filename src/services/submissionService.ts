@@ -179,6 +179,16 @@ export async function unbanUser(userId: string): Promise<ServiceResult> {
   return { success: true };
 }
 
+// Remove judge status from a user.
+export async function removeJudge(userId: string): Promise<ServiceResult> {
+  const { error } = await supabase
+    .from('users')
+    .update({ is_judge: false })
+    .eq('id', userId);
+  if (error) return { success: false, error: error.message };
+  return { success: true };
+}
+
 // Appoint a user as judge by Steam ID.
 export async function appointJudgeBySteamId(
   steamId: string
