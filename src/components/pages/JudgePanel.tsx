@@ -9,6 +9,15 @@ import type { JudgeAssignment } from '../../types';
 
 interface JudgePanelProps { user: SteamUser | null; }
 
+interface SubmissionRow {
+  id: string;
+  video_url: string;
+  comment: string | null;
+  submitted_at: string;
+  user: { username: string } | null;
+  challenge: { title: string; tier: string; description: string } | null;
+}
+
 const JudgePanel: React.FC<JudgePanelProps> = ({ user }) => {
   const [isJudge, setIsJudge] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -46,9 +55,9 @@ const JudgePanel: React.FC<JudgePanelProps> = ({ user }) => {
         .in('status', ['pending', 'in_review'])
         .order('submitted_at', { ascending: true });
 
-      const adminAssignments: JudgeAssignment[] = ((data as JudgeAssignment['submission'][]) || []).map(s => ({
-        id: (s as { id: string }).id,
-        assigned_at: (s as { submitted_at: string }).submitted_at,
+      const adminAssignments: JudgeAssignment[] = ((data as SubmissionRow[]) || []).map(s => ({
+        id: s.id,
+        assigned_at: s.submitted_at,
         vote: null,
         timestamp_note: null,
         submission: s as JudgeAssignment['submission'],
@@ -141,7 +150,7 @@ const JudgePanel: React.FC<JudgePanelProps> = ({ user }) => {
 
       <div className="judge__list">
         {assignments.length === 0 ? (
-          <div className="judge__empty">No submissions assigned to you yet.</div>
+          <div className="judge__empty">{isAdmin ? 'No pending submissions.' : 'No submissions assigned to you yet.'}</div>
         ) : (
           assignments.map(a => (
             <div key={a.id} className={"judge__item" + (!a.vote ? ' judge__item--pending' : '')}>

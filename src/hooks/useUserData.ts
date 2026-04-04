@@ -27,7 +27,7 @@ export function useUserData(user: SteamUser | null, games: Game[]): UseUserDataR
     queryKey: ['dbUser', user?.steamId],
     queryFn: () => getUserBySteamId(user!.steamId),
     enabled: !!user,
-    staleTime: 10 * 60 * 1000, // 10 min — user profile rarely changes
+    staleTime: 30 * 1000, // 30s — short so bans take effect quickly
   });
 
   // Cached: ranks and statues

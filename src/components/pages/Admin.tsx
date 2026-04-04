@@ -72,14 +72,9 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
       .from('users')
       .select('id, username, steam_id, is_admin, is_judge, is_test, is_banned, ban_reason, banned_until, created_at')
       .order('created_at', { ascending: false });
-    setUsers((usersData as DBUser[]) || []);
-
-    const { data: judgesData } = await supabase
-      .from('users')
-      .select('id, username, steam_id, is_admin, is_judge, is_test, is_banned, ban_reason, banned_until, created_at')
-      .eq('is_judge', true)
-      .order('username');
-    setJudges((judgesData as DBUser[]) || []);
+    const allUsers = (usersData as DBUser[]) || [];
+    setUsers(allUsers);
+    setJudges(allUsers.filter(u => u.is_judge).sort((a, b) => a.username.localeCompare(b.username)));
 
     setLoading(false);
   }, [user]);
@@ -156,7 +151,8 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
 
   const handleDeleteChallenge = async (id: number) => {
     if (!window.confirm('Delete this challenge?')) return;
-    await supabase.from('challenges').delete().eq('id', id);
+    const { error } = await supabase.from('challenges').delete().eq('id', id);
+    if (error) { showToast(`Error: ${error.message}`, 'error'); return; }
     setChallenges(prev => prev.filter(c => c.id !== id));
   };
 
@@ -241,13 +237,15 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
 
   const handleBanUser = async (userId: string) => {
     if (!banReason.trim()) { showToast('Reason is required', 'error'); return; }
-    const result = await banUser(userId, banReason.trim(), getBanExpiry());
+    const expiry = getBanExpiry();
+    const reason = banReason.trim();
+    const result = await banUser(userId, reason, expiry);
     if (result.success) {
       showToast('User banned', 'success');
       setBanningUserId(null);
       setBanReason('');
       setUsers(prev => prev.map(u => u.id === userId
-        ? { ...u, is_banned: true, ban_reason: banReason.trim(), banned_until: getBanExpiry() }
+        ? { ...u, is_banned: true, ban_reason: reason, banned_until: expiry }
         : u
       ));
     } else {
