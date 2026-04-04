@@ -13,6 +13,9 @@ interface UseUserDataResult {
   statues: UserStatue[];
   setRanks: React.Dispatch<React.SetStateAction<UserRank[]>>;
   loadUserData: () => Promise<void>;
+  isBanned: boolean;
+  banReason: string | null;
+  banUntil: string | null;
 }
 
 export function useUserData(user: SteamUser | null, games: Game[]): UseUserDataResult {
@@ -64,6 +67,10 @@ export function useUserData(user: SteamUser | null, games: Game[]): UseUserDataR
     }
   };
 
+  const isBanned =
+    (dbUser?.is_banned ?? false) &&
+    (dbUser?.banned_until === null || dbUser?.banned_until === undefined || new Date(dbUser.banned_until) > new Date());
+
   return {
     dbUserId: dbUser?.id ?? null,
     dbUsername: dbUser?.username ?? null,
@@ -71,5 +78,8 @@ export function useUserData(user: SteamUser | null, games: Game[]): UseUserDataR
     statues,
     setRanks,
     loadUserData,
+    isBanned,
+    banReason: dbUser?.ban_reason ?? null,
+    banUntil: dbUser?.banned_until ?? null,
   };
 }

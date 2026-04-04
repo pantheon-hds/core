@@ -69,7 +69,7 @@ export async function adminReviewSubmission(
       .eq('id', submissionId)
       .single();
 
-    if (!sub || !sub.challenge_id) return { success: false, error: 'Submission not found after update' };
+    if (!sub || !sub.user_id || !sub.challenge_id) return { success: false, error: 'Submission not found after update' };
 
     return awardRankForChallenge(sub.user_id, sub.challenge_id);
   }
@@ -122,7 +122,7 @@ export async function recordJudgeVote(
 
   if (finalStatus === 'approved') {
     const sub = updated[0];
-    if (!sub.challenge_id) return { success: true, finalised: true };
+    if (!sub.user_id || !sub.challenge_id) return { success: true, finalised: true };
     const awardResult = await awardRankForChallenge(sub.user_id, sub.challenge_id);
     if (!awardResult.success) return { ...awardResult, finalised: true };
   }
@@ -152,6 +152,30 @@ export async function reviewJudgeApplication(
     if (userError) return { success: false, error: userError.message };
   }
 
+  return { success: true };
+}
+
+// Ban a user for a specified duration (null = permanent).
+export async function banUser(
+  userId: string,
+  reason: string,
+  bannedUntil: string | null
+): Promise<ServiceResult> {
+  const { error } = await supabase
+    .from('users')
+    .update({ is_banned: true, ban_reason: reason, banned_until: bannedUntil })
+    .eq('id', userId);
+  if (error) return { success: false, error: error.message };
+  return { success: true };
+}
+
+// Remove a ban from a user.
+export async function unbanUser(userId: string): Promise<ServiceResult> {
+  const { error } = await supabase
+    .from('users')
+    .update({ is_banned: false, ban_reason: null, banned_until: null })
+    .eq('id', userId);
+  if (error) return { success: false, error: error.message };
   return { success: true };
 }
 

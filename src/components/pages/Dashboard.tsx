@@ -39,7 +39,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   const [submitMessage, setSubmitMessage] = useState('');
 
   const { challenges, games } = useChallenges();
-  const { dbUserId, dbUsername, ranks, statues, setRanks } = useUserData(user, games);
+  const { dbUserId, dbUsername, ranks, statues, setRanks, isBanned, banReason, banUntil } = useUserData(user, games);
 
   const handleApproved = useCallback(() => {
     if (dbUserId) getUserRanks(dbUserId).then(setRanks);
@@ -146,6 +146,23 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   const tiers = ['All', ...Array.from(new Set(challenges.map(c => c.tier)))];
   const approvedSubmissions = submissions.filter(s => s.status === 'approved');
   const approvedChallengeIds = approvedSubmissions.map(s => s.challenge_id);
+
+  if (isBanned) {
+    return (
+      <div className="dashboard">
+        <div className="dashboard__banned">
+          <div className="dashboard__banned-icon">⚠</div>
+          <div className="dashboard__banned-title">Your account has been suspended</div>
+          <div className="dashboard__banned-reason">{banReason || 'No reason provided'}</div>
+          {banUntil
+            ? <div className="dashboard__banned-until">Until: {new Date(banUntil).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+            : <div className="dashboard__banned-until">Permanent</div>
+          }
+          <div className="dashboard__banned-contact">If you believe this is a mistake, contact support.</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="dashboard">

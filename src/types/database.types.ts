@@ -392,9 +392,12 @@ export type Database = {
       users: {
         Row: {
           avatar_url: string | null
+          ban_reason: string | null
+          banned_until: string | null
           created_at: string | null
           id: string
           is_admin: boolean | null
+          is_banned: boolean | null
           is_judge: boolean | null
           is_test: boolean | null
           judge_games: string[] | null
@@ -404,9 +407,12 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          ban_reason?: string | null
+          banned_until?: string | null
           created_at?: string | null
           id?: string
           is_admin?: boolean | null
+          is_banned?: boolean | null
           is_judge?: boolean | null
           is_test?: boolean | null
           judge_games?: string[] | null
@@ -416,9 +422,12 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          ban_reason?: string | null
+          banned_until?: string | null
           created_at?: string | null
           id?: string
           is_admin?: boolean | null
+          is_banned?: boolean | null
           is_judge?: boolean | null
           is_test?: boolean | null
           judge_games?: string[] | null

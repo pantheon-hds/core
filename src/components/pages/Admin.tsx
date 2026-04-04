@@ -2,12 +2,12 @@ import React, { useState, useEffect, useCallback } from 'react';
 import './Admin.css';
 import { SteamUser } from './SteamCallback';
 import { supabase, getUserBySteamId } from '../../services/supabase';
-import { adminReviewSubmission, reviewJudgeApplication, appointJudgeBySteamId } from '../../services/submissionService';
+import { adminReviewSubmission, reviewJudgeApplication, appointJudgeBySteamId, banUser, unbanUser } from '../../services/submissionService';
 import { sendInvite, rejectWaitlistEntry } from '../../services/supabase';
 import { CHALLENGE_TIERS } from '../../constants/ranks';
 import { useToast } from '../../hooks/useToast';
 import { Toast } from '../ui/Toast';
-import type { Game, Challenge, Submission, JudgeApplication, WaitlistEntry } from '../../types';
+import type { Game, Challenge, Submission, JudgeApplication, WaitlistEntry, DBUser } from '../../types';
 
 interface AdminProps { user: SteamUser | null; }
 
@@ -17,7 +17,7 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
   const [games, setGames] = useState<Game[]>([]);
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const [activeTab, setActiveTab] = useState<'submissions' | 'challenges' | 'games' | 'judges' | 'waitlist'>('submissions');
+  const [activeTab, setActiveTab] = useState<'submissions' | 'challenges' | 'games' | 'judges' | 'waitlist' | 'users'>('submissions');
   const [judgeApps, setJudgeApps] = useState<JudgeApplication[]>([]);
   const [waitlist, setWaitlist] = useState<WaitlistEntry[]>([]);
   const [rejectingId, setRejectingId] = useState<string | null>(null);
@@ -28,6 +28,10 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
   const [message, setMessage] = useState('');
   const [adminNote, setAdminNote] = useState<Record<string, string>>({});
   const [manualSteamId, setManualSteamId] = useState('');
+  const [users, setUsers] = useState<DBUser[]>([]);
+  const [banningUserId, setBanningUserId] = useState<string | null>(null);
+  const [banReason, setBanReason] = useState('');
+  const [banDuration, setBanDuration] = useState<'week' | 'month' | 'year' | 'permanent'>('week');
   const { toast, showToast } = useToast();
 
   const loadData = useCallback(async () => {
@@ -59,6 +63,12 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
     const { data: waitlistData } = await supabase
       .rpc('get_waitlist_admin', { p_steam_id: user?.steamId ?? '' });
     setWaitlist((waitlistData as WaitlistEntry[]) || []);
+
+    const { data: usersData } = await supabase
+      .from('users')
+      .select('id, username, steam_id, is_admin, is_judge, is_test, is_banned, ban_reason, banned_until, created_at')
+      .order('created_at', { ascending: false });
+    setUsers((usersData as DBUser[]) || []);
 
     setLoading(false);
   }, [user]);
@@ -150,6 +160,44 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
     }
   };
 
+  const getBanExpiry = (): string | null => {
+    const now = new Date();
+    if (banDuration === 'permanent') return null;
+    if (banDuration === 'week') now.setDate(now.getDate() + 7);
+    if (banDuration === 'month') now.setMonth(now.getMonth() + 1);
+    if (banDuration === 'year') now.setFullYear(now.getFullYear() + 1);
+    return now.toISOString();
+  };
+
+  const handleBanUser = async (userId: string) => {
+    if (!banReason.trim()) { showToast('Reason is required', 'error'); return; }
+    const result = await banUser(userId, banReason.trim(), getBanExpiry());
+    if (result.success) {
+      showToast('User banned', 'success');
+      setBanningUserId(null);
+      setBanReason('');
+      setUsers(prev => prev.map(u => u.id === userId
+        ? { ...u, is_banned: true, ban_reason: banReason.trim(), banned_until: getBanExpiry() }
+        : u
+      ));
+    } else {
+      showToast(result.error ?? 'Failed to ban user', 'error');
+    }
+  };
+
+  const handleUnbanUser = async (userId: string) => {
+    const result = await unbanUser(userId);
+    if (result.success) {
+      showToast('User unbanned', 'success');
+      setUsers(prev => prev.map(u => u.id === userId
+        ? { ...u, is_banned: false, ban_reason: null, banned_until: null }
+        : u
+      ));
+    } else {
+      showToast(result.error ?? 'Failed to unban user', 'error');
+    }
+  };
+
   const pendingSubmissions = submissions.filter(s => s.status === 'pending').length;
   const pendingJudgeApps = judgeApps.filter(j => j.status === 'pending').length;
   const pendingWaitlist = waitlist.filter(w => w.status === 'pending').length;
@@ -181,6 +229,9 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
         </button>
         <button className={"admin__tab" + (activeTab === 'waitlist' ? ' admin__tab--active' : '')} onClick={() => setActiveTab('waitlist')}>
           Waitlist {pendingWaitlist > 0 && <span className="admin__badge">{pendingWaitlist}</span>}
+        </button>
+        <button className={"admin__tab" + (activeTab === 'users' ? ' admin__tab--active' : '')} onClick={() => setActiveTab('users')}>
+          Users ({users.length})
         </button>
       </div>
 
@@ -355,6 +406,85 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
                   </div>
                 </div>
               ))
+            )}
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'users' && (
+        <div className="admin__section">
+          <div className="admin__list">
+            <div className="admin__list-title">
+              All Users — {users.length} total · {users.filter(u => u.is_banned).length} banned
+            </div>
+            {users.length === 0 ? (
+              <div className="admin__empty">No users yet.</div>
+            ) : (
+              users.map(u => {
+                const isBanActive = u.is_banned && (u.banned_until === null || new Date(u.banned_until) > new Date());
+                return (
+                  <div key={u.id} className={"admin__item" + (isBanActive ? ' admin__item--pending' : '')}>
+                    <div className="admin__item-info">
+                      <div className="admin__item-title">
+                        {u.username}
+                        {u.is_admin && <span style={{ color: '#c9922a', marginLeft: '0.5rem' }}>[Admin]</span>}
+                        {u.is_judge && <span style={{ color: '#6ab87a', marginLeft: '0.5rem' }}>[Judge]</span>}
+                        {isBanActive && <span style={{ color: '#e45a3a', marginLeft: '0.5rem' }}>[Banned]</span>}
+                      </div>
+                      <div className="admin__item-meta">
+                        Steam: {u.steam_id} · Joined: {new Date(u.created_at).toLocaleDateString()}
+                      </div>
+                      {isBanActive && (
+                        <div className="admin__item-desc" style={{ color: '#e45a3a' }}>
+                          Reason: {u.ban_reason || '—'} · Until: {u.banned_until ? new Date(u.banned_until).toLocaleDateString() : 'Permanent'}
+                        </div>
+                      )}
+                      {banningUserId === u.id && (
+                        <div className="admin__review-actions">
+                          <input
+                            className="admin__note-input"
+                            placeholder="Ban reason (required)..."
+                            value={banReason}
+                            onChange={e => setBanReason(e.target.value)}
+                          />
+                          <select
+                            className="admin__select"
+                            value={banDuration}
+                            onChange={e => setBanDuration(e.target.value as 'week' | 'month' | 'year' | 'permanent')}
+                          >
+                            <option value="week">1 Week</option>
+                            <option value="month">1 Month</option>
+                            <option value="year">1 Year</option>
+                            <option value="permanent">Permanent</option>
+                          </select>
+                          <div className="admin__action-btns">
+                            <button className="admin__reject-btn" onClick={() => handleBanUser(u.id)}>
+                              ⛔ Confirm Ban
+                            </button>
+                            <button
+                              style={{ cursor: 'pointer', background: 'none', border: '1px solid #5a5048', color: '#9a9080', padding: '0.4rem 0.8rem' }}
+                              onClick={() => { setBanningUserId(null); setBanReason(''); }}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    {isBanActive ? (
+                      <button className="admin__approve-btn" onClick={() => handleUnbanUser(u.id)}>
+                        ✓ Unban
+                      </button>
+                    ) : (
+                      !u.is_admin && banningUserId !== u.id && (
+                        <button className="admin__reject-btn" onClick={() => { setBanningUserId(u.id); setBanReason(''); }}>
+                          Ban
+                        </button>
+                      )
+                    )}
+                  </div>
+                );
+              })
             )}
           </div>
         </div>

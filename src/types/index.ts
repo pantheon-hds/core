@@ -44,6 +44,9 @@ export interface DBUser {
   is_admin: boolean;
   is_judge: boolean;
   is_test: boolean;
+  is_banned: boolean;
+  ban_reason: string | null;
+  banned_until: string | null;
   created_at: string;
 }
 
