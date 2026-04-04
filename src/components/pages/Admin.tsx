@@ -25,6 +25,8 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
   const [approvingId, setApprovingId] = useState<string | null>(null);
   const [newChallenge, setNewChallenge] = useState({ title: '', description: '', tier: 'Platinum', game_id: '' });
   const [editingChallenge, setEditingChallenge] = useState<{ id: number; title: string; description: string; tier: string; game_id: string } | null>(null);
+  const [newGame, setNewGame] = useState({ title: '', steam_app_id: '' });
+  const [gameMessage, setGameMessage] = useState('');
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [adminNote, setAdminNote] = useState<Record<string, string>>({});
@@ -156,6 +158,26 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
     if (!window.confirm('Delete this challenge?')) return;
     await supabase.from('challenges').delete().eq('id', id);
     setChallenges(prev => prev.filter(c => c.id !== id));
+  };
+
+  const handleAddGame = async () => {
+    if (!newGame.title.trim() || !newGame.steam_app_id.trim()) {
+      setGameMessage('Please fill all fields'); return;
+    }
+    setSaving(true);
+    const { data, error } = await supabase.from('games').insert({
+      title: newGame.title.trim(),
+      steam_app_id: newGame.steam_app_id.trim(),
+    }).select().single();
+    if (error) {
+      setGameMessage(`Error: ${error.message}`);
+    } else {
+      setGames(prev => [...prev, data as Game].sort((a, b) => a.title.localeCompare(b.title)));
+      setNewGame({ title: '', steam_app_id: '' });
+      setGameMessage('Game added!');
+      setTimeout(() => setGameMessage(''), 3000);
+    }
+    setSaving(false);
   };
 
   const handleSaveEdit = async () => {
@@ -414,8 +436,37 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
 
       {activeTab === 'games' && (
         <div className="admin__section">
+          <div className="admin__form">
+            <div className="admin__form-title">Add New Game</div>
+            <div className="admin__field">
+              <label className="admin__label">Title</label>
+              <input
+                className="admin__input"
+                placeholder="e.g. Dark Souls III"
+                value={newGame.title}
+                onChange={e => setNewGame({ ...newGame, title: e.target.value })}
+              />
+            </div>
+            <div className="admin__field">
+              <label className="admin__label">Steam App ID</label>
+              <input
+                className="admin__input"
+                placeholder="e.g. 374320"
+                value={newGame.steam_app_id}
+                onChange={e => setNewGame({ ...newGame, steam_app_id: e.target.value })}
+              />
+              <div style={{ fontSize: '11px', color: '#9a9080', marginTop: '0.3rem' }}>
+                Find it at: store.steampowered.com/app/<strong>374320</strong>/
+              </div>
+            </div>
+            {gameMessage && <div className={"admin__message" + (gameMessage.includes('Error') ? ' admin__message--error' : ' admin__message--success')}>{gameMessage}</div>}
+            <button className="admin__btn" onClick={handleAddGame} disabled={saving}>
+              {saving ? 'Saving...' : 'Add Game'}
+            </button>
+          </div>
+
           <div className="admin__list">
-            <div className="admin__list-title">All Games</div>
+            <div className="admin__list-title">All Games — {games.length}</div>
             {games.map(g => (
               <div key={g.id} className="admin__item">
                 <div className="admin__item-info">
