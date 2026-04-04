@@ -1,41 +1,41 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import './Admin.css';
 import { SteamUser } from './SteamCallback';
-import { supabase, getUserBySteamId } from '../../services/supabase';
-import { adminReviewSubmission, reviewJudgeApplication, appointJudgeBySteamId, banUser, unbanUser, removeJudge } from '../../services/submissionService';
-import { sendInvite, rejectWaitlistEntry } from '../../services/supabase';
-import { CHALLENGE_TIERS } from '../../constants/ranks';
+import { supabase, getUserBySteamId, sendInvite, rejectWaitlistEntry } from '../../services/supabase';
+import {
+  adminReviewSubmission,
+  reviewJudgeApplication,
+  appointJudgeBySteamId,
+  banUser,
+  unbanUser,
+  removeJudge,
+} from '../../services/submissionService';
 import { useToast } from '../../hooks/useToast';
 import { Toast } from '../ui/Toast';
 import type { Game, Challenge, Submission, JudgeApplication, WaitlistEntry, DBUser } from '../../types';
+import SubmissionsTab from '../admin/SubmissionsTab';
+import ChallengesTab from '../admin/ChallengesTab';
+import GamesTab from '../admin/GamesTab';
+import WaitlistTab from '../admin/WaitlistTab';
+import UsersTab from '../admin/UsersTab';
+import JudgesTab from '../admin/JudgesTab';
+
+type TabId = 'submissions' | 'challenges' | 'games' | 'judges' | 'waitlist' | 'users';
 
 interface AdminProps { user: SteamUser | null; }
 
 const Admin: React.FC<AdminProps> = ({ user }) => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<TabId>('submissions');
   const [games, setGames] = useState<Game[]>([]);
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const [activeTab, setActiveTab] = useState<'submissions' | 'challenges' | 'games' | 'judges' | 'waitlist' | 'users'>('submissions');
   const [judgeApps, setJudgeApps] = useState<JudgeApplication[]>([]);
   const [waitlist, setWaitlist] = useState<WaitlistEntry[]>([]);
-  const [rejectingId, setRejectingId] = useState<string | null>(null);
-  const [rejectReason, setRejectReason] = useState('');
-  const [approvingId, setApprovingId] = useState<string | null>(null);
-  const [newChallenge, setNewChallenge] = useState({ title: '', description: '', tier: 'Platinum', game_id: '' });
-  const [editingChallenge, setEditingChallenge] = useState<{ id: number; title: string; description: string; tier: string; game_id: string } | null>(null);
-  const [newGame, setNewGame] = useState({ title: '', steam_app_id: '' });
-  const [gameMessage, setGameMessage] = useState('');
-  const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState('');
-  const [adminNote, setAdminNote] = useState<Record<string, string>>({});
-  const [manualSteamId, setManualSteamId] = useState('');
   const [users, setUsers] = useState<DBUser[]>([]);
   const [judges, setJudges] = useState<DBUser[]>([]);
-  const [banningUserId, setBanningUserId] = useState<string | null>(null);
-  const [banReason, setBanReason] = useState('');
-  const [banDuration, setBanDuration] = useState<'week' | 'month' | 'year' | 'permanent'>('week');
+  const [approvingId, setApprovingId] = useState<string | null>(null);
   const { toast, showToast } = useToast();
 
   const loadData = useCallback(async () => {
@@ -45,92 +45,143 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
     if (!dbUser?.is_admin) { setIsAdmin(false); setLoading(false); return; }
     setIsAdmin(true);
 
-    const { data: gamesData } = await supabase.from('games').select('*').order('title');
-    setGames((gamesData as Game[]) || []);
+    const [gamesRes, challengesRes, subsRes, judgeAppsRes, waitlistRes, usersRes] = await Promise.all([
+      supabase.from('games').select('*').order('title'),
+      supabase.from('challenges').select('*, game:games(id, title)').order('created_at', { ascending: false }),
+      supabase.from('submissions').select('*, user:users(username, steam_id), challenge:challenges(title, tier)').order('submitted_at', { ascending: false }),
+      supabase.from('judge_applications').select('*, user:users(username, steam_id), game:games(title)').order('applied_at', { ascending: false }),
+      supabase.rpc('get_waitlist_admin', { p_steam_id: user.steamId }),
+      supabase.from('users').select('id, username, steam_id, is_admin, is_judge, is_test, is_banned, ban_reason, banned_until, created_at').order('created_at', { ascending: false }),
+    ]);
 
-    const { data: challengesData } = await supabase
-      .from('challenges').select('*, game:games(id, title)').order('created_at', { ascending: false });
-    setChallenges((challengesData as Challenge[]) || []);
-
-    const { data: subsData } = await supabase
-      .from('submissions')
-      .select('*, user:users(username, steam_id), challenge:challenges(title, tier)')
-      .order('submitted_at', { ascending: false });
-    setSubmissions((subsData as Submission[]) || []);
-
-    const { data: judgeAppsData } = await supabase
-      .from('judge_applications')
-      .select('*, user:users(username, steam_id), game:games(title)')
-      .order('applied_at', { ascending: false });
-    setJudgeApps((judgeAppsData as JudgeApplication[]) || []);
-
-    const { data: waitlistData } = await supabase
-      .rpc('get_waitlist_admin', { p_steam_id: user?.steamId ?? '' });
-    setWaitlist((waitlistData as WaitlistEntry[]) || []);
-
-    const { data: usersData } = await supabase
-      .from('users')
-      .select('id, username, steam_id, is_admin, is_judge, is_test, is_banned, ban_reason, banned_until, created_at')
-      .order('created_at', { ascending: false });
-    const allUsers = (usersData as DBUser[]) || [];
+    setGames((gamesRes.data as Game[]) || []);
+    setChallenges((challengesRes.data as Challenge[]) || []);
+    setSubmissions((subsRes.data as Submission[]) || []);
+    setJudgeApps((judgeAppsRes.data as JudgeApplication[]) || []);
+    setWaitlist((waitlistRes.data as WaitlistEntry[]) || []);
+    const allUsers = (usersRes.data as DBUser[]) || [];
     setUsers(allUsers);
     setJudges(allUsers.filter(u => u.is_judge).sort((a, b) => a.username.localeCompare(b.username)));
-
     setLoading(false);
   }, [user]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
-  const handleAddChallenge = async () => {
-    if (!newChallenge.title || !newChallenge.description || !newChallenge.game_id) {
-      setMessage('Please fill all fields'); return;
-    }
-    setSaving(true);
+  // ── Submissions ──────────────────────────────────────────────────────────
+  const handleSubmissionAction = async (id: string, action: 'approved' | 'rejected', note: string) => {
+    const result = await adminReviewSubmission(id, action, note);
+    if (!result.success) { showToast(`Error: ${result.error}`, 'error'); return; }
+    setSubmissions(prev => prev.map(s => s.id === id ? { ...s, status: action, admin_note: note } : s));
+  };
+
+  // ── Challenges ───────────────────────────────────────────────────────────
+  const handleAddChallenge = async (data: { title: string; description: string; tier: string; game_id: string }): Promise<boolean> => {
     const { error } = await supabase.from('challenges').insert({
-      title: newChallenge.title,
-      description: newChallenge.description,
-      tier: newChallenge.tier,
-      game_id: parseInt(newChallenge.game_id),
+      title: data.title,
+      description: data.description,
+      tier: data.tier,
+      game_id: parseInt(data.game_id),
       created_by: null,
       attempts: 0,
       type: 'community',
     });
-    if (error) { setMessage(`Error: ${error.message}`); }
-    else {
-      setMessage('Challenge added!');
-      setNewChallenge({ title: '', description: '', tier: 'Platinum', game_id: '' });
-      await loadData();
-    }
-    setSaving(false);
-    setTimeout(() => setMessage(''), 3000);
+    if (error) { showToast(`Error: ${error.message}`, 'error'); return false; }
+    showToast('Challenge added!', 'success');
+    await loadData();
+    return true;
   };
 
-  const handleSubmissionAction = async (submissionId: string, action: 'approved' | 'rejected') => {
-    const result = await adminReviewSubmission(submissionId, action, adminNote[submissionId] ?? '');
-    if (!result.success) {
-      showToast(`Error: ${result.error}`, 'error');
-      return;
-    }
-    setSubmissions(prev =>
-      prev.map(s => s.id === submissionId
-        ? { ...s, status: action, admin_note: adminNote[submissionId] ?? '' }
-        : s
-      )
-    );
+  const handleEditChallenge = async (id: number, data: { title: string; description: string; tier: string; game_id: string }): Promise<boolean> => {
+    const { error } = await supabase.from('challenges').update({
+      title: data.title,
+      description: data.description,
+      tier: data.tier,
+      game_id: parseInt(data.game_id),
+    }).eq('id', id);
+    if (error) { showToast(`Error: ${error.message}`, 'error'); return false; }
+    showToast('Challenge updated!', 'success');
+    await loadData();
+    return true;
   };
 
+  const handleDeleteChallenge = async (id: number) => {
+    if (!window.confirm('Delete this challenge?')) return;
+    const { error } = await supabase.from('challenges').delete().eq('id', id);
+    if (error) { showToast(`Error: ${error.message}`, 'error'); return; }
+    setChallenges(prev => prev.filter(c => c.id !== id));
+  };
+
+  // ── Games ────────────────────────────────────────────────────────────────
+  const handleAddGame = async (data: { title: string; steam_app_id: string }): Promise<boolean> => {
+    const { data: inserted, error } = await supabase.from('games').insert(data).select().single();
+    if (error) { showToast(`Error: ${error.message}`, 'error'); return false; }
+    setGames(prev => [...prev, inserted as Game].sort((a, b) => a.title.localeCompare(b.title)));
+    showToast('Game added!', 'success');
+    return true;
+  };
+
+  // ── Waitlist ─────────────────────────────────────────────────────────────
+  const handleApproveWaitlist = async (entry: WaitlistEntry) => {
+    setApprovingId(entry.id);
+    const result = await sendInvite(entry.id, entry.email);
+    setApprovingId(null);
+    if (result.success) {
+      showToast(`Invite sent to ${entry.email}`, 'success');
+      setWaitlist(prev => prev.map(w => w.id === entry.id ? { ...w, status: 'approved' } : w));
+    } else {
+      showToast(result.error ?? 'Failed to send invite', 'error');
+    }
+  };
+
+  const handleRejectWaitlist = async (id: string, reason: string): Promise<boolean> => {
+    const ok = await rejectWaitlistEntry(id, reason);
+    if (ok) {
+      setWaitlist(prev => prev.map(w => w.id === id ? { ...w, status: 'rejected', rejection_reason: reason } : w));
+    } else {
+      showToast('Failed to reject entry', 'error');
+    }
+    return ok;
+  };
+
+  // ── Users / Bans ─────────────────────────────────────────────────────────
+  const handleBanUser = async (userId: string, reason: string, expiry: string | null): Promise<boolean> => {
+    const result = await banUser(userId, reason, expiry);
+    if (result.success) {
+      showToast('User banned', 'success');
+      const update = { is_banned: true, ban_reason: reason, banned_until: expiry };
+      setUsers(prev => prev.map(u => u.id === userId ? { ...u, ...update } : u));
+      setJudges(prev => prev.map(j => j.id === userId ? { ...j, ...update } : j));
+    } else {
+      showToast(result.error ?? 'Failed to ban user', 'error');
+    }
+    return result.success;
+  };
+
+  const handleUnbanUser = async (userId: string): Promise<boolean> => {
+    const result = await unbanUser(userId);
+    if (result.success) {
+      showToast('User unbanned', 'success');
+      const update = { is_banned: false, ban_reason: null, banned_until: null };
+      setUsers(prev => prev.map(u => u.id === userId ? { ...u, ...update } : u));
+      setJudges(prev => prev.map(j => j.id === userId ? { ...j, ...update } : j));
+    } else {
+      showToast(result.error ?? 'Failed to unban user', 'error');
+    }
+    return result.success;
+  };
+
+  // ── Judges ───────────────────────────────────────────────────────────────
   const handleJudgeAppReview = async (appId: string, userId: string, action: 'approved' | 'rejected') => {
     const result = await reviewJudgeApplication(appId, userId, action);
     if (!result.success) { showToast(`Error: ${result.error}`, 'error'); return; }
     setJudgeApps(prev => prev.map(a => a.id === appId ? { ...a, status: action } : a));
+    if (action === 'approved') await loadData(); // refresh judges list
   };
 
-  const handleAppointJudge = async () => {
-    if (!manualSteamId.trim()) return;
-    const result = await appointJudgeBySteamId(manualSteamId.trim());
+  const handleAppointJudge = async (steamId: string) => {
+    const result = await appointJudgeBySteamId(steamId);
     if (result.success) {
       showToast(`${result.username} is now a Judge!`, 'success');
-      setManualSteamId('');
       await loadData();
     } else {
       showToast(result.error ?? 'Unknown error', 'error');
@@ -149,129 +200,22 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
     }
   };
 
-  const handleDeleteChallenge = async (id: number) => {
-    if (!window.confirm('Delete this challenge?')) return;
-    const { error } = await supabase.from('challenges').delete().eq('id', id);
-    if (error) { showToast(`Error: ${error.message}`, 'error'); return; }
-    setChallenges(prev => prev.filter(c => c.id !== id));
-  };
-
-  const handleAddGame = async () => {
-    if (!newGame.title.trim() || !newGame.steam_app_id.trim()) {
-      setGameMessage('Please fill all fields'); return;
-    }
-    setSaving(true);
-    const { data, error } = await supabase.from('games').insert({
-      title: newGame.title.trim(),
-      steam_app_id: newGame.steam_app_id.trim(),
-    }).select().single();
-    if (error) {
-      setGameMessage(`Error: ${error.message}`);
-    } else {
-      setGames(prev => [...prev, data as Game].sort((a, b) => a.title.localeCompare(b.title)));
-      setNewGame({ title: '', steam_app_id: '' });
-      setGameMessage('Game added!');
-      setTimeout(() => setGameMessage(''), 3000);
-    }
-    setSaving(false);
-  };
-
-  const handleSaveEdit = async () => {
-    if (!editingChallenge) return;
-    if (!editingChallenge.title || !editingChallenge.description || !editingChallenge.game_id) {
-      setMessage('Please fill all fields'); return;
-    }
-    setSaving(true);
-    const { error } = await supabase.from('challenges').update({
-      title: editingChallenge.title,
-      description: editingChallenge.description,
-      tier: editingChallenge.tier,
-      game_id: parseInt(editingChallenge.game_id),
-    }).eq('id', editingChallenge.id);
-    if (error) {
-      setMessage(`Error: ${error.message}`);
-    } else {
-      setChallenges(prev => prev.map(c => c.id === editingChallenge.id
-        ? { ...c, title: editingChallenge.title, description: editingChallenge.description, tier: editingChallenge.tier, game_id: parseInt(editingChallenge.game_id) }
-        : c
-      ));
-      setEditingChallenge(null);
-      setMessage('Challenge updated!');
-      setTimeout(() => setMessage(''), 3000);
-    }
-    setSaving(false);
-  };
-
-  const handleApproveWaitlist = async (entry: WaitlistEntry) => {
-    setApprovingId(entry.id);
-    const result = await sendInvite(entry.id, entry.email);
-    setApprovingId(null);
-    if (result.success) {
-      showToast(`Invite sent to ${entry.email}`, 'success');
-      setWaitlist(prev => prev.map(w => w.id === entry.id ? { ...w, status: 'approved' } : w));
-    } else {
-      showToast(result.error ?? 'Failed to send invite', 'error');
-    }
-  };
-
-  const handleRejectWaitlist = async (id: string) => {
-    if (!rejectReason) return;
-    const ok = await rejectWaitlistEntry(id, rejectReason);
-    if (ok) {
-      setWaitlist(prev => prev.map(w => w.id === id ? { ...w, status: 'rejected', rejection_reason: rejectReason } : w));
-      setRejectingId(null);
-      setRejectReason('');
-    } else {
-      showToast('Failed to reject entry', 'error');
-    }
-  };
-
-  const getBanExpiry = (): string | null => {
-    const now = new Date();
-    if (banDuration === 'permanent') return null;
-    if (banDuration === 'week') now.setDate(now.getDate() + 7);
-    if (banDuration === 'month') now.setMonth(now.getMonth() + 1);
-    if (banDuration === 'year') now.setFullYear(now.getFullYear() + 1);
-    return now.toISOString();
-  };
-
-  const handleBanUser = async (userId: string) => {
-    if (!banReason.trim()) { showToast('Reason is required', 'error'); return; }
-    const expiry = getBanExpiry();
-    const reason = banReason.trim();
-    const result = await banUser(userId, reason, expiry);
-    if (result.success) {
-      showToast('User banned', 'success');
-      setBanningUserId(null);
-      setBanReason('');
-      setUsers(prev => prev.map(u => u.id === userId
-        ? { ...u, is_banned: true, ban_reason: reason, banned_until: expiry }
-        : u
-      ));
-    } else {
-      showToast(result.error ?? 'Failed to ban user', 'error');
-    }
-  };
-
-  const handleUnbanUser = async (userId: string) => {
-    const result = await unbanUser(userId);
-    if (result.success) {
-      showToast('User unbanned', 'success');
-      setUsers(prev => prev.map(u => u.id === userId
-        ? { ...u, is_banned: false, ban_reason: null, banned_until: null }
-        : u
-      ));
-    } else {
-      showToast(result.error ?? 'Failed to unban user', 'error');
-    }
-  };
-
+  // ── Render ────────────────────────────────────────────────────────────────
   const pendingSubmissions = submissions.filter(s => s.status === 'pending').length;
   const pendingJudgeApps = judgeApps.filter(j => j.status === 'pending').length;
   const pendingWaitlist = waitlist.filter(w => w.status === 'pending').length;
 
   if (loading) return <div className="admin__loading">Loading...</div>;
   if (!isAdmin) return <div className="admin__denied">Access denied.</div>;
+
+  const tabs: { id: TabId; label: React.ReactNode }[] = [
+    { id: 'submissions', label: <>Submissions {pendingSubmissions > 0 && <span className="admin__badge">{pendingSubmissions}</span>}</> },
+    { id: 'challenges',  label: `Challenges (${challenges.length})` },
+    { id: 'games',       label: `Games (${games.length})` },
+    { id: 'judges',      label: <>Judges {pendingJudgeApps > 0 && <span className="admin__badge">{pendingJudgeApps}</span>}</> },
+    { id: 'waitlist',    label: <>Waitlist {pendingWaitlist > 0 && <span className="admin__badge">{pendingWaitlist}</span>}</> },
+    { id: 'users',       label: `Users (${users.length})` },
+  ];
 
   return (
     <div className="admin">
@@ -283,415 +227,34 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
       </div>
 
       <div className="admin__tabs">
-        <button className={"admin__tab" + (activeTab === 'submissions' ? ' admin__tab--active' : '')} onClick={() => setActiveTab('submissions')}>
-          Submissions {pendingSubmissions > 0 && <span className="admin__badge">{pendingSubmissions}</span>}
-        </button>
-        <button className={"admin__tab" + (activeTab === 'challenges' ? ' admin__tab--active' : '')} onClick={() => setActiveTab('challenges')}>
-          Challenges ({challenges.length})
-        </button>
-        <button className={"admin__tab" + (activeTab === 'games' ? ' admin__tab--active' : '')} onClick={() => setActiveTab('games')}>
-          Games ({games.length})
-        </button>
-        <button className={"admin__tab" + (activeTab === 'judges' ? ' admin__tab--active' : '')} onClick={() => setActiveTab('judges')}>
-          Judges {pendingJudgeApps > 0 && <span className="admin__badge">{pendingJudgeApps}</span>}
-        </button>
-        <button className={"admin__tab" + (activeTab === 'waitlist' ? ' admin__tab--active' : '')} onClick={() => setActiveTab('waitlist')}>
-          Waitlist {pendingWaitlist > 0 && <span className="admin__badge">{pendingWaitlist}</span>}
-        </button>
-        <button className={"admin__tab" + (activeTab === 'users' ? ' admin__tab--active' : '')} onClick={() => setActiveTab('users')}>
-          Users ({users.length})
-        </button>
+        {tabs.map(t => (
+          <button
+            key={t.id}
+            className={"admin__tab" + (activeTab === t.id ? ' admin__tab--active' : '')}
+            onClick={() => setActiveTab(t.id)}
+          >
+            {t.label}
+          </button>
+        ))}
       </div>
 
       {activeTab === 'submissions' && (
-        <div className="admin__section">
-          <div className="admin__list">
-            <div className="admin__list-title">
-              All Submissions — {submissions.length} total · {pendingSubmissions} pending
-            </div>
-            {submissions.length === 0 ? (
-              <div className="admin__empty">No submissions yet.</div>
-            ) : (
-              submissions.map(s => (
-                <div key={s.id} className={"admin__item admin__item--submission" + (s.status === 'pending' ? ' admin__item--pending' : '')}>
-                  <div className="admin__item-info">
-                    <div className="admin__item-title">
-                      {s.user?.username || 'Unknown'} — {s.challenge?.title || 'Unknown challenge'}
-                    </div>
-                    <div className="admin__item-meta">
-                      {s.challenge?.tier} · {new Date(s.submitted_at).toLocaleDateString()}
-                      · Status: <span style={{ color: s.status === 'approved' ? '#6ab87a' : s.status === 'rejected' ? '#e45a3a' : '#e8a830' }}>{s.status}</span>
-                    </div>
-                    {s.comment && <div className="admin__item-desc">Comment: {s.comment}</div>}
-                    <a href={s.video_url} target="_blank" rel="noopener noreferrer" className="admin__video-link">
-                      Watch Video →
-                    </a>
-                    {s.status === 'pending' && (
-                      <div className="admin__review-actions">
-                        <input
-                          className="admin__note-input"
-                          placeholder="Admin note (optional)..."
-                          value={adminNote[s.id] || ''}
-                          onChange={e => setAdminNote({ ...adminNote, [s.id]: e.target.value })}
-                        />
-                        <div className="admin__action-btns">
-                          <button className="admin__approve-btn" onClick={() => handleSubmissionAction(s.id, 'approved')}>
-                            ✓ Approve
-                          </button>
-                          <button className="admin__reject-btn" onClick={() => handleSubmissionAction(s.id, 'rejected')}>
-                            ✗ Reject
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                    {s.admin_note && <div className="admin__item-note">Note: {s.admin_note}</div>}
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
+        <SubmissionsTab submissions={submissions} onAction={handleSubmissionAction} />
       )}
-
       {activeTab === 'challenges' && (
-        <div className="admin__section">
-          <div className="admin__form">
-            <div className="admin__form-title">Add New Challenge</div>
-            <div className="admin__field">
-              <label className="admin__label">Game</label>
-              <select className="admin__select" value={newChallenge.game_id} onChange={e => setNewChallenge({ ...newChallenge, game_id: e.target.value })}>
-                <option value="">Select game...</option>
-                {games.map(g => <option key={g.id} value={g.id}>{g.title}</option>)}
-              </select>
-            </div>
-            <div className="admin__field">
-              <label className="admin__label">Tier</label>
-              <select className="admin__select" value={newChallenge.tier} onChange={e => setNewChallenge({ ...newChallenge, tier: e.target.value })}>
-                {CHALLENGE_TIERS.map(t => <option key={t} value={t}>{t}</option>)}
-              </select>
-            </div>
-            <div className="admin__field">
-              <label className="admin__label">Title</label>
-              <input className="admin__input" placeholder="Challenge name" value={newChallenge.title} onChange={e => setNewChallenge({ ...newChallenge, title: e.target.value })} />
-            </div>
-            <div className="admin__field">
-              <label className="admin__label">Description</label>
-              <textarea className="admin__textarea" placeholder="Challenge conditions..." value={newChallenge.description} onChange={e => setNewChallenge({ ...newChallenge, description: e.target.value })} rows={3} />
-            </div>
-            {message && <div className={"admin__message" + (message.includes('Error') ? ' admin__message--error' : ' admin__message--success')}>{message}</div>}
-            <button className="admin__btn" onClick={handleAddChallenge} disabled={saving}>{saving ? 'Saving...' : 'Add Challenge'}</button>
-          </div>
-
-          {editingChallenge && (
-            <div className="admin__form" style={{ marginTop: '1.5rem', borderColor: '#c9922a' }}>
-              <div className="admin__form-title">Edit Challenge</div>
-              <div className="admin__field">
-                <label className="admin__label">Game</label>
-                <select className="admin__select" value={editingChallenge.game_id} onChange={e => setEditingChallenge({ ...editingChallenge, game_id: e.target.value })}>
-                  {games.map(g => <option key={g.id} value={g.id}>{g.title}</option>)}
-                </select>
-              </div>
-              <div className="admin__field">
-                <label className="admin__label">Tier</label>
-                <select className="admin__select" value={editingChallenge.tier} onChange={e => setEditingChallenge({ ...editingChallenge, tier: e.target.value })}>
-                  {CHALLENGE_TIERS.map(t => <option key={t} value={t}>{t}</option>)}
-                </select>
-              </div>
-              <div className="admin__field">
-                <label className="admin__label">Title</label>
-                <input className="admin__input" value={editingChallenge.title} onChange={e => setEditingChallenge({ ...editingChallenge, title: e.target.value })} />
-              </div>
-              <div className="admin__field">
-                <label className="admin__label">Description</label>
-                <textarea className="admin__textarea" value={editingChallenge.description} onChange={e => setEditingChallenge({ ...editingChallenge, description: e.target.value })} rows={3} />
-              </div>
-              {message && <div className={"admin__message" + (message.includes('Error') ? ' admin__message--error' : ' admin__message--success')}>{message}</div>}
-              <div className="admin__action-btns">
-                <button className="admin__approve-btn" onClick={handleSaveEdit} disabled={saving}>{saving ? 'Saving...' : '✓ Save Changes'}</button>
-                <button className="admin__delete-btn" onClick={() => { setEditingChallenge(null); setMessage(''); }}>Cancel</button>
-              </div>
-            </div>
-          )}
-
-          <div className="admin__list">
-            <div className="admin__list-title">All Challenges</div>
-            {challenges.map(c => (
-              <div key={c.id} className={"admin__item" + (editingChallenge?.id === c.id ? ' admin__item--pending' : '')}>
-                <div className="admin__item-info">
-                  <div className="admin__item-title">{c.title}</div>
-                  <div className="admin__item-meta">{c.game?.title} · {c.tier}</div>
-                  <div className="admin__item-desc">{c.description}</div>
-                </div>
-                <div className="admin__action-btns" style={{ flexDirection: 'column', gap: '0.4rem' }}>
-                  <button className="admin__approve-btn" onClick={() => setEditingChallenge({ id: c.id, title: c.title, description: c.description, tier: c.tier, game_id: String(c.game_id) })}>Edit</button>
-                  <button className="admin__delete-btn" onClick={() => handleDeleteChallenge(c.id)}>Delete</button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <ChallengesTab challenges={challenges} games={games} onAdd={handleAddChallenge} onEdit={handleEditChallenge} onDelete={handleDeleteChallenge} />
       )}
-
       {activeTab === 'games' && (
-        <div className="admin__section">
-          <div className="admin__form">
-            <div className="admin__form-title">Add New Game</div>
-            <div className="admin__field">
-              <label className="admin__label">Title</label>
-              <input
-                className="admin__input"
-                placeholder="e.g. Dark Souls III"
-                value={newGame.title}
-                onChange={e => setNewGame({ ...newGame, title: e.target.value })}
-              />
-            </div>
-            <div className="admin__field">
-              <label className="admin__label">Steam App ID</label>
-              <input
-                className="admin__input"
-                placeholder="e.g. 374320"
-                value={newGame.steam_app_id}
-                onChange={e => setNewGame({ ...newGame, steam_app_id: e.target.value })}
-              />
-              <div style={{ fontSize: '11px', color: '#9a9080', marginTop: '0.3rem' }}>
-                Find it at: store.steampowered.com/app/<strong>374320</strong>/
-              </div>
-            </div>
-            {gameMessage && <div className={"admin__message" + (gameMessage.includes('Error') ? ' admin__message--error' : ' admin__message--success')}>{gameMessage}</div>}
-            <button className="admin__btn" onClick={handleAddGame} disabled={saving}>
-              {saving ? 'Saving...' : 'Add Game'}
-            </button>
-          </div>
-
-          <div className="admin__list">
-            <div className="admin__list-title">All Games — {games.length}</div>
-            {games.map(g => (
-              <div key={g.id} className="admin__item">
-                <div className="admin__item-info">
-                  <div className="admin__item-title">{g.title}</div>
-                  <div className="admin__item-meta">Steam App ID: {g.steam_app_id}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <GamesTab games={games} onAdd={handleAddGame} />
       )}
-
       {activeTab === 'waitlist' && (
-        <div className="admin__section">
-          <div className="admin__list">
-            <div className="admin__list-title">
-              Beta Waitlist — {waitlist.length} total · {pendingWaitlist} pending
-            </div>
-            {waitlist.length === 0 ? (
-              <div className="admin__empty">No waitlist entries yet.</div>
-            ) : (
-              waitlist.map(entry => (
-                <div key={entry.id} className={"admin__item admin__item--submission" + (entry.status === 'pending' ? ' admin__item--pending' : '')}>
-                  <div className="admin__item-info">
-                    <div className="admin__item-title">{entry.email}</div>
-                    <div className="admin__item-meta">
-                      {new Date(entry.applied_at).toLocaleDateString()}
-                      · Status: <span style={{ color: entry.status === 'approved' ? '#6ab87a' : entry.status === 'rejected' ? '#e45a3a' : '#e8a830' }}>{entry.status}</span>
-                      {entry.rejection_reason && <span style={{ color: '#9a9080' }}> · {entry.rejection_reason}</span>}
-                    </div>
-                    {entry.reason && (
-                      <div className="admin__item-desc">"{entry.reason}"</div>
-                    )}
-                    {entry.status === 'pending' && rejectingId !== entry.id && (
-                      <div className="admin__action-btns" style={{ marginTop: '0.8rem' }}>
-                        <button
-                          className="admin__approve-btn"
-                          onClick={() => handleApproveWaitlist(entry)}
-                          disabled={approvingId === entry.id}
-                        >
-                          {approvingId === entry.id ? 'Sending...' : '✉ Send Invite'}
-                        </button>
-                        <button className="admin__reject-btn" onClick={() => { setRejectingId(entry.id); setRejectReason(''); }}>
-                          ✗ Reject
-                        </button>
-                      </div>
-                    )}
-                    {entry.status === 'pending' && rejectingId === entry.id && (
-                      <div className="admin__review-actions">
-                        <select
-                          className="admin__select"
-                          value={rejectReason}
-                          onChange={e => setRejectReason(e.target.value)}
-                        >
-                          <option value="">Select reason...</option>
-                          <option value="You don't fit our current tester profile">You don't fit our current tester profile</option>
-                          <option value="Too little information provided">Too little information provided</option>
-                          <option value="The beta is currently full — we'll keep your application on file">The beta is currently full — we'll keep your application on file</option>
-                        </select>
-                        <div className="admin__action-btns">
-                          <button className="admin__reject-btn" onClick={() => handleRejectWaitlist(entry.id)} disabled={!rejectReason}>
-                            Confirm Reject
-                          </button>
-                          <button className="admin__note-input" style={{ cursor: 'pointer', background: 'none', border: '1px solid #5a5048', color: '#9a9080', padding: '0.4rem 0.8rem' }} onClick={() => setRejectingId(null)}>
-                            Cancel
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
+        <WaitlistTab waitlist={waitlist} approvingId={approvingId} onApprove={handleApproveWaitlist} onReject={handleRejectWaitlist} />
       )}
-
       {activeTab === 'users' && (
-        <div className="admin__section">
-          <div className="admin__list">
-            <div className="admin__list-title">
-              All Users — {users.length} total · {users.filter(u => u.is_banned).length} banned
-            </div>
-            {users.length === 0 ? (
-              <div className="admin__empty">No users yet.</div>
-            ) : (
-              users.map(u => {
-                const isBanActive = u.is_banned && (u.banned_until === null || new Date(u.banned_until) > new Date());
-                return (
-                  <div key={u.id} className={"admin__item" + (isBanActive ? ' admin__item--pending' : '')}>
-                    <div className="admin__item-info">
-                      <div className="admin__item-title">
-                        {u.username}
-                        {u.is_admin && <span style={{ color: '#c9922a', marginLeft: '0.5rem' }}>[Admin]</span>}
-                        {u.is_judge && <span style={{ color: '#6ab87a', marginLeft: '0.5rem' }}>[Judge]</span>}
-                        {isBanActive && <span style={{ color: '#e45a3a', marginLeft: '0.5rem' }}>[Banned]</span>}
-                      </div>
-                      <div className="admin__item-meta">
-                        Steam: {u.steam_id} · Joined: {new Date(u.created_at).toLocaleDateString()}
-                      </div>
-                      {isBanActive && (
-                        <div className="admin__item-desc" style={{ color: '#e45a3a' }}>
-                          Reason: {u.ban_reason || '—'} · Until: {u.banned_until ? new Date(u.banned_until).toLocaleDateString() : 'Permanent'}
-                        </div>
-                      )}
-                      {banningUserId === u.id && (
-                        <div className="admin__review-actions">
-                          <input
-                            className="admin__note-input"
-                            placeholder="Ban reason (required)..."
-                            value={banReason}
-                            onChange={e => setBanReason(e.target.value)}
-                          />
-                          <select
-                            className="admin__select"
-                            value={banDuration}
-                            onChange={e => setBanDuration(e.target.value as 'week' | 'month' | 'year' | 'permanent')}
-                          >
-                            <option value="week">1 Week</option>
-                            <option value="month">1 Month</option>
-                            <option value="year">1 Year</option>
-                            <option value="permanent">Permanent</option>
-                          </select>
-                          <div className="admin__action-btns">
-                            <button className="admin__reject-btn" onClick={() => handleBanUser(u.id)}>
-                              ⛔ Confirm Ban
-                            </button>
-                            <button
-                              style={{ cursor: 'pointer', background: 'none', border: '1px solid #5a5048', color: '#9a9080', padding: '0.4rem 0.8rem' }}
-                              onClick={() => { setBanningUserId(null); setBanReason(''); }}
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    {isBanActive ? (
-                      <button className="admin__approve-btn" onClick={() => handleUnbanUser(u.id)}>
-                        ✓ Unban
-                      </button>
-                    ) : (
-                      !u.is_admin && banningUserId !== u.id && (
-                        <button className="admin__reject-btn" onClick={() => { setBanningUserId(u.id); setBanReason(''); }}>
-                          Ban
-                        </button>
-                      )
-                    )}
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </div>
+        <UsersTab users={users} onBan={handleBanUser} onUnban={handleUnbanUser} />
       )}
-
       {activeTab === 'judges' && (
-        <div className="admin__section">
-          <div className="admin__list">
-            <div className="admin__list-title">Judge Applications — {judgeApps.length} total</div>
-            {judgeApps.length === 0 ? (
-              <div className="admin__empty">No judge applications yet.</div>
-            ) : (
-              judgeApps.map(app => (
-                <div key={app.id} className={"admin__item admin__item--submission" + (app.status === 'pending' ? ' admin__item--pending' : '')}>
-                  <div className="admin__item-info">
-                    <div className="admin__item-title">
-                      {app.user?.username || 'Unknown'} — {app.game?.title || 'Unknown game'}
-                    </div>
-                    <div className="admin__item-meta">
-                      Applied: {new Date(app.applied_at).toLocaleDateString()}
-                      · Status: <span style={{ color: app.status === 'approved' ? '#6ab87a' : app.status === 'rejected' ? '#e45a3a' : '#e8a830' }}>{app.status}</span>
-                    </div>
-                    {app.motivation && <div className="admin__item-desc">"{app.motivation}"</div>}
-                    {app.status === 'pending' && (
-                      <div className="admin__action-btns" style={{ marginTop: '0.8rem' }}>
-                        <button className="admin__approve-btn" onClick={() => handleJudgeAppReview(app.id, app.user_id, 'approved')}>
-                          ✓ Approve
-                        </button>
-                        <button className="admin__reject-btn" onClick={() => handleJudgeAppReview(app.id, app.user_id, 'rejected')}>
-                          ✗ Reject
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-
-          <div className="admin__list" style={{ marginTop: '2rem' }}>
-            <div className="admin__list-title">Current Judges — {judges.length}</div>
-            <div className="admin__form" style={{ padding: '1rem' }}>
-              <div className="admin__form-title">Appoint Judge Manually</div>
-              <div className="admin__field">
-                <label className="admin__label">Steam ID</label>
-                <input
-                  className="admin__input"
-                  placeholder="Steam ID of the player..."
-                  value={manualSteamId}
-                  onChange={e => setManualSteamId(e.target.value)}
-                />
-              </div>
-              <button className="admin__btn" onClick={handleAppointJudge}>
-                Appoint as Judge
-              </button>
-            </div>
-            {judges.length === 0 ? (
-              <div className="admin__empty">No active judges.</div>
-            ) : (
-              judges.map(j => (
-                <div key={j.id} className="admin__item">
-                  <div className="admin__item-info">
-                    <div className="admin__item-title">{j.username}</div>
-                    <div className="admin__item-meta">Steam: {j.steam_id}</div>
-                  </div>
-                  <button
-                    className="admin__reject-btn"
-                    onClick={() => handleRemoveJudge(j.id, j.username)}
-                  >
-                    Remove
-                  </button>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
+        <JudgesTab judgeApps={judgeApps} judges={judges} onAppReview={handleJudgeAppReview} onAppoint={handleAppointJudge} onRemove={handleRemoveJudge} />
       )}
     </div>
   );

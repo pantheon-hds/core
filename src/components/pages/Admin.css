@@ -326,3 +326,47 @@
   flex-direction: column;
   align-items: flex-start;
 }
+
+/* ── Status badges ── */
+.admin__status--approved { color: var(--color-success, #6ab87a); }
+.admin__status--rejected { color: var(--color-error, #e45a3a); }
+.admin__status--pending  { color: var(--color-warning, #e8a830); }
+
+/* ── User role tags ── */
+.admin__role-tag {
+  margin-left: 0.5rem;
+  font-size: 0.85em;
+}
+.admin__role-tag--admin  { color: var(--color-gold, #c9922a); }
+.admin__role-tag--judge  { color: var(--color-success, #6ab87a); }
+.admin__role-tag--banned { color: var(--color-error, #e45a3a); }
+
+/* ── Item description variants ── */
+.admin__item-desc--error { color: var(--color-error, #e45a3a); }
+
+/* ── Layout helpers ── */
+.admin__list--spaced    { margin-top: 2rem; }
+.admin__form--compact   { padding: 1rem; }
+.admin__form--editing   { border-color: var(--color-gold, #c9922a); }
+.admin__action-btns--top    { margin-top: 0.8rem; }
+.admin__action-btns--column { flex-direction: column; gap: 0.4rem; }
+
+/* ── Hint text ── */
+.admin__hint {
+  font-size: 11px;
+  color: var(--color-text-dim, #9a9080);
+  margin-top: 0.3rem;
+}
+
+/* ── Cancel button ── */
+.admin__cancel-btn {
+  cursor: pointer;
+  background: none;
+  border: 1px solid var(--color-border-mid, #5a5048);
+  color: var(--color-text-dim, #9a9080);
+  padding: 0.4rem 0.8rem;
+  font-family: var(--font-display);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+}
+.admin__text--dim { color: var(--color-text-dim, #9a9080); }
