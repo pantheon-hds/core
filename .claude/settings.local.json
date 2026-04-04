@@ -17,7 +17,9 @@
       "Bash(ls -la c:/Users/user/Documents/GitHub/core/.env*)",
       "Bash(wc -l /c/Users/user/Documents/GitHub/core/src/**/*.tsx /c/Users/user/Documents/GitHub/core/src/**/*.ts)",
       "Bash(find /c/Users/user/Documents/GitHub/core/src -name \"*.css\" -exec wc -l {} +)",
-      "Bash(wc -l /c/Users/user/Documents/GitHub/core/src/components/pages/*.tsx)"
+      "Bash(wc -l /c/Users/user/Documents/GitHub/core/src/components/pages/*.tsx)",
+      "Bash(npm test:*)",
+      "Bash(npx vitest:*)"
     ]
   }
 }
