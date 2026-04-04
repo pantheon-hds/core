@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import './JudgePanel.css';
 import { SteamUser } from './SteamCallback';
 import { getUserBySteamId, supabase } from '../../services/supabase';
-import { recordJudgeVote } from '../../services/submissionService';
+import { recordJudgeVote, adminReviewSubmission } from '../../services/submissionService';
 import { useToast } from '../../hooks/useToast';
 import { Toast } from '../ui/Toast';
 import type { JudgeAssignment } from '../../types';
@@ -11,6 +11,7 @@ interface JudgePanelProps { user: SteamUser | null; }
 
 const JudgePanel: React.FC<JudgePanelProps> = ({ user }) => {
   const [isJudge, setIsJudge] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [assignments, setAssignments] = useState<JudgeAssignment[]>([]);
   const [timestamps, setTimestamps] = useState<Record<string, string>>({});
@@ -22,33 +23,59 @@ const JudgePanel: React.FC<JudgePanelProps> = ({ user }) => {
     setLoading(true);
 
     const dbUser = await getUserBySteamId(user.steamId);
-    if (!dbUser?.is_judge) {
+    if (!dbUser?.is_judge && !dbUser?.is_admin) {
       setIsJudge(false);
       setLoading(false);
       return;
     }
     setIsJudge(true);
+    setIsAdmin(!!dbUser?.is_admin);
 
-    const { data } = await supabase
-      .from('submission_judges')
-      .select(`
-        id,
-        assigned_at,
-        vote,
-        timestamp_note,
-        submission:submissions(
+    if (dbUser?.is_admin) {
+      // Admin sees all pending/in_review submissions
+      const { data } = await supabase
+        .from('submissions')
+        .select(`
           id,
           video_url,
           comment,
           submitted_at,
           user:users(username),
           challenge:challenges(title, tier, description)
-        )
-      `)
-      .eq('judge_user_id', dbUser.id)
-      .order('assigned_at', { ascending: false });
+        `)
+        .in('status', ['pending', 'in_review'])
+        .order('submitted_at', { ascending: true });
 
-    setAssignments((data as JudgeAssignment[]) || []);
+      const adminAssignments: JudgeAssignment[] = ((data as JudgeAssignment['submission'][]) || []).map(s => ({
+        id: (s as { id: string }).id,
+        assigned_at: (s as { submitted_at: string }).submitted_at,
+        vote: null,
+        timestamp_note: null,
+        submission: s as JudgeAssignment['submission'],
+      }));
+      setAssignments(adminAssignments);
+    } else {
+      const { data } = await supabase
+        .from('submission_judges')
+        .select(`
+          id,
+          assigned_at,
+          vote,
+          timestamp_note,
+          submission:submissions(
+            id,
+            video_url,
+            comment,
+            submitted_at,
+            user:users(username),
+            challenge:challenges(title, tier, description)
+          )
+        `)
+        .eq('judge_user_id', dbUser.id)
+        .order('assigned_at', { ascending: false });
+
+      setAssignments((data as JudgeAssignment[]) || []);
+    }
     setLoading(false);
   }, [user]);
 
@@ -65,16 +92,27 @@ const JudgePanel: React.FC<JudgePanelProps> = ({ user }) => {
 
     setVoting(prev => ({ ...prev, [assignmentId]: true }));
 
-    const result = await recordJudgeVote(assignmentId, submissionId, vote, timestamp);
-
-    if (!result.success) {
-      showToast(`Error: ${result.error}`, 'error');
+    if (isAdmin) {
+      // Admin directly approves/rejects — bypasses judge voting system
+      const result = await adminReviewSubmission(submissionId, vote, timestamp);
+      if (!result.success) {
+        showToast(`Error: ${result.error}`, 'error');
+      } else {
+        // Remove from list — submission is no longer pending
+        setAssignments(prev => prev.filter(a => a.id !== assignmentId));
+        showToast(`Submission ${vote} by founder.`, vote === 'approved' ? 'success' : 'info');
+      }
     } else {
-      setAssignments(prev =>
-        prev.map(a => a.id === assignmentId ? { ...a, vote, timestamp_note: timestamp } : a)
-      );
-      if (result.finalised) {
-        showToast(`Submission ${vote}! All judges have voted.`, vote === 'approved' ? 'success' : 'info');
+      const result = await recordJudgeVote(assignmentId, submissionId, vote, timestamp);
+      if (!result.success) {
+        showToast(`Error: ${result.error}`, 'error');
+      } else {
+        setAssignments(prev =>
+          prev.map(a => a.id === assignmentId ? { ...a, vote, timestamp_note: timestamp } : a)
+        );
+        if (result.finalised) {
+          showToast(`Submission ${vote}! All judges have voted.`, vote === 'approved' ? 'success' : 'info');
+        }
       }
     }
 
@@ -93,9 +131,11 @@ const JudgePanel: React.FC<JudgePanelProps> = ({ user }) => {
       <div className="judge__header">
         <div className="judge__title">⚖ Judge Panel</div>
         <div className="judge__subtitle">
-          {pendingCount > 0
-            ? `${pendingCount} submission${pendingCount !== 1 ? 's' : ''} awaiting your review`
-            : 'No pending submissions'}
+          {isAdmin
+            ? `Founder view — all submissions · ${pendingCount} pending`
+            : pendingCount > 0
+              ? `${pendingCount} submission${pendingCount !== 1 ? 's' : ''} awaiting your review`
+              : 'No pending submissions'}
         </div>
       </div>
 
