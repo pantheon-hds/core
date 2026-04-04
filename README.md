@@ -258,6 +258,8 @@ This project has no investors and no advertising. If you believe in the idea, yo
 
 **USDC (Solana):** `4xid9ZKsyw65Ru73foSC1P6Sa9ZTe9zeZYfEgNHh5bQk`
 
+**USDT (Ethereum ERC-20):** `0x4BeB7B171ad948D3586464C77c28EdE22c80542D`
+
 </details>
 
 ---
