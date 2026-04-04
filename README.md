@@ -183,6 +183,13 @@ If you have Platinum rank in any supported game — apply through your Profile p
 ### Support the project
 This project has no investors and no advertising. If you believe in the idea, you can support it voluntarily. Details in the platform FAQ.
 
+<details>
+<summary>Support options</summary>
+
+**Bitcoin (BTC):** `bc1qjv5jvf20u83fa6yt9ms5tejmz9qh72xqjjgwvu`
+
+</details>
+
 ---
 
 ## Hall of Contributors
