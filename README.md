@@ -181,12 +181,14 @@ What do YOU consider worthy of a Platinum rank in your favourite game? Open an i
 If you have Platinum rank in any supported game — apply through your Profile page on the platform.
 
 ### Support the project
-This project has no investors and no advertising. If you believe in the idea, you can support it voluntarily.
+This project has no investors and no advertising. If you believe in the idea, you can support it voluntarily.B
 
 <details>
 <summary>Support options</summary>
 
 **Bitcoin (BTC):** `bc1qjv5jvf20u83fa6yt9ms5tejmz9qh72xqjjgwvu`
+
+**USDC (Solana):** `4xid9ZKsyw65Ru73foSC1P6Sa9ZTe9zeZYfEgNHh5bQk`
 
 </details>
 
