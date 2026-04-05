@@ -6,7 +6,7 @@ import SteamCallback, { SteamUser } from './components/pages/SteamCallback';
 import Sidebar, { Page } from './components/ui/Sidebar';
 import WelcomeScreen from './components/pages/WelcomeScreen';
 import type { FounderUser } from './types';
-import { supabase } from './services/supabase';
+import { supabase, revokeToken } from './services/supabase';
 import ErrorBoundary from './components/ui/ErrorBoundary';
 
 // Eagerly loaded — always needed on first paint
@@ -106,6 +106,9 @@ const AppRoutes: React.FC = () => {
   const [user, setUser] = useState<SteamUser | null>(getSavedUser());
 
   const handleLogout = () => {
+    const saved = localStorage.getItem('pantheon_user');
+    const token = saved ? JSON.parse(saved)?.token : null;
+    if (token) revokeToken(token); // fire-and-forget — don't block the UI
     localStorage.removeItem('pantheon_user');
     setUser(null);
     navigate('/');

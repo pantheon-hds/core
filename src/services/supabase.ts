@@ -205,6 +205,20 @@ export async function assignJudges(token: string, submissionId: string): Promise
   return response.ok;
 }
 
+export async function revokeToken(token: string): Promise<void> {
+  try {
+    await fetch(`${SUPABASE_URL}/functions/v1/logout`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'x-session-token': token,
+      },
+    });
+  } catch {
+    // logout should never fail visibly
+  }
+}
+
 export interface PublicProfileData {
   username: string;
   avatarUrl: string | null;
