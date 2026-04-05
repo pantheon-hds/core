@@ -71,7 +71,7 @@
 
 .lr__rank-num {
   font-family: var(--font-display);
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 0.2em;
   color: var(--color-text-dim);
 }
@@ -90,7 +90,7 @@
 
 .lr__rank-how {
   font-family: var(--font-display);
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 0.2em;
   color: var(--color-text-dim);
   text-transform: uppercase;
@@ -106,7 +106,7 @@
 .lr__rank-sub {
   margin-top: 0.4rem;
   font-family: var(--font-display);
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.2em;
   color: var(--color-text-dim);
   text-transform: uppercase;
@@ -139,7 +139,6 @@
   gap: 1rem;
   flex-wrap: wrap;
 }
-
 
 @media (max-width: 480px) {
   .lr__rank { gap: 1rem; }

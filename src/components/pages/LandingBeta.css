@@ -129,6 +129,14 @@
 
 .lb__btn { align-self: flex-start; }
 
+.lb__error {
+  font-size: 13px;
+  color: var(--color-error);
+  border: 0.5px solid var(--color-error-border);
+  background: var(--color-error-bg);
+  padding: 0.6rem 1rem;
+}
+
 .lb__success {
   text-align: center;
   padding: 4rem 2rem;

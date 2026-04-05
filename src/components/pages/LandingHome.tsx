@@ -96,7 +96,7 @@ const LandingHome: React.FC = () => {
           </div>
           <div className="lh__cta">
             <Link to="/beta" className="ll__btn ll__btn--primary">Request Invite</Link>
-            <Link to="/ranks" className="lh__btn lh__btn--ghost">See All Ranks</Link>
+            <Link to="/ranks" className="ll__btn ll__btn--ghost">See All Ranks</Link>
           </div>
         </div>
       </section>

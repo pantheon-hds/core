@@ -83,13 +83,12 @@
 
 .lh__hero-actions {
   display: flex;
+  align-items: center;
   gap: 1rem;
   margin-top: 0.5rem;
   flex-wrap: wrap;
   justify-content: center;
 }
-
-
 
 /* Sections */
 .lh__section {

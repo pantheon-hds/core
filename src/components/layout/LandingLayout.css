@@ -64,6 +64,10 @@
   background: rgba(232, 168, 48, 0.1);
 }
 
+.ll__nav-link--enter {
+  color: var(--color-text-dim);
+}
+
 .ll__main {
   flex: 1;
   padding-top: 65px;
@@ -75,7 +79,7 @@
 }
 
 .ll__footer-inner {
-  max-width: 1100px;
+  max-width: 1000px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -145,6 +149,7 @@
 
 .ll__btn--primary { background: var(--color-gold); color: #08080e; }
 .ll__btn--primary:hover { opacity: 0.85; transform: translateY(-1px); }
+.ll__btn--primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 .ll__btn--ghost { background: transparent; color: var(--color-text-secondary); border: 0.5px solid var(--color-border-mid); }
 .ll__btn--ghost:hover { color: var(--color-gold); border-color: var(--color-gold-dim); }
 
