@@ -37,8 +37,8 @@
 }
 
 .lh__hero-logo {
-  width: 520px;
-  max-width: 80vw;
+  width: 780px;
+  max-width: 90vw;
   opacity: 0.95;
   filter: drop-shadow(0 8px 32px rgba(232,168,48,0.15));
 }

@@ -59,12 +59,12 @@
   align-items: center;
   gap: 0.5rem;
   flex-shrink: 0;
-  width: 108px;
+  width: 162px;
 }
 
 .lr__rank-badge {
-  width: 100px;
-  height: 100px;
+  width: 150px;
+  height: 150px;
   object-fit: contain;
   flex-shrink: 0;
 }
