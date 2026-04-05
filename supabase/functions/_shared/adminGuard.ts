@@ -1,5 +1,7 @@
 import { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
+const TOKEN_TTL_SECONDS = 7 * 24 * 60 * 60 // 7 days
+
 export const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-session-token',
@@ -54,11 +56,13 @@ const JWT_HEADER = toBase64url(
 export async function signSessionToken(userId: string): Promise<string> {
   const key = await getSigningKey()
   const now = Math.floor(Date.now() / 1000)
+  const jti = toBase64url(crypto.getRandomValues(new Uint8Array(16)))
   const payload = toBase64url(
     new TextEncoder().encode(JSON.stringify({
       sub: userId,
+      jti,
       iat: now,
-      exp: now + 30 * 24 * 60 * 60,
+      exp: now + TOKEN_TTL_SECONDS,
     }))
   )
   const message = `${JWT_HEADER}.${payload}`
@@ -68,9 +72,13 @@ export async function signSessionToken(userId: string): Promise<string> {
 
 /**
  * Verifies the session JWT from the x-session-token request header.
+ * Optionally checks against revoked_tokens table when supabase client is provided.
  * Returns the user DB ID (sub claim) on success, null on any failure.
  */
-export async function verifySessionToken(req: Request): Promise<string | null> {
+export async function verifySessionToken(
+  req: Request,
+  supabase?: SupabaseClient
+): Promise<string | null> {
   const token = req.headers.get('x-session-token')
   if (!token) return null
 
@@ -93,9 +101,39 @@ export async function verifySessionToken(req: Request): Promise<string | null> {
     const now = Math.floor(Date.now() / 1000)
     if (!payload.sub || !payload.exp || payload.exp < now) return null
 
+    // Check revocation list if supabase client provided
+    if (supabase && payload.jti) {
+      const { data } = await supabase
+        .from('revoked_tokens')
+        .select('jti')
+        .eq('jti', payload.jti)
+        .maybeSingle()
+      if (data) return null
+    }
+
     return payload.sub as string
   } catch {
     return null
+  }
+}
+
+/**
+ * Revokes a session token by inserting its jti into revoked_tokens.
+ * Call this on logout.
+ */
+export async function revokeSessionToken(
+  token: string,
+  supabase: SupabaseClient
+): Promise<void> {
+  const parts = token.split('.')
+  if (parts.length !== 3) return
+  try {
+    const payload = JSON.parse(new TextDecoder().decode(fromBase64url(parts[1])))
+    if (payload.jti) {
+      await supabase.from('revoked_tokens').insert({ jti: payload.jti })
+    }
+  } catch {
+    // ignore
   }
 }
 
@@ -104,7 +142,7 @@ export async function verifySessionToken(req: Request): Promise<string | null> {
  * Returns the userId on success, null on any failure or if not admin.
  */
 export async function requireAdmin(req: Request, supabase: SupabaseClient): Promise<string | null> {
-  const userId = await verifySessionToken(req)
+  const userId = await verifySessionToken(req, supabase)
   if (!userId) return null
 
   const { data } = await supabase

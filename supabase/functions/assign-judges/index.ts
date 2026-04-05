@@ -21,7 +21,9 @@ serve(async (req: Request) => {
   }
 
   try {
-    const callerId = await verifySessionToken(req)
+    const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_KEY!)
+
+    const callerId = await verifySessionToken(req, supabase)
     if (!callerId) {
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
@@ -37,8 +39,6 @@ serve(async (req: Request) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
-
-    const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_KEY!)
 
     const { data: submission } = await supabase
       .from('submissions')
