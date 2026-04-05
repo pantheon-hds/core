@@ -16,6 +16,9 @@
 # claude code
 /.claude
 
+# private ideas
+/ideas.md
+
 # misc
 .DS_Store
 .env.local
