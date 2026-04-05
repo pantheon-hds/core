@@ -75,7 +75,7 @@ Pantheon is not just for elite players. There is a place for everyone.
 
 Paths are not exclusive — one player can walk multiple paths simultaneously.
 
-> **Currently available:** Warrior and Judge paths. Other paths are in development and will be released gradually. This is an open project — the community shapes what comes next.
+> **Currently available:** Warrior. Other paths are in development and will be released gradually. This is an open project — the community shapes what comes next.
 
 ---
 
