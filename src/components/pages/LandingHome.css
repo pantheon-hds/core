@@ -39,6 +39,8 @@
 .lh__hero-logo {
   width: 780px;
   max-width: 90vw;
+  max-height: 55vh;
+  object-fit: contain;
   opacity: 0.95;
   filter: drop-shadow(0 8px 32px rgba(232,168,48,0.15));
 }
@@ -87,56 +89,7 @@
   justify-content: center;
 }
 
-.lh__scroll-line {
-  position: absolute;
-  bottom: 2rem;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 0.5px;
-  height: 60px;
-  background: linear-gradient(to bottom, var(--color-gold-dim), transparent);
-  animation: lhPulse 2s ease infinite;
-}
 
-@keyframes lhPulse {
-  0%, 100% { opacity: 0.2; }
-  50% { opacity: 0.8; }
-}
-
-/* Buttons */
-.lh__btn {
-  font-family: var(--font-display);
-  font-size: 11px;
-  letter-spacing: 0.25em;
-  text-transform: uppercase;
-  padding: 0.9rem 2.5rem;
-  cursor: pointer;
-  text-decoration: none;
-  transition: all 0.2s;
-  display: inline-block;
-  border: none;
-}
-
-.lh__btn--primary {
-  background: var(--color-gold);
-  color: #08080e;
-}
-
-.lh__btn--primary:hover {
-  opacity: 0.85;
-  transform: translateY(-1px);
-}
-
-.lh__btn--ghost {
-  background: transparent;
-  color: var(--color-text-secondary);
-  border: 0.5px solid var(--color-border-mid);
-}
-
-.lh__btn--ghost:hover {
-  color: var(--color-gold);
-  border-color: var(--color-gold-dim);
-}
 
 /* Sections */
 .lh__section {
@@ -155,7 +108,7 @@
 
 .lh__label {
   font-family: var(--font-display);
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.4em;
   color: var(--color-gold-dim);
   text-transform: uppercase;
@@ -206,7 +159,7 @@
 
 .lh__quote-author {
   font-family: var(--font-display);
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.3em;
   color: var(--color-text-dim);
   text-transform: uppercase;
@@ -229,7 +182,7 @@
 
 .lh__principle-num {
   font-family: var(--font-display);
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.3em;
   color: var(--color-gold-dim);
   margin-bottom: 1rem;
@@ -265,7 +218,7 @@
 
 .lh__step-num {
   font-family: var(--font-display);
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.3em;
   color: var(--color-gold-dim);
   margin-bottom: 0.75rem;

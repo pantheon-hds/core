@@ -10,7 +10,7 @@
 
 .lr__label {
   font-family: var(--font-display);
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.4em;
   color: var(--color-gold-dim);
   text-transform: uppercase;
@@ -103,6 +103,15 @@
   line-height: 1.6;
 }
 
+.lr__rank-sub {
+  margin-top: 0.4rem;
+  font-family: var(--font-display);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--color-text-dim);
+  text-transform: uppercase;
+}
+
 .lr__note {
   border: 0.5px solid var(--color-border-mid);
   padding: 2rem;
@@ -131,20 +140,9 @@
   flex-wrap: wrap;
 }
 
-.lr__btn {
-  font-family: var(--font-display);
-  font-size: 11px;
-  letter-spacing: 0.25em;
-  text-transform: uppercase;
-  padding: 0.9rem 2.5rem;
-  cursor: pointer;
-  text-decoration: none;
-  transition: all 0.2s;
-  display: inline-block;
-  border: none;
-}
 
-.lr__btn--primary { background: var(--color-gold); color: #08080e; }
-.lr__btn--primary:hover { opacity: 0.85; }
-.lr__btn--ghost { background: transparent; color: var(--color-text-secondary); border: 0.5px solid var(--color-border-mid); }
-.lr__btn--ghost:hover { color: var(--color-gold); border-color: var(--color-gold-dim); }
+@media (max-width: 480px) {
+  .lr__rank { gap: 1rem; }
+  .lr__rank-left { width: 80px; }
+  .lr__rank-badge { width: 72px; height: 72px; }
+}

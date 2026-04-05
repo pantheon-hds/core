@@ -68,7 +68,7 @@ const LandingBeta: React.FC = () => {
                   {submitError && (
                     <div className="lb__error">{submitError}</div>
                   )}
-                  <button className="lb__btn lb__btn--primary" type="submit" disabled={submitting}>
+                  <button className="ll__btn ll__btn--primary lb__btn" type="submit" disabled={submitting}>
                     {submitting ? 'Sending...' : 'Request Invite'}
                   </button>
                 </form>
@@ -83,7 +83,7 @@ const LandingBeta: React.FC = () => {
               <div className="lb__app-section">
                 <div className="lb__app-title">Already have an invite code?</div>
                 <div className="lb__app-text">Enter the app and connect your Steam account.</div>
-                <Link to="/app" className="lb__btn lb__btn--ghost">Enter App</Link>
+                <Link to="/app" className="ll__btn ll__btn--ghost lb__btn">Enter App</Link>
               </div>
             </div>
           ) : (

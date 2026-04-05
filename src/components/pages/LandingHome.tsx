@@ -21,16 +21,15 @@ const LandingHome: React.FC = () => {
             <span>Skill</span>
           </div>
           <div className="lh__hero-actions">
-            <Link to="/beta" className="lh__btn lh__btn--primary">Request Invite</Link>
+            <Link to="/beta" className="ll__btn ll__btn--primary">Request Invite</Link>
             <button
-              className="lh__btn lh__btn--scroll"
+              className="ll__btn lh__btn--scroll"
               onClick={() => document.getElementById('story')?.scrollIntoView({ behavior: 'smooth' })}
             >
               ↓
             </button>
           </div>
         </div>
-        <div className="lh__scroll-line" />
       </section>
 
       {/* Story */}
@@ -96,7 +95,7 @@ const LandingHome: React.FC = () => {
             ))}
           </div>
           <div className="lh__cta">
-            <Link to="/beta" className="lh__btn lh__btn--primary">Request Invite</Link>
+            <Link to="/beta" className="ll__btn ll__btn--primary">Request Invite</Link>
             <Link to="/ranks" className="lh__btn lh__btn--ghost">See All Ranks</Link>
           </div>
         </div>

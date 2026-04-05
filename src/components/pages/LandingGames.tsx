@@ -81,8 +81,8 @@ const LandingGames: React.FC = () => {
           </div>
 
           <div className="lg__cta">
-            <Link to="/beta" className="lg__btn lg__btn--primary">Request Invite</Link>
-            <Link to="/ranks" className="lg__btn lg__btn--ghost">See Rank System</Link>
+            <Link to="/beta" className="ll__btn ll__btn--primary">Request Invite</Link>
+            <Link to="/ranks" className="ll__btn ll__btn--ghost">See Rank System</Link>
           </div>
         </div>
       </div>

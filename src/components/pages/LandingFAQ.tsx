@@ -59,6 +59,7 @@ const LandingFAQ: React.FC = () => {
                 <button
                   className="lfaq__question"
                   onClick={() => setOpenIndex(openIndex === i ? null : i)}
+                  aria-expanded={openIndex === i}
                 >
                   <span>{item.question}</span>
                   <span className="lfaq__icon">{openIndex === i ? '−' : '+'}</span>
