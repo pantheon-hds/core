@@ -60,23 +60,22 @@ Community vote only. Forever.
 
 ---
 
-## Seven Paths
+## Six Paths
 
 Pantheon is not just for elite players. There is a place for everyone.
 
-| Path | Description | Statue |
-|------|-------------|--------|
-| **Warrior** | Completes challenges, earns ranks | Knight with sword |
-| **Master** | Own pace, no competition | Monk in meditation |
-| **Teacher** | Guides and mentors others | Sage with lantern |
-| **Lorekeeper** | Studies game lore, takes exams | Scholar with scroll |
-| **Chronicler** | Records platform history | Archivist with book |
-| **Creator** | Fan art, music, mods | Artist with brush |
-| **Orator** | Debates and arguments | Tribune with raised hand |
+| Path | Description |
+|------|-------------|
+| **Warrior** | Completes challenges, earns ranks |
+| **Judge** | Reviews challenge submissions, verified by rank |
+| **Teacher** | Guides and mentors others |
+| **Lorekeeper** | Studies game lore, takes exams |
+| **Chronicler** | Records platform history |
+| **Orator** | Debates and arguments |
 
 Paths are not exclusive — one player can walk multiple paths simultaneously.
 
-> **Currently available:** Warrior path (challenges and ranks). Other paths are in development and will be released gradually. This is an open project — the community shapes what comes next.
+> **Currently available:** Warrior and Judge paths. Other paths are in development and will be released gradually. This is an open project — the community shapes what comes next.
 
 ---
 

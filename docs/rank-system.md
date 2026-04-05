@@ -74,18 +74,9 @@ Legend       (single tier — community vote only)
 
 ## Statues
 
-Each rank tier has a unique statue style. Degrees (I, II, III) add details to the same statue.
+Each rank tier has a unique statue. The visual style is defined by the community — not locked in advance.
 
-| Rank | Statue style | Degree progression |
-|------|-------------|-------------------|
-| Bronze | Rough cast warrior | I: plain · II: shield added · III: weapon added |
-| Silver | Detailed soldier | I: clean lines · II: armor details · III: cape added |
-| Gold | Armed knight | I: full armor · II: golden trim · III: golden glow |
-| Platinum | Glowing artifact | I: dim glow · II: medium glow · III: full radiance |
-| Diamond | Crystalline figure | I: clear crystal · II: blue light · III: sharp edges glowing |
-| Master | Ancient warrior | I: stone texture · II: runes appear · III: runes glow |
-| Grandmaster | Celestial figure | I: starlight aura · II: constellation pattern · III: full celestial form |
-| Legend | Unique — one of a kind — never repeated — chosen by community |
+Legend statues are unique — one of a kind — never repeated — chosen by community vote.
 
 ---
 
