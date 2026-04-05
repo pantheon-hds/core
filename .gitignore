@@ -7,9 +7,14 @@
 
 # testing
 /coverage
+/test-results
+/playwright-report
 
 # production
 /build
+
+# claude code
+/.claude
 
 # misc
 .DS_Store
