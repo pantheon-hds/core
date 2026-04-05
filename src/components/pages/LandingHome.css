@@ -37,9 +37,10 @@
 }
 
 .lh__hero-logo {
-  width: 200px;
-  max-width: 45vw;
-  opacity: 0.9;
+  width: 340px;
+  max-width: 60vw;
+  opacity: 0.95;
+  filter: drop-shadow(0 8px 32px rgba(232,168,48,0.15));
 }
 
 .lh__hero-title {
