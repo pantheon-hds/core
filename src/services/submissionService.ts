@@ -12,8 +12,8 @@ export interface VoteResult extends ServiceResult {
 }
 
 // Awards a rank + statue to a user after a challenge submission is approved.
-// Single source of truth for the rank-award side-effect — used by both
-// adminReviewSubmission and recordJudgeVote.
+// Used by recordJudgeVote when the final vote is cast.
+// Note: admin-action Edge Function contains its own equivalent for the admin review path.
 export async function awardRankForChallenge(
   userId: string,
   challengeId: number

@@ -71,7 +71,7 @@ export function reviewJudgeApp(
   return callAdminAction(steamId, 'review-judge-app', { appId, userId, decision });
 }
 
-export async function appointJudge(
+export function appointJudge(
   steamId: string,
   targetSteamId: string
 ): Promise<AdminResult & { username?: string }> {
