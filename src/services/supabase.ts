@@ -153,13 +153,14 @@ export async function validateInviteCode(code: string): Promise<boolean> {
   return data === true;
 }
 
-export async function sendInvite(waitlistId: string, email: string): Promise<{ success: boolean; error?: string }> {
+export async function sendInvite(token: string, waitlistId: string, email: string): Promise<{ success: boolean; error?: string }> {
   const response = await fetch(
     `${SUPABASE_URL}/functions/v1/send-invite`,
     {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'x-session-token': token,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ waitlistId, email }),
@@ -172,13 +173,14 @@ export async function sendInvite(waitlistId: string, email: string): Promise<{ s
   return { success: true };
 }
 
-export async function rejectWaitlistEntry(id: string, rejectionReason: string): Promise<boolean> {
+export async function rejectWaitlistEntry(token: string, id: string, rejectionReason: string): Promise<boolean> {
   const response = await fetch(
     `${SUPABASE_URL}/functions/v1/send-rejection`,
     {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'x-session-token': token,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ waitlistId: id, rejectionReason }),
@@ -187,13 +189,14 @@ export async function rejectWaitlistEntry(id: string, rejectionReason: string): 
   return response.ok;
 }
 
-export async function assignJudges(submissionId: string): Promise<boolean> {
+export async function assignJudges(token: string, submissionId: string): Promise<boolean> {
   const response = await fetch(
     `${SUPABASE_URL}/functions/v1/assign-judges`,
     {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'x-session-token': token,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ submissionId }),

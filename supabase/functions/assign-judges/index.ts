@@ -1,14 +1,9 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { corsHeaders, verifySessionToken } from '../_shared/adminGuard.ts'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
 const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
 
 // Fisher-Yates shuffle — uniform distribution, unlike sort(() => Math.random() - 0.5)
 function shuffleArray<T>(arr: T[]): T[] {
@@ -26,6 +21,14 @@ serve(async (req: Request) => {
   }
 
   try {
+    const callerId = await verifySessionToken(req)
+    if (!callerId) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     const { submissionId } = await req.json()
 
     if (!submissionId) {
@@ -47,6 +50,14 @@ serve(async (req: Request) => {
       return new Response(
         JSON.stringify({ error: 'Submission not found' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Verify the caller owns this submission — prevents hijacking another user's submission
+    if (submission.user_id !== callerId) {
+      return new Response(
+        JSON.stringify({ error: 'Forbidden' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 

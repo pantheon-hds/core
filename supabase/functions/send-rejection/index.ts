@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { corsHeaders, requireAdmin } from '../_shared/adminGuard.ts'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -8,18 +9,21 @@ const APP_URL = Deno.env.get('APP_URL') || 'https://pantheonhds.com'
 
 const REAPPLY_DAYS = 30 // keep in sync with REAPPLY_DAYS in src/services/supabase.ts
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
-
 serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+
+    if (!await requireAdmin(req, supabase)) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     const { waitlistId, rejectionReason } = await req.json()
 
     if (!waitlistId || !rejectionReason) {
@@ -28,8 +32,6 @@ serve(async (req: Request) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
-
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
     // Get the waitlist entry
     const { data: entry, error: fetchError } = await supabase

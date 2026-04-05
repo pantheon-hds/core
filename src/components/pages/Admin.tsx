@@ -116,7 +116,7 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
   // ── Waitlist ─────────────────────────────────────────────────────────────
   const handleApproveWaitlist = async (entry: WaitlistEntry) => {
     setApprovingId(entry.id);
-    const result = await sendInvite(entry.id, entry.email);
+    const result = await sendInvite(user!.token, entry.id, entry.email);
     setApprovingId(null);
     if (result.success) {
       showToast(`Invite sent to ${entry.email}`, 'success');
@@ -127,7 +127,7 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
   };
 
   const handleRejectWaitlist = async (id: string, reason: string): Promise<boolean> => {
-    const ok = await rejectWaitlistEntry(id, reason);
+    const ok = await rejectWaitlistEntry(user!.token, id, reason);
     if (ok) {
       setWaitlist(prev => prev.map(w => w.id === id ? { ...w, status: 'rejected', rejection_reason: reason } : w));
     } else {

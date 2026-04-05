@@ -110,7 +110,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
       setSubmitMessage(`Error: ${error.message}`);
     } else {
       if (inserted) {
-        await assignJudges(inserted.id);
+        await assignJudges(user?.token ?? '', inserted.id);
         // Replace optimistic entry with real ID
         setSubmissions(prev =>
           prev.map(s => s.id === optimisticId ? { ...s, id: inserted.id } : s)
