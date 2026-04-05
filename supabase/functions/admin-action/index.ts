@@ -1,6 +1,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient, SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { corsHeaders, json, verifyAdmin } from '../_shared/adminGuard.ts'
+import { corsHeaders, json, requireAdmin } from '../_shared/adminGuard.ts'
+import { getClientIp, checkRateLimit, rateLimitedResponse } from '../_shared/rateLimit.ts'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -70,18 +71,22 @@ serve(async (req: Request) => {
   }
 
   try {
-    const body = await req.json()
-    const { steamId, action, ...payload } = body
-
-    if (!steamId || !action) {
-      return json({ success: false, error: 'steamId and action are required' }, 400)
-    }
-
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
-    const isAdmin = await verifyAdmin(supabase, steamId)
-    if (!isAdmin) {
-      return json({ success: false, error: 'Unauthorized' }, 403)
+    // Rate limit: 60 admin actions per minute per IP
+    const ip = getClientIp(req)
+    const allowed = await checkRateLimit(supabase, ip, 'admin-action', 60, 60)
+    if (!allowed) return rateLimitedResponse(corsHeaders)
+
+    // Verify signed session JWT — rejects spoofed Steam IDs
+    const adminId = await requireAdmin(req, supabase)
+    if (!adminId) return json({ success: false, error: 'Unauthorized' }, 403)
+
+    const body = await req.json()
+    const { action, ...payload } = body
+
+    if (!action) {
+      return json({ success: false, error: 'action is required' }, 400)
     }
 
     switch (action) {

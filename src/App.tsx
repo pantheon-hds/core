@@ -1,25 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import './App.css';
 import SteamCallback, { SteamUser } from './components/pages/SteamCallback';
-import Dashboard from './components/pages/Dashboard';
-import Pantheon from './components/pages/Pantheon';
-import Profile from './components/pages/Profile';
-import Admin from './components/pages/Admin';
-import JudgePanel from './components/pages/JudgePanel';
-import Sandbox from './components/pages/Sandbox';
 import Sidebar, { Page } from './components/ui/Sidebar';
 import WelcomeScreen from './components/pages/WelcomeScreen';
 import type { FounderUser } from './types';
 import { supabase } from './services/supabase';
 import ErrorBoundary from './components/ui/ErrorBoundary';
+
+// Eagerly loaded — always needed on first paint
 import LandingHome from './components/pages/LandingHome';
 import LandingRanks from './components/pages/LandingRanks';
 import LandingGames from './components/pages/LandingGames';
 import LandingBeta from './components/pages/LandingBeta';
 import LandingFAQ from './components/pages/LandingFAQ';
 import PublicProfile from './components/pages/PublicProfile';
+
+// Lazily loaded — split into separate chunks to reduce initial bundle
+const Dashboard   = lazy(() => import('./components/pages/Dashboard'));
+const Pantheon    = lazy(() => import('./components/pages/Pantheon'));
+const Profile     = lazy(() => import('./components/pages/Profile'));
+const Admin       = lazy(() => import('./components/pages/Admin'));
+const JudgePanel  = lazy(() => import('./components/pages/JudgePanel'));
+const Sandbox     = lazy(() => import('./components/pages/Sandbox'));
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 5 * 60 * 1000 } }, // cache 5 minutes
@@ -33,7 +37,10 @@ const isSteamCallback = (): boolean => {
 const getSavedUser = (): SteamUser | null => {
   try {
     const saved = localStorage.getItem('pantheon_user');
-    return saved ? JSON.parse(saved) : null;
+    const user = saved ? JSON.parse(saved) : null;
+    // Invalidate pre-JWT sessions — force re-login after security update
+    if (user && !user.token) return null;
+    return user;
   } catch {
     return null;
   }
@@ -78,12 +85,14 @@ const AppShell: React.FC<{ user: SteamUser | null; onLogout: () => void }> = ({ 
           </div>
           <div className="app__content">
             <ErrorBoundary key={page}>
-              {page === 'dashboard' && <Dashboard user={user} />}
-              {page === 'pantheon' && <Pantheon />}
-              {page === 'profile' && <Profile user={user} />}
-              {page === 'admin' && <Admin user={user} />}
-              {page === 'judge' && <JudgePanel user={user} />}
-              {page === 'sandbox' && <Sandbox user={user} />}
+              <Suspense fallback={<div className="admin__loading">Loading...</div>}>
+                {page === 'dashboard' && <Dashboard user={user} />}
+                {page === 'pantheon' && <Pantheon />}
+                {page === 'profile' && <Profile user={user} />}
+                {page === 'admin' && <Admin user={user} />}
+                {page === 'judge' && <JudgePanel user={user} />}
+                {page === 'sandbox' && <Sandbox user={user} />}
+              </Suspense>
             </ErrorBoundary>
           </div>
         </div>
@@ -108,6 +117,7 @@ const AppRoutes: React.FC = () => {
       username: founderUser.username,
       avatarUrl: founderUser.avatarUrl,
       isPublic: true,
+      token: founderUser.token,
     };
     localStorage.setItem('pantheon_user', JSON.stringify(steamUser));
     setUser(steamUser);

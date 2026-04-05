@@ -104,7 +104,7 @@ const JudgePanel: React.FC<JudgePanelProps> = ({ user }) => {
 
     if (isAdmin) {
       // Admin directly approves/rejects — bypasses judge voting system
-      const result = await adminService.reviewSubmission(user!.steamId, submissionId, vote, timestamp);
+      const result = await adminService.reviewSubmission(user!.token, submissionId, vote, timestamp);
       if (!result.success) {
         showToast(`Error: ${result.error}`, 'error');
       } else {

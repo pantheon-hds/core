@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { signSessionToken } from '../_shared/adminGuard.ts'
 
 const FOUNDER_PASSWORD = Deno.env.get('FOUNDER_PASSWORD')
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
@@ -86,6 +87,8 @@ serve(async (req) => {
       )
     }
 
+    const token = await signSessionToken(founder.id)
+
     return new Response(
       JSON.stringify({
         success: true,
@@ -95,6 +98,7 @@ serve(async (req) => {
           avatarUrl: '',
           isPublic: true,
           isFounder: true,
+          token,
         }
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

@@ -1,6 +1,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { getClientIp, checkRateLimit, rateLimitedResponse } from '../_shared/rateLimit.ts'
+import { signSessionToken } from '../_shared/adminGuard.ts'
 
 const STEAM_API_KEY = Deno.env.get('STEAM_API_KEY')
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
@@ -101,22 +102,28 @@ serve(async (req) => {
       .eq('steam_id', steamId)
       .single()
 
+    let userId: string
+
     if (!existingUser) {
-      await supabase.from('users').insert({
+      const { data: inserted } = await supabase.from('users').insert({
         steam_id: steamId,
         username: profile.username,
         avatar_url: profile.avatarUrl,
         profile_url: profile.profileUrl,
-      })
+      }).select('id').single()
+      userId = inserted!.id
     } else {
       await supabase.from('users').update({
         username: profile.username,
         avatar_url: profile.avatarUrl,
       }).eq('steam_id', steamId)
+      userId = existingUser.id
     }
 
-    // Redirect to /app with user data
-    const redirectUrl = `${APP_URL}/app?steamId=${steamId}&username=${encodeURIComponent(profile.username)}&avatar=${encodeURIComponent(profile.avatarUrl)}&public=${profile.isPublic}`
+    const token = await signSessionToken(userId)
+
+    // Redirect to /app with user data + signed session token
+    const redirectUrl = `${APP_URL}/app?steamId=${steamId}&username=${encodeURIComponent(profile.username)}&avatar=${encodeURIComponent(profile.avatarUrl)}&public=${profile.isPublic}&token=${encodeURIComponent(token)}`
 
     return new Response(null, {
       status: 302,

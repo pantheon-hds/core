@@ -15,7 +15,7 @@ export interface AdminResult {
 }
 
 async function callAdminAction(
-  steamId: string,
+  token: string,
   action: string,
   payload: Record<string, unknown> = {}
 ): Promise<AdminResult & Record<string, unknown>> {
@@ -23,10 +23,13 @@ async function callAdminAction(
     const res = await fetch(`${SUPABASE_URL}/functions/v1/admin-action`, {
       method: 'POST',
       headers: {
+        // Supabase requires anon key for Edge Function routing
         Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        // Session JWT verified server-side — cannot be forged without APP_SESSION_SECRET
+        'x-session-token': token,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ steamId, action, ...payload }),
+      body: JSON.stringify({ action, ...payload }),
     });
     return await res.json();
   } catch (err) {

@@ -14,6 +14,7 @@ export interface SteamUser {
   username: string;
   avatarUrl: string;
   isPublic: boolean;
+  token: string;
 }
 
 const SteamCallback: React.FC<SteamCallbackProps> = ({ onSuccess, onError }) => {
@@ -28,9 +29,10 @@ const SteamCallback: React.FC<SteamCallbackProps> = ({ onSuccess, onError }) => 
         const username = params.get('username');
         const avatar = params.get('avatar');
         const isPublic = params.get('public') === 'true';
+        const token = params.get('token') || '';
 
         // Success path — Steam already verified by Edge Function
-        if (steamId && username) {
+        if (steamId && username && token) {
           setStatus('checking');
           setMessage('Checking achievements...');
 
@@ -39,6 +41,7 @@ const SteamCallback: React.FC<SteamCallbackProps> = ({ onSuccess, onError }) => 
             username: decodeURIComponent(username),
             avatarUrl: decodeURIComponent(avatar || ''),
             isPublic,
+            token: decodeURIComponent(token),
           };
 
           try {

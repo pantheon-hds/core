@@ -105,6 +105,7 @@ export interface FounderUser {
   steamId: string;
   username: string;
   avatarUrl: string;
+  token: string;
 }
 
 export interface WaitlistEntry {
