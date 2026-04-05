@@ -50,7 +50,7 @@ const JWT_HEADER = toBase64url(
 )
 
 /**
- * Signs a 30-day session JWT for the given DB user ID.
+ * Signs a 7-day session JWT for the given DB user ID.
  * Called server-side after successful Steam OAuth or founder login.
  */
 export async function signSessionToken(userId: string): Promise<string> {
