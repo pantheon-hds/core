@@ -93,3 +93,27 @@ export function getTierColorSet(tier: string): TierColorSet {
   if (tier.startsWith('Bronze')) return TIER_COLOR_SETS['Bronze I'];
   return TIER_COLOR_SETS[tier] ?? TIER_COLOR_SETS['Bronze I'];
 }
+
+// Maps any rank tier string to its badge image path
+export const RANK_TIER_IMAGES: Record<string, string> = {
+  'Bronze I':    '/ranks/bronze-1.png',
+  'Bronze II':   '/ranks/bronze-2.png',
+  'Bronze III':  '/ranks/bronze-3.png',
+  'Silver I':    '/ranks/silver-1.png',
+  'Silver II':   '/ranks/silver-2.png',
+  'Silver III':  '/ranks/silver-3.png',
+  'Gold':        '/ranks/gold.png',
+  'Platinum':    '/ranks/platinum.png',
+  'Diamond':     '/ranks/diamond.png',
+  'Master':      '/ranks/master.png',
+  'Grandmaster': '/ranks/grandmaster.png',
+  'Legend':      '/ranks/legend.png',
+};
+
+// For simplified tier names (Bronze, Silver) returns the representative badge
+export function getRankImage(tier: string): string {
+  if (RANK_TIER_IMAGES[tier]) return RANK_TIER_IMAGES[tier];
+  if (tier === 'Bronze') return '/ranks/bronze-1.png';
+  if (tier === 'Silver') return '/ranks/silver-1.png';
+  return '/ranks/bronze-1.png';
+}

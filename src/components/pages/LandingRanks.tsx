@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import LandingLayout from '../layout/LandingLayout';
+import { getRankImage } from '../../constants/ranks';
 import './LandingRanks.css';
 
 const ranks = [
@@ -29,7 +30,7 @@ const LandingRanks: React.FC = () => {
             {ranks.map((rank, i) => (
               <div key={i} className="lr__rank">
                 <div className="lr__rank-left">
-                  <div className="lr__rank-dot" style={{ background: rank.color }} />
+                  <img src={getRankImage(rank.tier)} alt={rank.tier} className="lr__rank-badge" />
                   <div className="lr__rank-num">{String(i + 1).padStart(2, '0')}</div>
                 </div>
                 <div className="lr__rank-content">
