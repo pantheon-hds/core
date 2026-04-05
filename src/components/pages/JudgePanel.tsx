@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import './JudgePanel.css';
 import { SteamUser } from './SteamCallback';
 import { getUserBySteamId, supabase } from '../../services/supabase';
-import { recordJudgeVote, adminReviewSubmission } from '../../services/submissionService';
+import { recordJudgeVote } from '../../services/submissionService';
+import * as adminService from '../../services/adminService';
 import { useToast } from '../../hooks/useToast';
 import { Toast } from '../ui/Toast';
 import type { JudgeAssignment } from '../../types';
@@ -103,7 +104,7 @@ const JudgePanel: React.FC<JudgePanelProps> = ({ user }) => {
 
     if (isAdmin) {
       // Admin directly approves/rejects — bypasses judge voting system
-      const result = await adminReviewSubmission(submissionId, vote, timestamp);
+      const result = await adminService.reviewSubmission(user!.steamId, submissionId, vote, timestamp);
       if (!result.success) {
         showToast(`Error: ${result.error}`, 'error');
       } else {

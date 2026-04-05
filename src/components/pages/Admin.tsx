@@ -2,14 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import './Admin.css';
 import { SteamUser } from './SteamCallback';
 import { supabase, getUserBySteamId, sendInvite, rejectWaitlistEntry } from '../../services/supabase';
-import {
-  adminReviewSubmission,
-  reviewJudgeApplication,
-  appointJudgeBySteamId,
-  banUser,
-  unbanUser,
-  removeJudge,
-} from '../../services/submissionService';
+import * as adminService from '../../services/adminService';
 import { useToast } from '../../hooks/useToast';
 import { Toast } from '../ui/Toast';
 import type { Game, Challenge, Submission, JudgeApplication, WaitlistEntry, DBUser } from '../../types';
@@ -69,36 +62,33 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
 
   // ── Submissions ──────────────────────────────────────────────────────────
   const handleSubmissionAction = async (id: string, action: 'approved' | 'rejected', note: string) => {
-    const result = await adminReviewSubmission(id, action, note);
+    const result = await adminService.reviewSubmission(user!.steamId, id, action, note);
     if (!result.success) { showToast(`Error: ${result.error}`, 'error'); return; }
     setSubmissions(prev => prev.map(s => s.id === id ? { ...s, status: action, admin_note: note } : s));
   };
 
   // ── Challenges ───────────────────────────────────────────────────────────
   const handleAddChallenge = async (data: { title: string; description: string; tier: string; game_id: string }): Promise<boolean> => {
-    const { error } = await supabase.from('challenges').insert({
+    const result = await adminService.addChallenge(user!.steamId, {
       title: data.title,
       description: data.description,
       tier: data.tier,
-      game_id: parseInt(data.game_id),
-      created_by: null,
-      attempts: 0,
-      type: 'community',
+      gameId: parseInt(data.game_id),
     });
-    if (error) { showToast(`Error: ${error.message}`, 'error'); return false; }
+    if (!result.success) { showToast(`Error: ${result.error}`, 'error'); return false; }
     showToast('Challenge added!', 'success');
     await loadData();
     return true;
   };
 
   const handleEditChallenge = async (id: number, data: { title: string; description: string; tier: string; game_id: string }): Promise<boolean> => {
-    const { error } = await supabase.from('challenges').update({
+    const result = await adminService.editChallenge(user!.steamId, id, {
       title: data.title,
       description: data.description,
       tier: data.tier,
-      game_id: parseInt(data.game_id),
-    }).eq('id', id);
-    if (error) { showToast(`Error: ${error.message}`, 'error'); return false; }
+      gameId: parseInt(data.game_id),
+    });
+    if (!result.success) { showToast(`Error: ${result.error}`, 'error'); return false; }
     showToast('Challenge updated!', 'success');
     await loadData();
     return true;
@@ -106,17 +96,20 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
 
   const handleDeleteChallenge = async (id: number) => {
     if (!window.confirm('Delete this challenge?')) return;
-    const { error } = await supabase.from('challenges').delete().eq('id', id);
-    if (error) { showToast(`Error: ${error.message}`, 'error'); return; }
+    const result = await adminService.deleteChallenge(user!.steamId, id);
+    if (!result.success) { showToast(`Error: ${result.error}`, 'error'); return; }
     setChallenges(prev => prev.filter(c => c.id !== id));
   };
 
   // ── Games ────────────────────────────────────────────────────────────────
   const handleAddGame = async (data: { title: string; steam_app_id: string }): Promise<boolean> => {
-    const { data: inserted, error } = await supabase.from('games').insert(data).select().single();
-    if (error) { showToast(`Error: ${error.message}`, 'error'); return false; }
-    setGames(prev => [...prev, inserted as Game].sort((a, b) => a.title.localeCompare(b.title)));
+    const result = await adminService.addGame(user!.steamId, {
+      title: data.title,
+      steamAppId: data.steam_app_id,
+    });
+    if (!result.success) { showToast(`Error: ${result.error}`, 'error'); return false; }
     showToast('Game added!', 'success');
+    await loadData();
     return true;
   };
 
@@ -145,7 +138,7 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
 
   // ── Users / Bans ─────────────────────────────────────────────────────────
   const handleBanUser = async (userId: string, reason: string, expiry: string | null): Promise<boolean> => {
-    const result = await banUser(userId, reason, expiry);
+    const result = await adminService.banUser(user!.steamId, userId, reason, expiry);
     if (result.success) {
       showToast('User banned', 'success');
       const update = { is_banned: true, ban_reason: reason, banned_until: expiry };
@@ -158,7 +151,7 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
   };
 
   const handleUnbanUser = async (userId: string): Promise<boolean> => {
-    const result = await unbanUser(userId);
+    const result = await adminService.unbanUser(user!.steamId, userId);
     if (result.success) {
       showToast('User unbanned', 'success');
       const update = { is_banned: false, ban_reason: null, banned_until: null };
@@ -172,14 +165,14 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
 
   // ── Judges ───────────────────────────────────────────────────────────────
   const handleJudgeAppReview = async (appId: string, userId: string, action: 'approved' | 'rejected') => {
-    const result = await reviewJudgeApplication(appId, userId, action);
+    const result = await adminService.reviewJudgeApp(user!.steamId, appId, userId, action);
     if (!result.success) { showToast(`Error: ${result.error}`, 'error'); return; }
     setJudgeApps(prev => prev.map(a => a.id === appId ? { ...a, status: action } : a));
-    if (action === 'approved') await loadData(); // refresh judges list
+    if (action === 'approved') await loadData();
   };
 
-  const handleAppointJudge = async (steamId: string) => {
-    const result = await appointJudgeBySteamId(steamId);
+  const handleAppointJudge = async (targetSteamId: string) => {
+    const result = await adminService.appointJudge(user!.steamId, targetSteamId);
     if (result.success) {
       showToast(`${result.username} is now a Judge!`, 'success');
       await loadData();
@@ -190,7 +183,7 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
 
   const handleRemoveJudge = async (userId: string, username: string) => {
     if (!window.confirm(`Remove judge status from ${username}?`)) return;
-    const result = await removeJudge(userId);
+    const result = await adminService.removeJudge(user!.steamId, userId);
     if (result.success) {
       showToast(`${username} is no longer a Judge`, 'success');
       setJudges(prev => prev.filter(j => j.id !== userId));
