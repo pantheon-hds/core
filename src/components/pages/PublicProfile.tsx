@@ -1,25 +1,24 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import LandingLayout from '../layout/LandingLayout';
 import StatueSVG from '../ui/StatueSVG';
-import { getPublicProfile, PublicProfileData } from '../../services/profileService';
+import { getPublicProfile } from '../../services/profileService';
 import { RANK_TIER_COLORS, getRankOrder } from '../../constants/ranks';
 import './PublicProfile.css';
 
 const PublicProfile: React.FC = () => {
   const { username } = useParams<{ username: string }>();
-  const [profile, setProfile] = useState<PublicProfileData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [notFound, setNotFound] = useState(false);
 
-  useEffect(() => {
-    if (!username) return;
-    getPublicProfile(username).then(data => {
-      if (!data) setNotFound(true);
-      else setProfile(data);
-      setLoading(false);
-    });
-  }, [username]);
+  const { data: profile, isLoading, isError } = useQuery({
+    queryKey: ['publicProfile', username],
+    queryFn: () => getPublicProfile(username!),
+    enabled: !!username,
+    retry: false,
+  });
+
+  // profile is null when user not found, undefined while loading
+  const notFound = !isLoading && !isError && profile === null;
 
   const sortedRanks = useMemo(
     () => profile?.ranks.slice().sort((a, b) => getRankOrder(a.tier) - getRankOrder(b.tier)) ?? [],
@@ -30,13 +29,13 @@ const PublicProfile: React.FC = () => {
   return (
     <LandingLayout>
       <div className="pubprofile">
-        {loading && (
+        {isLoading && (
           <div className="pubprofile__state">
             <div className="pubprofile__state-text">Loading profile...</div>
           </div>
         )}
 
-        {!loading && notFound && (
+        {(notFound || isError) && (
           <div className="pubprofile__state">
             <div className="pubprofile__state-title">Player Not Found</div>
             <div className="pubprofile__state-text">
@@ -46,7 +45,7 @@ const PublicProfile: React.FC = () => {
           </div>
         )}
 
-        {!loading && profile && (
+        {!isLoading && profile && (
           <>
             {/* Header */}
             <div className="pubprofile__header">
@@ -103,14 +102,14 @@ const PublicProfile: React.FC = () => {
                 <div className="pubprofile__section-title">Ranks</div>
                 <div className="pubprofile__ranks">
                   {sortedRanks.map((r) => (
-                      <div key={r.tier + r.gameTitle} className="pubprofile__rank-row">
-                        <span className="pubprofile__rank-game">{r.gameTitle}</span>
-                        <span className="pubprofile__rank-tier"
-                          style={{ color: RANK_TIER_COLORS[r.tier] || '#c9922a' }}>
-                          {r.tier}
-                        </span>
-                      </div>
-                    ))}
+                    <div key={r.tier + r.gameTitle} className="pubprofile__rank-row">
+                      <span className="pubprofile__rank-game">{r.gameTitle}</span>
+                      <span className="pubprofile__rank-tier"
+                        style={{ color: RANK_TIER_COLORS[r.tier] || '#c9922a' }}>
+                        {r.tier}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}

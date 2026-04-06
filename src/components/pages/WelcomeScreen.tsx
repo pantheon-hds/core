@@ -12,7 +12,7 @@ interface WelcomeScreenProps {
 const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onFounderLogin }) => {
   const [showFounder, setShowFounder] = useState(false);
   const honorCountRef = useRef(0);
-  const honorTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const honorTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => () => clearTimeout(honorTimerRef.current), []);
 

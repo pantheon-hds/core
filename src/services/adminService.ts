@@ -6,6 +6,9 @@
  * are intentionally absent from the frontend.
  */
 
+import { supabase } from './supabase';
+import type { Game, Challenge, Submission, JudgeApplication, WaitlistEntry, DBUser } from '../types';
+
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
@@ -113,4 +116,51 @@ export function addGame(
   data: { title: string; steamAppId: string }
 ): Promise<AdminResult> {
   return callAdminAction(token, 'add-game', data);
+}
+
+// ── Read queries (no token needed — RLS allows admin reads) ──────────────────
+
+export async function fetchAdminSubmissions(): Promise<Submission[]> {
+  const { data } = await supabase
+    .from('submissions')
+    .select('*, user:users(username, steam_id), challenge:challenges(title, tier)')
+    .order('submitted_at', { ascending: false });
+  return (data as Submission[]) || [];
+}
+
+export async function fetchAdminChallenges(): Promise<Challenge[]> {
+  const { data } = await supabase
+    .from('challenges')
+    .select('*, game:games(id, title)')
+    .order('created_at', { ascending: false });
+  return (data as Challenge[]) || [];
+}
+
+export async function fetchAdminGames(): Promise<Game[]> {
+  const { data } = await supabase
+    .from('games')
+    .select('*')
+    .order('title');
+  return (data as Game[]) || [];
+}
+
+export async function fetchAdminJudgeApps(): Promise<JudgeApplication[]> {
+  const { data } = await supabase
+    .from('judge_applications')
+    .select('*, user:users(username, steam_id), game:games(title)')
+    .order('applied_at', { ascending: false });
+  return (data as JudgeApplication[]) || [];
+}
+
+export async function fetchAdminWaitlist(steamId: string): Promise<WaitlistEntry[]> {
+  const { data } = await supabase.rpc('get_waitlist_admin', { p_steam_id: steamId });
+  return (data as WaitlistEntry[]) || [];
+}
+
+export async function fetchAdminUsers(): Promise<DBUser[]> {
+  const { data } = await supabase
+    .from('users')
+    .select('id, username, steam_id, is_admin, is_judge, is_test, is_banned, ban_reason, banned_until, created_at')
+    .order('created_at', { ascending: false });
+  return (data as DBUser[]) || [];
 }

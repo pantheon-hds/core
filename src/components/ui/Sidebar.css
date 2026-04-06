@@ -114,6 +114,10 @@
   font-size: 9px;
   color: var(--color-text-secondary);
   letter-spacing: 0.1em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .sidebar__rank {

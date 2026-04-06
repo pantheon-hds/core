@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import './Profile.css';
 import { SteamUser } from './SteamCallback';
-import { checkJudgeEligibility, submitJudgeApplication } from '../../services/supabase';
+import { checkJudgeEligibility, submitJudgeApplication } from '../../services/profileService';
 import { getTierColorSet } from '../../constants/ranks';
 import StatueSVG from '../ui/StatueSVG';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -19,7 +19,7 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
   const [judgeMotivation, setJudgeMotivation] = useState('');
   const [judgeSubmitting, setJudgeSubmitting] = useState(false);
   const [judgeMessage, setJudgeMessage] = useState('');
-  const judgeMessageTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const judgeMessageTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   useEffect(() => () => clearTimeout(judgeMessageTimerRef.current), []);
 
   const { games } = useChallenges();
@@ -32,7 +32,7 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
     enabled: !!dbUserId,
   });
 
-  const handleJudgeApplication = async () => {
+  const handleJudgeApplication = useCallback(async () => {
     if (!dbUserId || !judgeGameId || !judgeMotivation.trim()) {
       setJudgeMessage('Please select a game and write your motivation.');
       return;
@@ -49,7 +49,7 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
     setJudgeSubmitting(false);
     clearTimeout(judgeMessageTimerRef.current);
     judgeMessageTimerRef.current = setTimeout(() => setJudgeMessage(''), 4000);
-  };
+  }, [dbUserId, judgeGameId, judgeMotivation, queryClient]);
 
   const topRank = ranks[0];
   const username = user?.username || 'Guest';

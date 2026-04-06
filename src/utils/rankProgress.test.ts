@@ -1,15 +1,15 @@
 import { getProgressInfo } from './rankProgress';
 
 const challenges = [
-  { id: 'p1', tier: 'Platinum' },
-  { id: 'p2', tier: 'Platinum' },
-  { id: 'p3', tier: 'Platinum' },
-  { id: 'p4', tier: 'Platinum' },
-  { id: 'p5', tier: 'Platinum' },
-  { id: 'd1', tier: 'Diamond' },
-  { id: 'd2', tier: 'Diamond' },
-  { id: 'm1', tier: 'Master' },
-  { id: 'g1', tier: 'Grandmaster' },
+  { id: 1, tier: 'Platinum' },
+  { id: 2, tier: 'Platinum' },
+  { id: 3, tier: 'Platinum' },
+  { id: 4, tier: 'Platinum' },
+  { id: 5, tier: 'Platinum' },
+  { id: 6, tier: 'Diamond' },
+  { id: 7, tier: 'Diamond' },
+  { id: 8, tier: 'Master' },
+  { id: 9, tier: 'Grandmaster' },
 ];
 
 describe('getProgressInfo', () => {
@@ -22,7 +22,7 @@ describe('getProgressInfo', () => {
     });
 
     it('counts completed Platinum challenges', () => {
-      const result = getProgressInfo('Bronze III', ['p1', 'p2'], challenges);
+      const result = getProgressInfo('Bronze III', [1, 2], challenges);
       expect(result.completed).toBe(2);
     });
 
@@ -60,8 +60,8 @@ describe('getProgressInfo', () => {
     });
 
     it('counts only Platinum challenges, not other tiers', () => {
-      const result = getProgressInfo('Gold', ['p1', 'd1', 'd2'], challenges);
-      expect(result.completed).toBe(1); // only p1 counts
+      const result = getProgressInfo('Gold', [1, 6, 7], challenges);
+      expect(result.completed).toBe(1); // only id=1 (Platinum) counts
     });
   });
 
@@ -74,7 +74,7 @@ describe('getProgressInfo', () => {
     });
 
     it('counts completed Diamond challenges', () => {
-      const result = getProgressInfo('Platinum', ['d1', 'd2', 'p1'], challenges);
+      const result = getProgressInfo('Platinum', [6, 7, 1], challenges);
       expect(result.completed).toBe(2);
     });
   });
@@ -106,7 +106,7 @@ describe('getProgressInfo', () => {
     });
 
     it('ignores approved challenges since Legend is not earnable this way', () => {
-      const result = getProgressInfo('Grandmaster', ['g1'], challenges);
+      const result = getProgressInfo('Grandmaster', [9], challenges);
       expect(result.completed).toBe(0);
     });
   });
@@ -118,13 +118,13 @@ describe('getProgressInfo', () => {
     });
 
     it('only counts challenges matching the required tier', () => {
-      const result = getProgressInfo('Gold', ['p1', 'p2', 'd1', 'm1'], challenges);
-      expect(result.completed).toBe(2); // only p1 and p2
+      const result = getProgressInfo('Gold', [1, 2, 6, 8], challenges);
+      expect(result.completed).toBe(2); // only id=1 and id=2 (Platinum) count
     });
 
     it('does not count the same challenge twice if submitted twice', () => {
       // approvedChallengeIds is a list of challenge IDs, each approval is separate
-      const result = getProgressInfo('Gold', ['p1', 'p1', 'p2'], challenges);
+      const result = getProgressInfo('Gold', [1, 1, 2], challenges);
       // filter(c => approvedIds.includes(c.id)) counts distinct challenges
       expect(result.completed).toBe(2);
     });

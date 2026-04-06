@@ -74,9 +74,9 @@
   font-family: var(--font-display);
   font-size: 8px;
   letter-spacing: 0.25em;
-  color: #c44a2a;
+  color: var(--color-legend-dim);
   text-transform: uppercase;
-  border: 0.5px solid #3a1a0a;
+  border: 0.5px solid var(--color-legend-border);
   padding: 0.35rem 0.75rem;
   flex-shrink: 0;
 }
@@ -85,7 +85,7 @@
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: #c44a2a;
+  background: var(--color-legend-dim);
 }
 
 .profile__stats {
@@ -190,10 +190,10 @@
   font-family: var(--font-display);
   font-size: 7px;
   letter-spacing: 0.2em;
-  color: #c44a2a;
+  color: var(--color-legend-dim);
   text-transform: uppercase;
   margin-top: 4px;
-  border: 0.5px solid #3a1a0a;
+  border: 0.5px solid var(--color-legend-border);
   padding: 0.15rem 0.4rem;
   display: inline-block;
 }
@@ -202,7 +202,7 @@
   position: fixed;
   inset: 0;
   background: rgba(8, 8, 14, 0.9);
-  z-index: 50;
+  z-index: var(--z-page-modal);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -267,10 +267,10 @@
 
 .profile__modal-unique {
   font-size: 12px;
-  color: #c44a2a;
+  color: var(--color-legend-dim);
   font-style: italic;
   padding: 0.6rem 0.75rem;
-  border: 0.5px solid #3a1a0a;
+  border: 0.5px solid var(--color-legend-border);
   margin-bottom: 1rem;
   line-height: 1.6;
 }
@@ -467,4 +467,22 @@
   color: var(--color-gold);
   margin-top: 0.5rem;
   font-style: italic;
+}
+
+/* ── Mobile ─────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .profile { padding: 1rem; }
+  .profile__stats { grid-template-columns: repeat(2, 1fr); }
+  .profile__statues { grid-template-columns: repeat(2, 1fr); }
+  .profile__section-title { padding: 1rem 0 0.75rem; }
+  .profile__judge-section { margin: 1rem 0; }
+  .profile__overlay { padding: 1rem; }
+  .profile__judge-actions { flex-direction: column; }
+  .profile__judge-submit, .profile__judge-cancel { width: 100%; text-align: center; }
+}
+
+@media (max-width: 480px) {
+  .profile__statues { grid-template-columns: 1fr; }
+  .profile__header { gap: 0.75rem; }
+  .profile__username { font-size: 18px; }
 }

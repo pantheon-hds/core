@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useCallback } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getUserBySteamId, getUserRanks, getUserStatues, checkAchievements } from '../services/supabase';
 import type { SteamUser } from '../components/pages/SteamCallback';
@@ -41,12 +41,14 @@ export function useUserData(user: SteamUser | null, games: Game[]): UseUserDataR
     enabled: !!dbUser?.id,
   });
 
-  // Achievement check on load (not cached — always fresh)
-  useEffect(() => {
-    if (!user || !dbUser || games.length === 0) return;
-    Promise.all(games.map(g => checkAchievements(user.steamId, g.steam_app_id)))
-      .catch(e => console.error('Failed to check achievements:', e));
-  }, [user, dbUser, games]);
+  // Achievement check — cached per user for 5 minutes to prevent flooding the Edge Function
+  useQuery({
+    queryKey: ['achievements', user?.steamId],
+    queryFn: () => Promise.all(games.map(g => checkAchievements(user!.steamId, g.steam_app_id))),
+    enabled: !!user && !!dbUser && games.length > 0,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
 
   // Invalidates the ranks cache — React Query refetches automatically
   const refreshRanks = useCallback(() => {

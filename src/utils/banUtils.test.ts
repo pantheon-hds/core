@@ -1,4 +1,5 @@
 // Tests for ban status logic — no Supabase calls, pure date logic only.
+export {};
 
 function isBanActive(
   is_banned: boolean,

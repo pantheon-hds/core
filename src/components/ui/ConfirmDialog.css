@@ -1,0 +1,89 @@
+.confirm-dialog__backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-page-modal);
+}
+
+.confirm-dialog {
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-mid);
+  border-radius: 8px;
+  padding: 24px 28px;
+  min-width: 280px;
+  max-width: 420px;
+  width: 90%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.confirm-dialog__message {
+  color: var(--color-text-secondary);
+  font-size: 0.95rem;
+  margin: 0 0 22px;
+  line-height: 1.55;
+}
+
+.confirm-dialog__actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.confirm-dialog__cancel {
+  padding: 8px 18px;
+  background: transparent;
+  border: 1px solid var(--color-border-mid);
+  border-radius: 4px;
+  color: var(--color-text-dim);
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.confirm-dialog__cancel:hover {
+  border-color: var(--color-border-strong);
+  color: var(--color-text-secondary);
+}
+
+.confirm-dialog__cancel:focus-visible {
+  outline: 2px solid var(--color-gold-dim);
+  outline-offset: 2px;
+}
+
+.confirm-dialog__confirm {
+  padding: 8px 18px;
+  background: var(--color-border-mid);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 4px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background 0.15s;
+}
+
+.confirm-dialog__confirm:hover {
+  background: var(--color-border-strong);
+}
+
+.confirm-dialog__confirm:focus-visible {
+  outline: 2px solid var(--color-gold-dim);
+  outline-offset: 2px;
+}
+
+.confirm-dialog__confirm--danger {
+  background: rgba(180, 50, 30, 0.15);
+  border-color: var(--color-error-border);
+  color: var(--color-error);
+}
+
+.confirm-dialog__confirm--danger:hover {
+  background: rgba(180, 50, 30, 0.3);
+}
+
+.confirm-dialog__confirm--danger:focus-visible {
+  outline: 2px solid var(--color-error);
+  outline-offset: 2px;
+}

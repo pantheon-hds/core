@@ -204,7 +204,7 @@
   position: fixed;
   inset: 0;
   background: rgba(8,8,14,0.85);
-  z-index: 50;
+  z-index: var(--z-page-modal);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -756,4 +756,22 @@
   color: var(--color-text-dim, #9a9080);
   font-style: italic;
   margin-top: 0.5rem;
+}
+
+/* ── Mobile ─────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .dashboard { padding: 1rem; }
+  .dashboard__modal-overlay { padding: 1rem; }
+  .dashboard__games { margin: 1rem 0; }
+  .dashboard__active-submission { margin: 0 0 1rem; }
+  .dashboard__challenges-header { padding: 1rem 0 0.8rem; }
+  .dashboard__rank-statues { gap: 1.5rem; }
+  .dashboard__rank-name { font-size: 20px; }
+}
+
+@media (max-width: 480px) {
+  .dashboard__stats { grid-template-columns: repeat(2, 1fr); }
+  .dashboard__hero { flex-direction: column; align-items: flex-start; gap: 1rem; }
+  .dashboard__rank-statues { flex-wrap: wrap; gap: 1rem; }
+  .dashboard__rank-info { width: 100%; }
 }

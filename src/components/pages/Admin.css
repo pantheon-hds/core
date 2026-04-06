@@ -225,7 +225,7 @@
 }
 
 .admin__delete-btn:hover {
-  background: #1a0808;
+  background: var(--color-error-bg);
 }
 
 .admin__badge {

@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '../types/database.types';
-import type { UserRank, UserStatue, JudgeEligibility } from '../types';
+import type { UserRank, UserStatue } from '../types';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder.supabase.co';
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-key';
@@ -57,54 +57,6 @@ export async function checkAchievements(steamId: string, appId: string) {
   );
   if (!response.ok) return null;
   return response.json();
-}
-
-export async function checkJudgeEligibility(userId: string): Promise<JudgeEligibility> {
-  const { data: platinumRank } = await supabase
-    .from('ranks')
-    .select('id')
-    .eq('user_id', userId)
-    .eq('tier', 'Platinum')
-    .limit(1);
-
-  const { data: user } = await supabase
-    .from('users')
-    .select('created_at, is_judge')
-    .eq('id', userId)
-    .single();
-
-  const accountAge = user?.created_at
-    ? (Date.now() - new Date(user.created_at).getTime()) / (1000 * 60 * 60 * 24)
-    : 0;
-
-  const { data: existingApp } = await supabase
-    .from('judge_applications')
-    .select('id, status')
-    .eq('user_id', userId)
-    .order('applied_at', { ascending: false })
-    .limit(1);
-
-  return {
-    hasPlatinumRank: (platinumRank?.length || 0) > 0,
-    accountAgeOk: accountAge >= 7,
-    isAlreadyJudge: user?.is_judge || false,
-    existingApplication: existingApp?.[0] || null,
-    meetsRequirements: (platinumRank?.length || 0) > 0 && accountAge >= 7,
-  };
-}
-
-export async function submitJudgeApplication(
-  userId: string,
-  gameId: number,
-  motivation: string
-) {
-  const { error } = await supabase.from('judge_applications').insert({
-    user_id: userId,
-    game_id: gameId,
-    motivation,
-    status: 'pending',
-  });
-  return !error;
 }
 
 export const REAPPLY_DAYS = 30;

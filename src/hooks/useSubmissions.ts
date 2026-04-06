@@ -1,24 +1,39 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import { supabase } from '../services/supabase';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { supabase, assignJudges } from '../services/supabase';
 import { useToast } from './useToast';
-import type { Submission } from '../types';
+import type { ServiceResult } from '../services/submissionService';
+import type { Submission, SubmissionStatus } from '../types';
+
+export interface SubmitParams {
+  challengeId: number;
+  videoUrl: string;
+  comment: string | null;
+  token: string;
+}
 
 interface UseSubmissionsResult {
   submissions: Submission[];
   toast: ReturnType<typeof useToast>['toast'];
-  setSubmissions: React.Dispatch<React.SetStateAction<Submission[]>>;
-  loadSubmissions: (userId: string) => Promise<void>;
+  submitting: boolean;
   getSubmissionStatus: (challengeId: number) => Submission | undefined;
   hasActiveSubmission: () => boolean;
   isOnCooldown: () => boolean;
+  submit: (params: SubmitParams) => Promise<ServiceResult>;
+  withdraw: (submissionId: string) => Promise<ServiceResult>;
 }
 
 export function useSubmissions(
   dbUserId: string | null,
+  token: string | null,
   onApproved?: () => void
 ): UseSubmissionsResult {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [submitting, setSubmitting] = useState(false);
   const { toast, showToast } = useToast(5000);
+
+  // Always-fresh ref so stable callbacks can read current submissions
+  const submissionsRef = useRef(submissions);
+  useEffect(() => { submissionsRef.current = submissions; }, [submissions]);
 
   const loadSubmissions = useCallback(async (userId: string) => {
     const { data } = await supabase
@@ -62,22 +77,101 @@ export function useSubmissions(
   }, [dbUserId, showToast, onApproved]);
 
   const getSubmissionStatus = useCallback(
-    (challengeId: number) => submissions.find(s => s.challenge_id === challengeId),
-    [submissions]
+    (challengeId: number) => submissionsRef.current.find(s => s.challenge_id === challengeId),
+    []
   );
 
   const hasActiveSubmission = useCallback(
-    () => submissions.some(s => s.status === 'pending' || s.status === 'in_review'),
-    [submissions]
+    () => submissionsRef.current.some(s => s.status === 'pending' || s.status === 'in_review'),
+    []
   );
 
   const isOnCooldown = useCallback(() => {
-    const latest = submissions
+    const latest = submissionsRef.current
       .filter(s => s.cooldown_until)
       .sort((a, b) => new Date(b.cooldown_until!).getTime() - new Date(a.cooldown_until!).getTime())[0];
-    if (!latest?.cooldown_until) return false;
-    return new Date(latest.cooldown_until) > new Date();
-  }, [submissions]);
+    return !!latest?.cooldown_until && new Date(latest.cooldown_until) > new Date();
+  }, []);
 
-  return { submissions, toast, setSubmissions, loadSubmissions, getSubmissionStatus, hasActiveSubmission, isOnCooldown };
+  const submit = useCallback(async (params: SubmitParams): Promise<ServiceResult> => {
+    if (!dbUserId) return { success: false, error: 'Not authenticated' };
+    if (hasActiveSubmission()) return { success: false, error: 'You already have an active submission. Wait for the result.' };
+    if (isOnCooldown()) return { success: false, error: 'You are on cooldown. Please wait 24 hours after withdrawing.' };
+
+    setSubmitting(true);
+
+    const optimisticId = `optimistic_${Date.now()}`;
+    const optimistic: Submission = {
+      id: optimisticId,
+      challenge_id: params.challengeId,
+      status: 'pending',
+      cooldown_until: null,
+      video_url: params.videoUrl,
+      comment: params.comment,
+      submitted_at: new Date().toISOString(),
+      admin_note: null,
+      user_id: dbUserId,
+      user: null,
+      challenge: null,
+    };
+    setSubmissions(prev => [...prev, optimistic]);
+
+    const { data: inserted, error } = await supabase
+      .from('submissions')
+      .insert({
+        user_id: dbUserId,
+        challenge_id: params.challengeId,
+        video_url: params.videoUrl,
+        comment: params.comment,
+        status: 'pending',
+      })
+      .select('id')
+      .single();
+
+    if (error) {
+      setSubmissions(prev => prev.filter(s => s.id !== optimisticId));
+      setSubmitting(false);
+      return { success: false, error: error.message };
+    }
+
+    await assignJudges(params.token, inserted.id);
+    setSubmissions(prev =>
+      prev.map(s => s.id === optimisticId ? { ...s, id: inserted.id } : s)
+    );
+    setSubmitting(false);
+    return { success: true };
+  }, [dbUserId, hasActiveSubmission, isOnCooldown]);
+
+  const withdraw = useCallback(async (submissionId: string): Promise<ServiceResult> => {
+    const cooldownUntil = new Date();
+    cooldownUntil.setHours(cooldownUntil.getHours() + 24);
+
+    const { error } = await supabase
+      .from('submissions')
+      .update({
+        status: 'withdrawn' as SubmissionStatus,
+        withdrawn_at: new Date().toISOString(),
+        cooldown_until: cooldownUntil.toISOString(),
+      })
+      .eq('id', submissionId);
+
+    if (error) {
+      showToast('Failed to withdraw submission. Please try again.', 'error');
+      return { success: false, error: error.message };
+    }
+
+    if (dbUserId) await loadSubmissions(dbUserId);
+    return { success: true };
+  }, [dbUserId, loadSubmissions, showToast]);
+
+  return {
+    submissions,
+    toast,
+    submitting,
+    getSubmissionStatus,
+    hasActiveSubmission,
+    isOnCooldown,
+    submit,
+    withdraw,
+  };
 }

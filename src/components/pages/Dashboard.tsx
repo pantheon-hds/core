@@ -1,9 +1,9 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import './Dashboard.css';
 import { SteamUser } from './SteamCallback';
-import { assignJudges, supabase } from '../../services/supabase';
 import { RANK_TIER_COLORS, getRankOrder } from '../../constants/ranks';
 import { Toast } from '../ui/Toast';
+import ConfirmDialog from '../ui/ConfirmDialog';
 import { useChallenges } from '../../hooks/useChallenges';
 import { useUserData } from '../../hooks/useUserData';
 import { useSubmissions } from '../../hooks/useSubmissions';
@@ -11,124 +11,31 @@ import ChallengeDetailModal from '../dashboard/ChallengeDetailModal';
 import SubmitModal from '../dashboard/SubmitModal';
 import RankCard from '../dashboard/RankCard';
 import ChallengeList from '../dashboard/ChallengeList';
-import type { Challenge, Submission, SubmissionStatus } from '../../types';
+import type { Challenge } from '../../types';
 import { isValidVideoUrl } from '../../utils/videoUrl';
 
 interface DashboardProps { user: SteamUser | null; }
 
 const Dashboard: React.FC<DashboardProps> = ({ user }) => {
+  // UI state
   const [activeChallenge, setActiveChallenge] = useState<Challenge | null>(null);
   const [submitChallenge, setSubmitChallenge] = useState<Challenge | null>(null);
   const [filter, setFilter] = useState<string>('All');
-  const [copied, setCopied] = useState(false);
-  const copiedTimerRef = useRef<ReturnType<typeof setTimeout>>();
-  useEffect(() => () => clearTimeout(copiedTimerRef.current), []);
   const [videoUrl, setVideoUrl] = useState('');
   const [comment, setComment] = useState('');
-  const [submitting, setSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
+  const [copied, setCopied] = useState(false);
+  const [withdrawTarget, setWithdrawTarget] = useState<string | null>(null);
 
+  const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => () => clearTimeout(copiedTimerRef.current), []);
+
+  // Data
   const { challenges, games } = useChallenges();
   const { dbUserId, dbUsername, ranks, statues, refreshRanks, isError, isBanned, banReason, banUntil } = useUserData(user, games);
+  const { submissions, toast, submitting, getSubmissionStatus, submit, withdraw } = useSubmissions(dbUserId, user?.token ?? null, refreshRanks);
 
-  const handleApproved = useCallback(() => {
-    refreshRanks();
-  }, [refreshRanks]);
-
-  const { submissions, toast, setSubmissions, loadSubmissions, getSubmissionStatus, hasActiveSubmission, isOnCooldown } =
-    useSubmissions(dbUserId, handleApproved);
-
-  const handleSubmit = async () => {
-    if (!dbUserId || !submitChallenge) return;
-
-    if (!videoUrl.trim()) {
-      setSubmitMessage('Please provide a video URL.');
-      return;
-    }
-
-    if (!isValidVideoUrl(videoUrl)) {
-      setSubmitMessage('Only YouTube or Twitch links are allowed.');
-      return;
-    }
-
-    if (hasActiveSubmission()) {
-      setSubmitMessage('You already have an active submission. Wait for the result.');
-      return;
-    }
-
-    if (isOnCooldown()) {
-      setSubmitMessage('You are on cooldown. Please wait 24 hours after withdrawing.');
-      return;
-    }
-
-    setSubmitting(true);
-
-    // Optimistic update: show the submission as pending immediately
-    const optimisticId = `optimistic_${Date.now()}`;
-    const optimisticSubmission: Submission = {
-      id: optimisticId,
-      challenge_id: submitChallenge.id,
-      status: 'pending',
-      cooldown_until: null,
-      video_url: videoUrl.trim(),
-      comment: comment.trim() || null,
-      submitted_at: new Date().toISOString(),
-      admin_note: null,
-      user_id: dbUserId,
-      user: null,
-      challenge: null,
-    };
-    setSubmissions(prev => [...prev, optimisticSubmission]);
-    setSubmitChallenge(null);
-
-    const { data: inserted, error } = await supabase
-      .from('submissions')
-      .insert({
-        user_id: dbUserId,
-        challenge_id: submitChallenge.id,
-        video_url: videoUrl.trim(),
-        comment: comment.trim() || null,
-        status: 'pending',
-      })
-      .select('id')
-      .single();
-
-    if (error) {
-      // Rollback optimistic update
-      setSubmissions(prev => prev.filter(s => s.id !== optimisticId));
-      setSubmitChallenge(submitChallenge);
-      setSubmitMessage(`Error: ${error.message}`);
-    } else {
-      if (inserted) {
-        await assignJudges(user?.token ?? '', inserted.id);
-        // Replace optimistic entry with real ID
-        setSubmissions(prev =>
-          prev.map(s => s.id === optimisticId ? { ...s, id: inserted.id } : s)
-        );
-      }
-      setVideoUrl('');
-      setComment('');
-    }
-    setSubmitting(false);
-  };
-
-  const handleWithdraw = async (submissionId: string) => {
-    if (!window.confirm('Withdraw this submission? You will have a 24-hour cooldown.')) return;
-
-    const cooldownUntil = new Date();
-    cooldownUntil.setHours(cooldownUntil.getHours() + 24);
-
-    await supabase.from('submissions')
-      .update({
-        status: 'withdrawn' as SubmissionStatus,
-        withdrawn_at: new Date().toISOString(),
-        cooldown_until: cooldownUntil.toISOString(),
-      })
-      .eq('id', submissionId);
-
-    if (dbUserId) await loadSubmissions(dbUserId);
-  };
-
+  // Derived state
   const topRank = useMemo(
     () => [...ranks].sort((a, b) => getRankOrder(a.tier) - getRankOrder(b.tier))[0],
     [ranks]
@@ -137,9 +44,72 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
     () => ['All', ...Array.from(new Set(challenges.map(c => c.tier)))],
     [challenges]
   );
-  const approvedSubmissions = submissions.filter(s => s.status === 'approved');
-  const approvedChallengeIds = approvedSubmissions.map(s => s.challenge_id);
+  const approvedSubmissions = useMemo(
+    () => submissions.filter(s => s.status === 'approved'),
+    [submissions]
+  );
+  const approvedChallengeIds = useMemo(
+    () => approvedSubmissions.map(s => s.challenge_id),
+    [approvedSubmissions]
+  );
+  const activeSubmissions = useMemo(
+    () => submissions.filter(s => s.status === 'pending' || s.status === 'in_review'),
+    [submissions]
+  );
 
+  // Handlers
+  const handleSubmit = useCallback(async () => {
+    if (!videoUrl.trim()) {
+      setSubmitMessage('Please provide a video URL.');
+      return;
+    }
+    if (!isValidVideoUrl(videoUrl)) {
+      setSubmitMessage('Only YouTube or Twitch links are allowed.');
+      return;
+    }
+
+    const result = await submit({
+      challengeId: submitChallenge!.id,
+      videoUrl: videoUrl.trim(),
+      comment: comment.trim() || null,
+      token: user?.token ?? '',
+    });
+
+    if (result.success) {
+      setSubmitChallenge(null);
+      setVideoUrl('');
+      setComment('');
+    } else {
+      setSubmitMessage(result.error ?? 'Submission failed.');
+    }
+  }, [videoUrl, comment, submit, submitChallenge, user?.token]);
+
+  const handleWithdrawRequest = useCallback((submissionId: string) => {
+    setWithdrawTarget(submissionId);
+  }, []);
+
+  const handleWithdrawConfirm = useCallback(async () => {
+    const id = withdrawTarget;
+    setWithdrawTarget(null);
+    if (id) await withdraw(id);
+  }, [withdrawTarget, withdraw]);
+
+  const handleCopy = useCallback(() => {
+    navigator.clipboard.writeText(`https://pantheonhds.com/u/${dbUsername}`)
+      .then(() => {
+        setCopied(true);
+        clearTimeout(copiedTimerRef.current);
+        copiedTimerRef.current = setTimeout(() => setCopied(false), 2000);
+      })
+      .catch(() => {});
+  }, [dbUsername]);
+
+  const handleCloseSubmitModal = useCallback(() => {
+    setSubmitChallenge(null);
+    setSubmitMessage('');
+  }, []);
+
+  // Error / banned screens
   if (isError) {
     return (
       <div className="dashboard">
@@ -173,6 +143,17 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
     <div className="dashboard">
       <Toast toast={toast} />
 
+      {withdrawTarget && (
+        <ConfirmDialog
+          message="Withdraw this submission? You will have a 24-hour cooldown before submitting again."
+          confirmLabel="Withdraw"
+          cancelLabel="Keep"
+          dangerous
+          onConfirm={handleWithdrawConfirm}
+          onCancel={() => setWithdrawTarget(null)}
+        />
+      )}
+
       {activeChallenge && (
         <ChallengeDetailModal
           challenge={activeChallenge}
@@ -192,7 +173,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
           onVideoUrlChange={setVideoUrl}
           onCommentChange={setComment}
           onSubmit={handleSubmit}
-          onClose={() => { setSubmitChallenge(null); setSubmitMessage(''); }}
+          onClose={handleCloseSubmitModal}
         />
       )}
 
@@ -203,20 +184,12 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
         challenges={challenges}
         dbUsername={dbUsername}
         copied={copied}
-        onCopy={() => {
-          navigator.clipboard.writeText(`https://pantheonhds.com/u/${dbUsername}`)
-            .then(() => {
-              setCopied(true);
-              clearTimeout(copiedTimerRef.current);
-              copiedTimerRef.current = setTimeout(() => setCopied(false), 2000);
-            })
-            .catch(() => {});
-        }}
+        onCopy={handleCopy}
         topRank={topRank}
         approvedChallengeIds={approvedChallengeIds}
       />
 
-      {submissions.filter(s => s.status === 'pending' || s.status === 'in_review').map(s => {
+      {activeSubmissions.map(s => {
         const challenge = challenges.find(c => c.id === s.challenge_id);
         return (
           <div key={s.id} className="dashboard__active-submission">
@@ -229,7 +202,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                 <span className="dashboard__live-badge">● Live</span>
               </div>
             </div>
-            <button className="dashboard__withdraw-btn" onClick={() => handleWithdraw(s.id)}>
+            <button className="dashboard__withdraw-btn" onClick={() => handleWithdrawRequest(s.id)}>
               Withdraw
             </button>
           </div>

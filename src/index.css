@@ -42,11 +42,16 @@
   --font-display: 'Cinzel', serif;
   --font-body: 'Crimson Pro', serif;
 
+  /* Legend color variants */
+  --color-legend-dim: #c44a2a;
+  --color-legend-border: #3a1a0a;
+
   /* Z-index layers */
   --z-base: 1;
   --z-nav: 100;
   --z-overlay: 150;
   --z-modal: 200;
+  --z-page-modal: 210;
   --z-toast: 9999;
 }
 

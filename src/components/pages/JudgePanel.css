@@ -219,3 +219,15 @@
   color: var(--color-text-dim);
   font-style: italic;
 }
+
+@media (max-width: 768px) {
+  .judge { padding: 1rem; }
+  .judge__vote-btns { flex-direction: column; }
+  .judge__approve-btn,
+  .judge__reject-btn { width: 100%; }
+}
+
+@media (max-width: 480px) {
+  .judge__item { padding: 1rem; }
+  .judge__item-header { flex-direction: column; align-items: flex-start; gap: 0.4rem; }
+}

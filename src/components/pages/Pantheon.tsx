@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import './Pantheon.css';
 import { getPantheonData, PantheonEntry } from '../../services/pantheonService';
 import { RANK_TIER_COLORS } from '../../constants/ranks';
@@ -15,21 +16,16 @@ const TIER_GROUPS = [
 ];
 
 const Pantheon: React.FC = () => {
-  const [entries, setEntries] = useState<PantheonEntry[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-
-  useEffect(() => {
-    getPantheonData()
-      .then(data => { setEntries(data); setLoading(false); })
-      .catch(() => { setError(true); setLoading(false); });
-  }, []);
+  const { data: entries = [], isLoading, isError } = useQuery({
+    queryKey: ['pantheon'],
+    queryFn: getPantheonData,
+    staleTime: 60 * 1000,
+  });
 
   const hasAny = entries.length > 0;
 
   return (
     <div className="pantheon">
-      {/* Header */}
       <div className="pantheon__intro">
         <div className="pantheon__intro-top" />
         <div className="pantheon__intro-title">Pantheon of Legends</div>
@@ -38,20 +34,20 @@ const Pantheon: React.FC = () => {
         </div>
       </div>
 
-      {loading && (
+      {isLoading && (
         <div className="pantheon__empty">
           <div className="pantheon__empty-title">Loading...</div>
         </div>
       )}
 
-      {!loading && error && (
+      {!isLoading && isError && (
         <div className="pantheon__empty">
           <div className="pantheon__empty-title">Failed to load</div>
           <div className="pantheon__empty-sub">Check your connection and try again.</div>
         </div>
       )}
 
-      {!loading && !hasAny && (
+      {!isLoading && !isError && !hasAny && (
         <div className="pantheon__empty">
           <div className="pantheon__empty-icon">
             <svg viewBox="0 0 60 60" fill="none" width="60" height="60">
@@ -73,11 +69,10 @@ const Pantheon: React.FC = () => {
         </div>
       )}
 
-      {!loading && hasAny && TIER_GROUPS.map(group => {
+      {!isLoading && !isError && hasAny && TIER_GROUPS.map(group => {
         const groupEntries = entries.filter(e => group.tiers.includes(e.bestTier));
         if (groupEntries.length === 0) {
           if (!group.special) return null;
-          // Show empty Legends section as aspirational
           return (
             <div key={group.label} className="pantheon__group">
               <div className="pantheon__section-title">{group.label}</div>

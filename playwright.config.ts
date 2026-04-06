@@ -16,5 +16,10 @@ export default defineConfig({
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
   ],
-  // Run `npm start` in a separate terminal before running tests
+  webServer: {
+    command: 'npx vite preview --port 3000',
+    url: 'http://localhost:3000',
+    reuseExistingServer: !process.env.CI,
+    timeout: 30000,
+  },
 });

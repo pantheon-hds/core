@@ -9,7 +9,7 @@ export interface Toast {
 
 export function useToast(durationMs = 3000) {
   const [toast, setToast] = useState<Toast | null>(null);
-  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const showToast = useCallback((message: string, severity: ToastSeverity = 'info') => {
     setToast({ message, severity });

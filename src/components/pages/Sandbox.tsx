@@ -5,10 +5,10 @@ import { supabase } from '../../services/supabase';
 
 interface SandboxProps { user: SteamUser | null; }
 
-interface SandboxJudge { id: string; username: string; steam_id: string; is_judge: boolean; }
-interface SandboxSubmission { id: string; status: string; submitted_at: string; is_test: boolean; challenge: { title: string; tier: string } | null; }
+interface SandboxJudge { id: string; username: string; steam_id: string; is_judge: boolean | null; }
+interface SandboxSubmission { id: string; status: string | null; submitted_at: string | null; is_test: boolean | null; challenge: { title: string; tier: string } | null; }
 interface SandboxChallenge { id: number; title: string; tier: string; game: { title: string } | null; }
-interface SandboxAssignment { id: string; submission_id: string; is_test: boolean; judge: { username: string } | null; submission: { is_test: boolean } | null; }
+interface SandboxAssignment { id: string; submission_id: string | null; vote: string | null; is_test: boolean | null; judge: { username: string } | null; submission: { is_test: boolean | null } | null; }
 
 const Sandbox: React.FC<SandboxProps> = ({ user }) => {
   const isFounder = user?.steamId === 'VOLAND_FOUNDER';
@@ -21,7 +21,7 @@ const Sandbox: React.FC<SandboxProps> = ({ user }) => {
   const [message, setMessage] = useState('');
   const [selectedChallenge, setSelectedChallenge] = useState('');
   const [judgeCount, setJudgeCount] = useState(3);
-  const msgTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const msgTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const showMessage = (msg: string) => {
     setMessage(msg);
