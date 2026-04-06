@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { Submission } from '../../types';
+import { safeVideoUrl } from '../../utils/videoUrl';
 
 interface SubmissionsTabProps {
   submissions: Submission[];
@@ -35,7 +36,7 @@ const SubmissionsTab: React.FC<SubmissionsTabProps> = ({ submissions, onAction }
                   <span className={`admin__status--${s.status}`}>{s.status}</span>
                 </div>
                 {s.comment && <div className="admin__item-desc">Comment: {s.comment}</div>}
-                <a href={s.video_url} target="_blank" rel="noopener noreferrer" className="admin__video-link">
+                <a href={safeVideoUrl(s.video_url)} target="_blank" rel="noopener noreferrer" className="admin__video-link">
                   Watch Video →
                 </a>
                 {s.status === 'pending' && (

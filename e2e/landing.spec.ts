@@ -14,8 +14,9 @@ test.describe('Landing pages', () => {
     await expect(page.locator('input[type="email"]')).toBeVisible({ timeout: 10000 });
   });
 
-  test('unknown route redirects to home', async ({ page }) => {
+  test('unknown route shows 404 page', async ({ page }) => {
     await page.goto('/this-does-not-exist');
-    await expect(page).toHaveURL('http://localhost:3000/', { timeout: 10000 });
+    await page.waitForLoadState('domcontentloaded');
+    await expect(page.getByText('Page Not Found')).toBeVisible({ timeout: 10000 });
   });
 });

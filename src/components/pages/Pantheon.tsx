@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Pantheon.css';
-import { getPantheonData, PantheonEntry } from '../../services/supabase';
+import { getPantheonData, PantheonEntry } from '../../services/pantheonService';
 import { RANK_TIER_COLORS } from '../../constants/ranks';
 import StatueSVG from '../ui/StatueSVG';
 

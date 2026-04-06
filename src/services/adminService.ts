@@ -40,77 +40,77 @@ async function callAdminAction(
 // ── Submissions ──────────────────────────────────────────────────────────────
 
 export function reviewSubmission(
-  steamId: string,
+  token: string,
   submissionId: string,
   status: 'approved' | 'rejected',
   adminNote: string
 ): Promise<AdminResult> {
-  return callAdminAction(steamId, 'review-submission', { submissionId, status, adminNote });
+  return callAdminAction(token, 'review-submission', { submissionId, status, adminNote });
 }
 
 // ── Bans ─────────────────────────────────────────────────────────────────────
 
 export function banUser(
-  steamId: string,
+  token: string,
   userId: string,
   reason: string,
   bannedUntil: string | null
 ): Promise<AdminResult> {
-  return callAdminAction(steamId, 'ban-user', { userId, reason, bannedUntil });
+  return callAdminAction(token, 'ban-user', { userId, reason, bannedUntil });
 }
 
-export function unbanUser(steamId: string, userId: string): Promise<AdminResult> {
-  return callAdminAction(steamId, 'unban-user', { userId });
+export function unbanUser(token: string, userId: string): Promise<AdminResult> {
+  return callAdminAction(token, 'unban-user', { userId });
 }
 
 // ── Judges ───────────────────────────────────────────────────────────────────
 
 export function reviewJudgeApp(
-  steamId: string,
+  token: string,
   appId: string,
   userId: string,
   decision: 'approved' | 'rejected'
 ): Promise<AdminResult> {
-  return callAdminAction(steamId, 'review-judge-app', { appId, userId, decision });
+  return callAdminAction(token, 'review-judge-app', { appId, userId, decision });
 }
 
 export function appointJudge(
-  steamId: string,
+  token: string,
   targetSteamId: string
 ): Promise<AdminResult & { username?: string }> {
-  return callAdminAction(steamId, 'appoint-judge', { targetSteamId });
+  return callAdminAction(token, 'appoint-judge', { targetSteamId });
 }
 
-export function removeJudge(steamId: string, userId: string): Promise<AdminResult> {
-  return callAdminAction(steamId, 'remove-judge', { userId });
+export function removeJudge(token: string, userId: string): Promise<AdminResult> {
+  return callAdminAction(token, 'remove-judge', { userId });
 }
 
 // ── Challenges ───────────────────────────────────────────────────────────────
 
 export function addChallenge(
-  steamId: string,
+  token: string,
   data: { title: string; description: string; tier: string; gameId: number }
 ): Promise<AdminResult> {
-  return callAdminAction(steamId, 'add-challenge', data);
+  return callAdminAction(token, 'add-challenge', data);
 }
 
 export function editChallenge(
-  steamId: string,
+  token: string,
   id: number,
   data: { title: string; description: string; tier: string; gameId: number }
 ): Promise<AdminResult> {
-  return callAdminAction(steamId, 'edit-challenge', { id, ...data });
+  return callAdminAction(token, 'edit-challenge', { id, ...data });
 }
 
-export function deleteChallenge(steamId: string, id: number): Promise<AdminResult> {
-  return callAdminAction(steamId, 'delete-challenge', { id });
+export function deleteChallenge(token: string, id: number): Promise<AdminResult> {
+  return callAdminAction(token, 'delete-challenge', { id });
 }
 
 // ── Games ────────────────────────────────────────────────────────────────────
 
 export function addGame(
-  steamId: string,
+  token: string,
   data: { title: string; steamAppId: string }
 ): Promise<AdminResult> {
-  return callAdminAction(steamId, 'add-game', data);
+  return callAdminAction(token, 'add-game', data);
 }

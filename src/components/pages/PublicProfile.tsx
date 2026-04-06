@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import LandingLayout from '../layout/LandingLayout';
 import StatueSVG from '../ui/StatueSVG';
-import { getPublicProfile, PublicProfileData } from '../../services/supabase';
+import { getPublicProfile, PublicProfileData } from '../../services/profileService';
 import { RANK_TIER_COLORS, getRankOrder } from '../../constants/ranks';
 import './PublicProfile.css';
 

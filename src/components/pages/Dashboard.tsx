@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import './Dashboard.css';
 import { SteamUser } from './SteamCallback';
-import { assignJudges, getUserRanks, supabase } from '../../services/supabase';
+import { assignJudges, supabase } from '../../services/supabase';
 import { RANK_TIER_COLORS, getRankOrder } from '../../constants/ranks';
 import { Toast } from '../ui/Toast';
 import { useChallenges } from '../../hooks/useChallenges';
@@ -12,19 +12,7 @@ import SubmitModal from '../dashboard/SubmitModal';
 import RankCard from '../dashboard/RankCard';
 import ChallengeList from '../dashboard/ChallengeList';
 import type { Challenge, Submission, SubmissionStatus } from '../../types';
-
-const ALLOWED_DOMAINS = ['youtube.com', 'youtu.be', 'twitch.tv'];
-
-function isValidVideoUrl(url: string): boolean {
-  try {
-    const { hostname, protocol } = new URL(url);
-    if (protocol !== 'https:') return false;
-    const domain = hostname.replace(/^www\./, '');
-    return ALLOWED_DOMAINS.some(d => domain === d || domain.endsWith('.' + d));
-  } catch {
-    return false;
-  }
-}
+import { isValidVideoUrl } from '../../utils/videoUrl';
 
 interface DashboardProps { user: SteamUser | null; }
 
@@ -41,11 +29,11 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   const [submitMessage, setSubmitMessage] = useState('');
 
   const { challenges, games } = useChallenges();
-  const { dbUserId, dbUsername, ranks, statues, setRanks, isBanned, banReason, banUntil } = useUserData(user, games);
+  const { dbUserId, dbUsername, ranks, statues, refreshRanks, isError, isBanned, banReason, banUntil } = useUserData(user, games);
 
   const handleApproved = useCallback(() => {
-    if (dbUserId) getUserRanks(dbUserId).then(setRanks);
-  }, [dbUserId, setRanks]);
+    refreshRanks();
+  }, [refreshRanks]);
 
   const { submissions, toast, setSubmissions, loadSubmissions, getSubmissionStatus, hasActiveSubmission, isOnCooldown } =
     useSubmissions(dbUserId, handleApproved);
@@ -145,9 +133,24 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
     () => [...ranks].sort((a, b) => getRankOrder(a.tier) - getRankOrder(b.tier))[0],
     [ranks]
   );
-  const tiers = ['All', ...Array.from(new Set(challenges.map(c => c.tier)))];
+  const tiers = useMemo(
+    () => ['All', ...Array.from(new Set(challenges.map(c => c.tier)))],
+    [challenges]
+  );
   const approvedSubmissions = submissions.filter(s => s.status === 'approved');
   const approvedChallengeIds = approvedSubmissions.map(s => s.challenge_id);
+
+  if (isError) {
+    return (
+      <div className="dashboard">
+        <div className="dashboard__banned">
+          <div className="dashboard__banned-icon">⚠</div>
+          <div className="dashboard__banned-title">Failed to load your data</div>
+          <div className="dashboard__banned-contact">Check your connection and refresh the page.</div>
+        </div>
+      </div>
+    );
+  }
 
   if (isBanned) {
     return (

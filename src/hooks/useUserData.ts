@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useEffect, useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getUserBySteamId, getUserRanks, getUserStatues, checkAchievements } from '../services/supabase';
 import type { SteamUser } from '../components/pages/SteamCallback';
 import type { UserRank, UserStatue } from '../types';
@@ -11,40 +11,35 @@ interface UseUserDataResult {
   dbUsername: string | null;
   ranks: UserRank[];
   statues: UserStatue[];
-  setRanks: React.Dispatch<React.SetStateAction<UserRank[]>>;
-  loadUserData: () => Promise<void>;
+  refreshRanks: () => void;
+  isLoading: boolean;
+  isError: boolean;
   isBanned: boolean;
   banReason: string | null;
   banUntil: string | null;
 }
 
 export function useUserData(user: SteamUser | null, games: Game[]): UseUserDataResult {
-  const [ranks, setRanks] = useState<UserRank[]>([]);
-  const [statues, setStatues] = useState<UserStatue[]>([]);
+  const queryClient = useQueryClient();
 
-  // Cached: user lookup by steamId
-  const { data: dbUser } = useQuery({
+  const { data: dbUser, isLoading: dbUserLoading } = useQuery({
     queryKey: ['dbUser', user?.steamId],
     queryFn: () => getUserBySteamId(user!.steamId),
     enabled: !!user,
     staleTime: 30 * 1000, // 30s — short so bans take effect quickly
   });
 
-  // Cached: ranks and statues
-  const { data: ranksData } = useQuery({
+  const { data: ranks = [], isLoading: ranksLoading, isError: ranksError } = useQuery({
     queryKey: ['ranks', dbUser?.id],
     queryFn: () => getUserRanks(dbUser!.id),
     enabled: !!dbUser?.id,
   });
 
-  const { data: statuesData } = useQuery({
+  const { data: statues = [], isLoading: statuesLoading, isError: statuesError } = useQuery({
     queryKey: ['statues', dbUser?.id],
     queryFn: () => getUserStatues(dbUser!.id),
     enabled: !!dbUser?.id,
   });
-
-  useEffect(() => { if (ranksData) setRanks(ranksData); }, [ranksData]);
-  useEffect(() => { if (statuesData) setStatues(statuesData); }, [statuesData]);
 
   // Achievement check on load (not cached — always fresh)
   useEffect(() => {
@@ -53,19 +48,10 @@ export function useUserData(user: SteamUser | null, games: Game[]): UseUserDataR
       .catch(e => console.error('Failed to check achievements:', e));
   }, [user, dbUser, games]);
 
-  const loadUserData = async () => {
-    if (!user || !dbUser) return;
-    try {
-      const [userRanks, userStatues] = await Promise.all([
-        getUserRanks(dbUser.id),
-        getUserStatues(dbUser.id),
-      ]);
-      setRanks(userRanks);
-      setStatues(userStatues);
-    } catch (e) {
-      console.error('Failed to reload user data:', e);
-    }
-  };
+  // Invalidates the ranks cache — React Query refetches automatically
+  const refreshRanks = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['ranks', dbUser?.id] });
+  }, [queryClient, dbUser?.id]);
 
   const isBanned =
     (dbUser?.is_banned ?? false) &&
@@ -76,8 +62,9 @@ export function useUserData(user: SteamUser | null, games: Game[]): UseUserDataR
     dbUsername: dbUser?.username ?? null,
     ranks,
     statues,
-    setRanks,
-    loadUserData,
+    refreshRanks,
+    isLoading: !!user && (dbUserLoading || ranksLoading || statuesLoading),
+    isError: ranksError || statuesError,
     isBanned,
     banReason: dbUser?.ban_reason ?? null,
     banUntil: dbUser?.banned_until ?? null,

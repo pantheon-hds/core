@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import './JudgePanel.css';
 import { SteamUser } from './SteamCallback';
 import { getUserBySteamId, supabase } from '../../services/supabase';
+import { safeVideoUrl } from '../../utils/videoUrl';
 import { recordJudgeVote } from '../../services/submissionService';
 import * as adminService from '../../services/adminService';
 import { useToast } from '../../hooks/useToast';
@@ -180,7 +181,7 @@ const JudgePanel: React.FC<JudgePanelProps> = ({ user }) => {
               )}
 
               <a
-                href={a.submission?.video_url}
+                href={safeVideoUrl(a.submission?.video_url)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="judge__video-link"

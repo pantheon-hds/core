@@ -1,61 +1,36 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './Profile.css';
 import { SteamUser } from './SteamCallback';
-import { getUserBySteamId, getUserStatues, getUserRanks, supabase, checkJudgeEligibility, submitJudgeApplication } from '../../services/supabase';
+import { checkJudgeEligibility, submitJudgeApplication } from '../../services/supabase';
 import { getTierColorSet } from '../../constants/ranks';
 import StatueSVG from '../ui/StatueSVG';
-import type { UserRank, UserStatue, Game, JudgeEligibility } from '../../types';
-
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useUserData } from '../../hooks/useUserData';
+import { useChallenges } from '../../hooks/useChallenges';
+import type { UserStatue } from '../../types';
 
 interface ProfileProps { user: SteamUser | null; }
 
 const Profile: React.FC<ProfileProps> = ({ user }) => {
   const [selected, setSelected] = useState<UserStatue | null>(null);
-  const [statues, setStatues] = useState<UserStatue[]>([]);
-  const [ranks, setRanks] = useState<UserRank[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
-  const [dbUserId, setDbUserId] = useState<string | null>(null);
-  const [games, setGames] = useState<Game[]>([]);
 
-  const [judgeEligibility, setJudgeEligibility] = useState<JudgeEligibility | null>(null);
   const [showJudgeForm, setShowJudgeForm] = useState(false);
   const [judgeGameId, setJudgeGameId] = useState('');
   const [judgeMotivation, setJudgeMotivation] = useState('');
   const [judgeSubmitting, setJudgeSubmitting] = useState(false);
   const [judgeMessage, setJudgeMessage] = useState('');
+  const judgeMessageTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  useEffect(() => () => clearTimeout(judgeMessageTimerRef.current), []);
 
-  const loadProfileData = useCallback(async () => {
-    if (!user) return;
-    setLoading(true);
-    try {
-      const dbUser = await getUserBySteamId(user.steamId);
-      if (dbUser) {
-        setDbUserId(dbUser.id);
-        const [userStatues, userRanks] = await Promise.all([
-          getUserStatues(dbUser.id),
-          getUserRanks(dbUser.id),
-        ]);
-        setStatues(userStatues);
-        setRanks(userRanks);
+  const { games } = useChallenges();
+  const { dbUserId, ranks, statues, isLoading } = useUserData(user, games);
+  const queryClient = useQueryClient();
 
-        const { data: gamesData } = await supabase.from('games').select('*');
-        setGames((gamesData as Game[]) || []);
-
-        const eligibility = await checkJudgeEligibility(dbUser.id);
-        setJudgeEligibility(eligibility);
-      }
-    } catch (e) {
-      console.error('Failed to load profile:', e);
-      setError(true);
-    }
-    setLoading(false);
-  }, [user]);
-
-  useEffect(() => {
-    if (!user) return;
-    loadProfileData();
-  }, [user, loadProfileData]);
+  const { data: judgeEligibility } = useQuery({
+    queryKey: ['judgeEligibility', dbUserId],
+    queryFn: () => checkJudgeEligibility(dbUserId!),
+    enabled: !!dbUserId,
+  });
 
   const handleJudgeApplication = async () => {
     if (!dbUserId || !judgeGameId || !judgeMotivation.trim()) {
@@ -67,23 +42,18 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
     if (success) {
       setJudgeMessage('Application submitted! The admin will review it.');
       setShowJudgeForm(false);
-      await loadProfileData();
+      queryClient.invalidateQueries({ queryKey: ['judgeEligibility', dbUserId] });
     } else {
       setJudgeMessage('Error submitting application. Try again.');
     }
     setJudgeSubmitting(false);
-    setTimeout(() => setJudgeMessage(''), 4000);
+    clearTimeout(judgeMessageTimerRef.current);
+    judgeMessageTimerRef.current = setTimeout(() => setJudgeMessage(''), 4000);
   };
 
   const topRank = ranks[0];
   const username = user?.username || 'Guest';
   const initials = username.slice(0, 2).toUpperCase();
-
-  if (error) {
-    return (
-      <div className="profile__empty">Failed to load profile. Check your connection and try again.</div>
-    );
-  }
 
   return (
     <div className="profile">
@@ -120,7 +90,7 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
         <div className="profile__info">
           <div className="profile__username">{username}</div>
           <div className="profile__since">
-            {loading ? 'Loading...' : topRank ? `${topRank.tier} · ${topRank.game?.title}` : 'No ranks yet'}
+            {topRank ? `${topRank.tier} · ${topRank.game?.title}` : 'No ranks yet'}
           </div>
           <div className="profile__tags">
             {ranks.slice(0, 3).map((r, i) => (
@@ -233,7 +203,7 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
 
       <div className="profile__section-title">Hall of Statues</div>
 
-      {loading ? (
+      {isLoading ? (
         <div className="profile__loading">Loading statues...</div>
       ) : statues.length === 0 ? (
         <div className="profile__empty">No statues yet. Check your achievements to earn ranks.</div>
