@@ -41,7 +41,7 @@ const LandingHome: React.FC = () => {
             <p>I have loved video games my entire life. For years, my way of honoring a game I loved was simple: get 100%. Every achievement. Every secret. Every hidden ending.</p>
             <p>But after the last achievement popped, I felt something unexpected. <em>Emptiness.</em> The game was over. There was nowhere left to go.</p>
             <p>I had done something genuinely hard. But where could I show it? Nobody cared about a Steam profile screenshot.</p>
-            <p>So I asked myself one question that changed everything:</p>
+            <p>So I asked myself:</p>
           </div>
           <div className="lh__quote">
             "What if 100% achievements is not the end of a game, but only the beginning?"

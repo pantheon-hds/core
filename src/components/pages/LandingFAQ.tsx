@@ -5,7 +5,7 @@ import './LandingFAQ.css';
 const faqData = [
   {
     question: "Is my Steam account safe?",
-    answer: "Yes. We use Steam OpenID, the same technology used by thousands of websites. We never receive your password. We only access your public profile: username, avatar, and achievement data. We cannot make purchases, access your inventory, or perform any actions on your account."
+    answer: "Yes. We use Steam OpenID, the same login method used by GOG, Humble Bundle, and most gaming platforms. We never receive your password. We only access your public profile: username, avatar, and achievement data. We cannot make purchases, access your inventory, or perform any actions on your account."
   },
   {
     question: "What data do you collect?",
@@ -25,7 +25,7 @@ const faqData = [
   },
   {
     question: "The code is open source. Where can I see it?",
-    answer: "The full platform code is available on GitHub at github.com/pantheon-hds/core. Anyone can read it, audit the security, and contribute improvements. We believe transparency is the only honest way to build a community platform."
+    answer: "The full platform code is available on GitHub at github.com/pantheon-hds/core. Anyone can read it, audit the security, and contribute improvements. Transparency is how trust is built."
   },
   {
     question: "How do I suggest a new game?",

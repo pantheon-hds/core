@@ -100,7 +100,7 @@ const LandingBeta: React.FC = () => {
               <div className="lb__success-title">Application Received</div>
               <div className="lb__success-text">
                 We review every application personally. You will hear from us if you are selected for the beta.
-                Thank you for believing in this idea.
+                Thanks for believing in this.
               </div>
               <div className="lb__success-author">Voland</div>
             </div>

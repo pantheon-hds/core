@@ -32,7 +32,7 @@ But after the last achievement popped — I felt something unexpected. Emptiness
 
 And I looked around. I had done something genuinely hard. But where could I show it? Nobody cared about a Steam profile screenshot.
 
-So I asked myself: **What if 100% achievements isn't the end of a game — but only the beginning?**
+So I asked myself: **What if 100% is not the end of a game — but only the beginning?**
 
 Pantheon is my answer.
 
@@ -248,7 +248,7 @@ What do YOU consider worthy of a Platinum rank in your favourite game? Open an i
 If you have Platinum rank in any supported game — apply through your Profile page on the platform.
 
 ### Support the project
-This project has no investors and no advertising. If you believe in the idea, you can support it voluntarily.B
+This project has no investors and no advertising. If you believe in the idea, you can support it voluntarily.
 
 <details>
 <summary>Support options</summary>
