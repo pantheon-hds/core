@@ -1,17 +1,20 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import LandingLayout from '../layout/LandingLayout';
 import './LandingBeta.css';
 import { submitWaitlist } from '../../services/supabase';
 
 const LandingBeta: React.FC = () => {
+  const [searchParams] = useSearchParams();
+  const noAccess = searchParams.get('reason') === 'no_access';
+
   const [email, setEmail] = useState('');
   const [reason, setReason] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = async (e: React.SyntheticEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!email.trim()) return;
     setSubmitting(true);
@@ -19,9 +22,7 @@ const LandingBeta: React.FC = () => {
     const result = await submitWaitlist(email.trim(), reason);
     setSubmitting(false);
     if (!result.success) {
-      setSubmitError(result.error === 'duplicate key value violates unique constraint "waitlist_email_key"'
-        ? 'This email is already on the waitlist.'
-        : 'Something went wrong. Please try again.');
+      setSubmitError(result.error ?? 'Something went wrong. Please try again.');
       return;
     }
     setSubmitted(true);
@@ -31,6 +32,11 @@ const LandingBeta: React.FC = () => {
     <LandingLayout>
       <div className="lb__page">
         <div className="lb__inner">
+          {noAccess && (
+            <div className="lb__no-access">
+              Your Steam account doesn't have access yet. Join the waitlist below and we'll reach out when you're invited.
+            </div>
+          )}
           <div className="lb__label">Closed Beta</div>
           <h1 className="lb__title">Be One of the First</h1>
           <div className="lb__subtitle">
@@ -45,8 +51,9 @@ const LandingBeta: React.FC = () => {
                 <div className="lb__form-text">We review every application personally. No spam. Ever.</div>
                 <form className="lb__form" onSubmit={handleSubmit}>
                   <div className="lb__field">
-                    <label className="lb__label-field">Email *</label>
+                    <label className="lb__label-field" htmlFor="beta-email">Email *</label>
                     <input
+                      id="beta-email"
                       className="lb__input"
                       type="email"
                       placeholder="your@email.com"
@@ -56,8 +63,9 @@ const LandingBeta: React.FC = () => {
                     />
                   </div>
                   <div className="lb__field">
-                    <label className="lb__label-field">Why do you want to join? (optional)</label>
+                    <label className="lb__label-field" htmlFor="beta-reason">Why do you want to join? (optional)</label>
                     <textarea
+                      id="beta-reason"
                       className="lb__textarea"
                       placeholder="Tell us about your gaming background, what games you love..."
                       value={reason}

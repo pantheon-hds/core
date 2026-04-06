@@ -42,7 +42,6 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ children }) => {
         </div>
       )}
 
-
       <main className="ll__main">{children}</main>
 
       <footer className="ll__footer">
@@ -57,6 +56,7 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ children }) => {
             <a href="https://reddit.com/r/PantheonHDS" target="_blank" rel="noopener noreferrer" className="ll__footer-link">Reddit</a>
             <a href="https://x.com/pantheonhds" target="_blank" rel="noopener noreferrer" className="ll__footer-link">X</a>
             <a href="https://github.com/pantheon-hds/core" target="_blank" rel="noopener noreferrer" className="ll__footer-link">GitHub</a>
+            <Link to="/privacy" className="ll__footer-link">Privacy</Link>
           </div>
           <div className="ll__footer-copy">© 2026 Pantheon HDS · Built in public · Open source</div>
         </div>

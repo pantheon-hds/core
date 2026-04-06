@@ -185,8 +185,9 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
               ) : (
                 <div className="profile__judge-form">
                   <div className="profile__judge-field">
-                    <label className="profile__judge-label">Game you want to judge</label>
+                    <label className="profile__judge-label" htmlFor="judge-game">Game you want to judge</label>
                     <select
+                      id="judge-game"
                       className="profile__judge-select"
                       value={judgeGameId}
                       onChange={e => setJudgeGameId(e.target.value)}
@@ -198,8 +199,9 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
                     </select>
                   </div>
                   <div className="profile__judge-field">
-                    <label className="profile__judge-label">Why do you want to be a judge?</label>
+                    <label className="profile__judge-label" htmlFor="judge-motivation">Why do you want to be a judge?</label>
                     <textarea
+                      id="judge-motivation"
                       className="profile__judge-textarea"
                       placeholder="Tell us about your experience with this game..."
                       value={judgeMotivation}

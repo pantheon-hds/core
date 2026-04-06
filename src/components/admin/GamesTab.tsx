@@ -26,8 +26,9 @@ const GamesTab: React.FC<GamesTabProps> = ({ games, onAdd }) => {
       <div className="admin__form">
         <div className="admin__form-title">Add New Game</div>
         <div className="admin__field">
-          <label className="admin__label">Title</label>
+          <label className="admin__label" htmlFor="game-title">Title</label>
           <input
+            id="game-title"
             className="admin__input"
             placeholder="e.g. Dark Souls III"
             value={newGame.title}
@@ -35,8 +36,9 @@ const GamesTab: React.FC<GamesTabProps> = ({ games, onAdd }) => {
           />
         </div>
         <div className="admin__field">
-          <label className="admin__label">Steam App ID</label>
+          <label className="admin__label" htmlFor="game-appid">Steam App ID</label>
           <input
+            id="game-appid"
             className="admin__input"
             placeholder="e.g. 374320"
             value={newGame.steam_app_id}

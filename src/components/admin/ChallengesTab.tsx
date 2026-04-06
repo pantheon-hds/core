@@ -46,25 +46,25 @@ const ChallengesTab: React.FC<ChallengesTabProps> = ({ challenges, games, onAdd,
       <div className="admin__form">
         <div className="admin__form-title">Add New Challenge</div>
         <div className="admin__field">
-          <label className="admin__label">Game</label>
-          <select className="admin__select" value={newChallenge.game_id} onChange={e => setNewChallenge(p => ({ ...p, game_id: e.target.value }))}>
+          <label className="admin__label" htmlFor="new-game">Game</label>
+          <select id="new-game" className="admin__select" value={newChallenge.game_id} onChange={e => setNewChallenge(p => ({ ...p, game_id: e.target.value }))}>
             <option value="">Select game...</option>
             {games.map(g => <option key={g.id} value={g.id}>{g.title}</option>)}
           </select>
         </div>
         <div className="admin__field">
-          <label className="admin__label">Tier</label>
-          <select className="admin__select" value={newChallenge.tier} onChange={e => setNewChallenge(p => ({ ...p, tier: e.target.value }))}>
+          <label className="admin__label" htmlFor="new-tier">Tier</label>
+          <select id="new-tier" className="admin__select" value={newChallenge.tier} onChange={e => setNewChallenge(p => ({ ...p, tier: e.target.value }))}>
             {CHALLENGE_TIERS.map(t => <option key={t} value={t}>{t}</option>)}
           </select>
         </div>
         <div className="admin__field">
-          <label className="admin__label">Title</label>
-          <input className="admin__input" placeholder="Challenge name" value={newChallenge.title} onChange={e => setNewChallenge(p => ({ ...p, title: e.target.value }))} />
+          <label className="admin__label" htmlFor="new-title">Title</label>
+          <input id="new-title" className="admin__input" placeholder="Challenge name" value={newChallenge.title} onChange={e => setNewChallenge(p => ({ ...p, title: e.target.value }))} />
         </div>
         <div className="admin__field">
-          <label className="admin__label">Description</label>
-          <textarea className="admin__textarea" placeholder="Challenge conditions..." value={newChallenge.description} onChange={e => setNewChallenge(p => ({ ...p, description: e.target.value }))} rows={3} />
+          <label className="admin__label" htmlFor="new-desc">Description</label>
+          <textarea id="new-desc" className="admin__textarea" placeholder="Challenge conditions..." value={newChallenge.description} onChange={e => setNewChallenge(p => ({ ...p, description: e.target.value }))} rows={3} />
         </div>
         <button className="admin__btn" onClick={handleAdd} disabled={savingNew}>{savingNew ? 'Saving...' : 'Add Challenge'}</button>
       </div>
@@ -73,24 +73,24 @@ const ChallengesTab: React.FC<ChallengesTabProps> = ({ challenges, games, onAdd,
         <div className="admin__form admin__form--editing">
           <div className="admin__form-title">Edit Challenge</div>
           <div className="admin__field">
-            <label className="admin__label">Game</label>
-            <select className="admin__select" value={editingChallenge.game_id} onChange={e => setEditingChallenge(p => p && ({ ...p, game_id: e.target.value }))}>
+            <label className="admin__label" htmlFor="edit-game">Game</label>
+            <select id="edit-game" className="admin__select" value={editingChallenge.game_id} onChange={e => setEditingChallenge(p => p && ({ ...p, game_id: e.target.value }))}>
               {games.map(g => <option key={g.id} value={g.id}>{g.title}</option>)}
             </select>
           </div>
           <div className="admin__field">
-            <label className="admin__label">Tier</label>
-            <select className="admin__select" value={editingChallenge.tier} onChange={e => setEditingChallenge(p => p && ({ ...p, tier: e.target.value }))}>
+            <label className="admin__label" htmlFor="edit-tier">Tier</label>
+            <select id="edit-tier" className="admin__select" value={editingChallenge.tier} onChange={e => setEditingChallenge(p => p && ({ ...p, tier: e.target.value }))}>
               {CHALLENGE_TIERS.map(t => <option key={t} value={t}>{t}</option>)}
             </select>
           </div>
           <div className="admin__field">
-            <label className="admin__label">Title</label>
-            <input className="admin__input" value={editingChallenge.title} onChange={e => setEditingChallenge(p => p && ({ ...p, title: e.target.value }))} />
+            <label className="admin__label" htmlFor="edit-title">Title</label>
+            <input id="edit-title" className="admin__input" value={editingChallenge.title} onChange={e => setEditingChallenge(p => p && ({ ...p, title: e.target.value }))} />
           </div>
           <div className="admin__field">
-            <label className="admin__label">Description</label>
-            <textarea className="admin__textarea" value={editingChallenge.description} onChange={e => setEditingChallenge(p => p && ({ ...p, description: e.target.value }))} rows={3} />
+            <label className="admin__label" htmlFor="edit-desc">Description</label>
+            <textarea id="edit-desc" className="admin__textarea" value={editingChallenge.description} onChange={e => setEditingChallenge(p => p && ({ ...p, description: e.target.value }))} rows={3} />
           </div>
           <div className="admin__action-btns">
             <button className="admin__approve-btn" onClick={handleSaveEdit} disabled={savingEdit}>{savingEdit ? 'Saving...' : '✓ Save Changes'}</button>

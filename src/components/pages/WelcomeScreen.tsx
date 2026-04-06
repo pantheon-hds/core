@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import './WelcomeScreen.css';
 import SteamAuth from '../ui/SteamAuth';
 import FounderLogin from './FounderLogin';
@@ -6,14 +6,15 @@ import type { FounderUser } from '../../types';
 import { validateInviteCode } from '../../services/supabase';
 
 interface WelcomeScreenProps {
-  onEnter: () => void;
   onFounderLogin: (user: FounderUser) => void;
 }
 
-const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnter, onFounderLogin }) => {
-  const [leaving, setLeaving] = useState(false);
+const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onFounderLogin }) => {
   const [showFounder, setShowFounder] = useState(false);
-  const [honorClicks, setHonorClicks] = useState(0);
+  const honorCountRef = useRef(0);
+  const honorTimerRef = useRef<ReturnType<typeof setTimeout>>();
+
+  useEffect(() => () => clearTimeout(honorTimerRef.current), []);
 
   const [betaUnlocked, setBetaUnlocked] = useState(
     localStorage.getItem('pantheon_beta') === 'true'
@@ -37,19 +38,15 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnter, onFounderLogin }
     }
   };
 
-  const handleEnter = () => {
-    setLeaving(true);
-    setTimeout(onEnter, 800);
-  };
-
   const handleHonorClick = () => {
-    const newCount = honorClicks + 1;
-    setHonorClicks(newCount);
-    if (newCount >= 3) {
+    honorCountRef.current += 1;
+    clearTimeout(honorTimerRef.current);
+    if (honorCountRef.current >= 3) {
+      honorCountRef.current = 0;
       setShowFounder(true);
-      setHonorClicks(0);
+      return;
     }
-    setTimeout(() => setHonorClicks(0), 2000);
+    honorTimerRef.current = setTimeout(() => { honorCountRef.current = 0; }, 2000);
   };
 
   if (!betaUnlocked) {
@@ -92,7 +89,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnter, onFounderLogin }
   }
 
   return (
-    <div className={`welcome ${leaving ? 'welcome--out' : ''}`}>
+    <div className="welcome">
       {showFounder && (
         <FounderLogin
           onSuccess={(user) => {
@@ -123,10 +120,6 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnter, onFounderLogin }
         </div>
 
         <SteamAuth />
-
-        <button className="welcome__demo" onClick={handleEnter}>
-          View demo without login
-        </button>
       </div>
     </div>
   );

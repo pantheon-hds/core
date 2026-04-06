@@ -39,16 +39,18 @@
 
 .profile__username {
   font-family: var(--font-display);
-  font-size: 18px;
+  font-size: 22px;
   font-weight: 700;
+  letter-spacing: 0.15em;
   color: var(--color-text-primary);
   margin-bottom: 3px;
 }
 
 .profile__since {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--color-text-muted);
   font-style: italic;
+  margin-top: 0.4rem;
   margin-bottom: 0.5rem;
 }
 
@@ -56,11 +58,12 @@
 
 .profile__tag {
   font-family: var(--font-display);
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: 0.2em;
   color: var(--color-text-muted);
   border: 0.5px solid var(--color-border-mid);
-  padding: 0.2rem 0.5rem;
+  padding: 0.3rem 0.8rem;
+  margin-top: 0.5rem;
   text-transform: uppercase;
 }
 
@@ -101,28 +104,28 @@
 
 .profile__stat-value {
   font-family: var(--font-display);
-  font-size: 18px;
+  font-size: 28px;
   font-weight: 700;
   color: var(--color-gold);
 }
 
 .profile__stat-label {
   font-family: var(--font-display);
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: 0.2em;
   color: var(--color-text-muted);
   text-transform: uppercase;
-  margin-top: 2px;
+  margin-top: 0.4rem;
 }
 
 .profile__section-title {
   font-family: var(--font-display);
-  font-size: 8px;
+  font-size: 11px;
   letter-spacing: 0.3em;
   color: var(--color-text-muted);
   text-transform: uppercase;
   margin-bottom: 0.75rem;
-  padding-bottom: 0.4rem;
+  padding: 1.5rem 2rem 1rem;
   border-bottom: 0.5px solid var(--color-border);
 }
 
@@ -135,7 +138,7 @@
 .profile__statue-card {
   background: var(--color-bg-surface);
   border: 0.5px solid var(--color-border);
-  padding: 1.25rem 1rem 1rem;
+  padding: 1.8rem 1rem;
   text-align: center;
   cursor: pointer;
   transition: border-color 0.2s, transform 0.2s;
@@ -167,9 +170,11 @@
 
 .profile__statue-tier {
   font-family: var(--font-display);
-  font-size: 8px;
-  letter-spacing: 0.25em;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
+  margin-top: 0.8rem;
   margin-bottom: 2px;
 }
 
@@ -177,6 +182,8 @@
   font-size: 11px;
   color: var(--color-text-muted);
   font-style: italic;
+  margin-top: 0.3rem;
+  opacity: 0.8;
 }
 
 .profile__statue-unique-tag {
@@ -310,59 +317,6 @@
   text-align: center;
   padding: 3rem;
   font-style: italic;
-}
-
-/* Brighter colors and better typography */
-.profile__username {
-  font-size: 22px !important;
-  letter-spacing: 0.15em !important;
-}
-
-.profile__since {
-  font-size: 13px !important;
-  margin-top: 0.4rem !important;
-}
-
-.profile__tag {
-  font-size: 10px !important;
-  padding: 0.3rem 0.8rem !important;
-  margin-top: 0.5rem !important;
-}
-
-.profile__stat-value {
-  font-size: 28px !important;
-}
-
-.profile__stat-label {
-  font-size: 10px !important;
-  margin-top: 0.4rem !important;
-}
-
-.profile__section-title {
-  font-size: 11px !important;
-  padding: 1.5rem 2rem 1rem !important;
-}
-
-.profile__statue-tier {
-  font-size: 11px !important;
-  margin-top: 0.8rem !important;
-  font-weight: 600 !important;
-  letter-spacing: 0.2em !important;
-}
-
-.profile__statue-game {
-  font-size: 11px !important;
-  margin-top: 0.3rem !important;
-  opacity: 0.8 !important;
-}
-
-.profile__statue-card {
-  padding: 1.8rem 1rem !important;
-}
-
-/* Brighter statue colors override */
-.profile__statues .profile__statue-card:nth-child(1) .profile__statue-tier {
-  filter: brightness(1.4);
 }
 
 /* Judge section */

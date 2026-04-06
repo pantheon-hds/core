@@ -1,5 +1,5 @@
 import React, { useState, Suspense, lazy } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import './App.css';
 import SteamCallback, { SteamUser } from './components/pages/SteamCallback';
@@ -16,6 +16,8 @@ import LandingGames from './components/pages/LandingGames';
 import LandingBeta from './components/pages/LandingBeta';
 import LandingFAQ from './components/pages/LandingFAQ';
 import PublicProfile from './components/pages/PublicProfile';
+import NotFound from './components/pages/NotFound';
+import LandingPrivacy from './components/pages/LandingPrivacy';
 
 // Lazily loaded — split into separate chunks to reduce initial bundle
 const Dashboard   = lazy(() => import('./components/pages/Dashboard'));
@@ -140,13 +142,13 @@ const AppRoutes: React.FC = () => {
           user
             ? <AppShell user={user} onLogout={handleLogout} />
             : <WelcomeScreen
-                onEnter={() => {}}
                 onFounderLogin={handleFounderLogin}
               />
         }
       />
       <Route path="/u/:username" element={<PublicProfile />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="/privacy" element={<LandingPrivacy />} />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 };

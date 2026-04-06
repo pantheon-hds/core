@@ -30,6 +30,11 @@ export function useSubmissions(
 
   useEffect(() => {
     if (!dbUserId) return;
+    loadSubmissions(dbUserId);
+  }, [dbUserId, loadSubmissions]);
+
+  useEffect(() => {
+    if (!dbUserId) return;
 
     const channel = supabase
       .channel(`submissions:${dbUserId}`)

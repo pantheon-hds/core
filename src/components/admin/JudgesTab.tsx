@@ -63,8 +63,9 @@ const JudgesTab: React.FC<JudgesTabProps> = ({ judgeApps, judges, onAppReview, o
         <div className="admin__form admin__form--compact">
           <div className="admin__form-title">Appoint Judge Manually</div>
           <div className="admin__field">
-            <label className="admin__label">Steam ID</label>
+            <label className="admin__label" htmlFor="appoint-steamid">Steam ID</label>
             <input
+              id="appoint-steamid"
               className="admin__input"
               placeholder="Steam ID of the player..."
               value={manualSteamId}

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import './Dashboard.css';
 import { SteamUser } from './SteamCallback';
 import { assignJudges, getUserRanks, supabase } from '../../services/supabase';
@@ -33,6 +33,8 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   const [submitChallenge, setSubmitChallenge] = useState<Challenge | null>(null);
   const [filter, setFilter] = useState<string>('All');
   const [copied, setCopied] = useState(false);
+  const copiedTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  useEffect(() => () => clearTimeout(copiedTimerRef.current), []);
   const [videoUrl, setVideoUrl] = useState('');
   const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -199,9 +201,13 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
         dbUsername={dbUsername}
         copied={copied}
         onCopy={() => {
-          navigator.clipboard.writeText(`https://pantheonhds.com/u/${dbUsername}`);
-          setCopied(true);
-          setTimeout(() => setCopied(false), 2000);
+          navigator.clipboard.writeText(`https://pantheonhds.com/u/${dbUsername}`)
+            .then(() => {
+              setCopied(true);
+              clearTimeout(copiedTimerRef.current);
+              copiedTimerRef.current = setTimeout(() => setCopied(false), 2000);
+            })
+            .catch(() => {});
         }}
         topRank={topRank}
         approvedChallengeIds={approvedChallengeIds}

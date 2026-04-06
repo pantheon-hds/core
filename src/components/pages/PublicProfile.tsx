@@ -102,8 +102,8 @@ const PublicProfile: React.FC = () => {
               <div className="pubprofile__section">
                 <div className="pubprofile__section-title">Ranks</div>
                 <div className="pubprofile__ranks">
-                  {sortedRanks.map((r, i) => (
-                      <div key={i} className="pubprofile__rank-row">
+                  {sortedRanks.map((r) => (
+                      <div key={r.tier + r.gameTitle} className="pubprofile__rank-row">
                         <span className="pubprofile__rank-game">{r.gameTitle}</span>
                         <span className="pubprofile__rank-tier"
                           style={{ color: RANK_TIER_COLORS[r.tier] || '#c9922a' }}>

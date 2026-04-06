@@ -14,13 +14,13 @@ One step at a time. One game. One community. Done right before moving forward.
 - [ ] Steam OpenID login
 - [ ] Gold rank auto-assignment via Steam API
 - [ ] Player profile with statue display
-- [ ] Basic challenge list for Elden Ring
+- [ ] Basic challenge list for Hollow Knight
 - [ ] Video submission system
 - [ ] Manual review by founder
 
 **Community**
-- [ ] Launch with Elden Ring only
-- [ ] Post on r/Eldenring — honest, no hype
+- [ ] Launch with Hollow Knight
+- [ ] Post on r/HollowKnight — honest, no hype
 - [ ] Ask community for 20-30 challenge ideas
 - [ ] Find 3-5 small streamers to try the platform
 - [ ] First Legend candidate

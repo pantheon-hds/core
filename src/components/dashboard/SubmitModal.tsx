@@ -31,8 +31,9 @@ const SubmitModal: React.FC<Props> = ({
         <div className="dashboard__modal-game">{challenge.game?.title}</div>
 
         <div className="dashboard__submit-field">
-          <label className="dashboard__submit-label">Video URL *</label>
+          <label className="dashboard__submit-label" htmlFor="submit-video">Video URL *</label>
           <input
+            id="submit-video"
             className="dashboard__submit-input"
             placeholder="YouTube or Twitch link only"
             value={videoUrl}
@@ -42,8 +43,9 @@ const SubmitModal: React.FC<Props> = ({
         </div>
 
         <div className="dashboard__submit-field">
-          <label className="dashboard__submit-label">Comment (optional)</label>
+          <label className="dashboard__submit-label" htmlFor="submit-comment">Comment (optional)</label>
           <textarea
+            id="submit-comment"
             className="dashboard__submit-textarea"
             placeholder="Any notes for the judges..."
             value={comment}

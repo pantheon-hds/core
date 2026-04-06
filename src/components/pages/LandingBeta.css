@@ -127,6 +127,16 @@
   color: var(--color-text-dim);
 }
 
+.lb__no-access {
+  font-size: 15px;
+  color: var(--color-text-primary);
+  border: 0.5px solid var(--color-gold-dim);
+  background: rgba(232, 168, 48, 0.05);
+  padding: 1rem 1.5rem;
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
 .lb__btn { align-self: flex-start; }
 
 .lb__error {

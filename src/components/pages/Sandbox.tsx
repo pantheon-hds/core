@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import './Sandbox.css';
 import { SteamUser } from './SteamCallback';
 import { supabase } from '../../services/supabase';
@@ -8,7 +8,7 @@ interface SandboxProps { user: SteamUser | null; }
 interface SandboxJudge { id: string; username: string; steam_id: string; is_judge: boolean; }
 interface SandboxSubmission { id: string; status: string; submitted_at: string; is_test: boolean; challenge: { title: string; tier: string } | null; }
 interface SandboxChallenge { id: number; title: string; tier: string; game: { title: string } | null; }
-interface SandboxAssignment { id: string; is_test: boolean; judge: { username: string } | null; submission: { is_test: boolean } | null; }
+interface SandboxAssignment { id: string; submission_id: string; is_test: boolean; judge: { username: string } | null; submission: { is_test: boolean } | null; }
 
 const Sandbox: React.FC<SandboxProps> = ({ user }) => {
   const isFounder = user?.steamId === 'VOLAND_FOUNDER';
@@ -21,10 +21,12 @@ const Sandbox: React.FC<SandboxProps> = ({ user }) => {
   const [message, setMessage] = useState('');
   const [selectedChallenge, setSelectedChallenge] = useState('');
   const [judgeCount, setJudgeCount] = useState(3);
+  const msgTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
   const showMessage = (msg: string) => {
     setMessage(msg);
-    setTimeout(() => setMessage(''), 3000);
+    clearTimeout(msgTimerRef.current);
+    msgTimerRef.current = setTimeout(() => setMessage(''), 3000);
   };
 
   const loadData = useCallback(async () => {
@@ -56,6 +58,8 @@ const Sandbox: React.FC<SandboxProps> = ({ user }) => {
 
     setLoading(false);
   }, []);
+
+  useEffect(() => () => clearTimeout(msgTimerRef.current), []);
 
   useEffect(() => {
     if (isFounder) loadData();

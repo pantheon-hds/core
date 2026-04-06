@@ -114,6 +114,8 @@
 .ll__footer-links {
   display: flex;
   gap: 2rem;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .ll__footer-link {

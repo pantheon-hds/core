@@ -170,7 +170,7 @@ const JudgePanel: React.FC<JudgePanelProps> = ({ user }) => {
 
               <div className="judge__item-meta">
                 Submitted by: {a.submission?.user?.username || 'Unknown'}
-                · {new Date(a.submission?.submitted_at).toLocaleDateString()}
+                · {a.submission?.submitted_at ? new Date(a.submission.submitted_at).toLocaleDateString() : '—'}
               </div>
 
               {a.submission?.comment && (
@@ -191,14 +191,15 @@ const JudgePanel: React.FC<JudgePanelProps> = ({ user }) => {
               {!a.vote ? (
                 <div className="judge__vote-section">
                   <div className="judge__timestamp-field">
-                    <label className="judge__label">
+                    <label className="judge__label" htmlFor={`timestamp-${a.id}`}>
                       Timestamp confirming completion *
                     </label>
                     <input
+                      id={`timestamp-${a.id}`}
                       className="judge__timestamp-input"
                       placeholder="e.g. 1:23:45 — condition clearly met here"
                       value={timestamps[a.id] || ''}
-                      onChange={e => setTimestamps({ ...timestamps, [a.id]: e.target.value })}
+                      onChange={e => setTimestamps(prev => ({ ...prev, [a.id]: e.target.value }))}
                     />
                     <div className="judge__timestamp-hint">
                       Required. Without timestamp your vote is not counted.

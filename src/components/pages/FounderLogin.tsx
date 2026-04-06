@@ -14,6 +14,7 @@ const FounderLogin: React.FC<FounderLoginProps> = ({ onSuccess, onCancel }) => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [blocked, setBlocked] = useState(false);
 
   const handleLogin = async () => {
     if (!password.trim()) return;
@@ -36,6 +37,8 @@ const FounderLogin: React.FC<FounderLoginProps> = ({ onSuccess, onCancel }) => {
       const data = await response.json();
 
       if (!response.ok || data.error) {
+        const isBlocked = !!(data.error?.includes('Blocked') || data.error?.includes('hours'));
+        setBlocked(isBlocked);
         setError(data.error || 'Access denied.');
         setPassword('');
       } else {
@@ -70,7 +73,7 @@ const FounderLogin: React.FC<FounderLoginProps> = ({ onSuccess, onCancel }) => {
         <button
           className="founder-login__btn"
           onClick={handleLogin}
-          disabled={loading || error.includes('Blocked') || error.includes('hours')}
+          disabled={loading || blocked}
         >
           {loading ? '...' : 'Enter'}
         </button>
