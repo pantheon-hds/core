@@ -33,7 +33,7 @@ We do not sell, rent, or share your data with third parties. Ever.`,
   },
   {
     title: 'How to delete your data',
-    text: `To remove yourself from the waitlist or delete your account entirely, contact us at privacy@pantheonhds.com. We will delete all your data within 7 days and confirm by email.`,
+    text: `To remove yourself from the waitlist or delete your account entirely, contact us at pantheon.honor.democracy.skill@gmail.com. We will delete all your data within 7 days and confirm by email.`,
   },
   {
     title: 'Changes to this policy',
@@ -68,7 +68,7 @@ const LandingPrivacy: React.FC = () => {
           <div className="lfaq__footer">
             <div className="lfaq__footer-title">Questions?</div>
             <div className="lfaq__footer-links">
-              <a href="mailto:privacy@pantheonhds.com" className="lfaq__footer-link">privacy@pantheonhds.com</a>
+              <a href="mailto:pantheon.honor.democracy.skill@gmail.com" className="lfaq__footer-link">pantheon.honor.democracy.skill@gmail.com</a>
               <a href="https://discord.gg/pantheonhds" target="_blank" rel="noopener noreferrer" className="lfaq__footer-link">Discord</a>
               <a href="https://github.com/pantheon-hds/core" target="_blank" rel="noopener noreferrer" className="lfaq__footer-link">GitHub</a>
             </div>
