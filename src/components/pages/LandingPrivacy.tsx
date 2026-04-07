@@ -68,7 +68,7 @@ const LandingPrivacy: React.FC = () => {
           <div className="lfaq__footer">
             <div className="lfaq__footer-title">Questions?</div>
             <div className="lfaq__footer-links">
-              <a href="mailto:pantheon.honor.democracy.skill@gmail.com" className="lfaq__footer-link">pantheon.honor.democracy.skill@gmail.com</a>
+              <a href="mailto:pantheon.honor.democracy.skill@gmail.com" className="lfaq__footer-link">Email</a>
               <a href="https://discord.gg/pantheonhds" target="_blank" rel="noopener noreferrer" className="lfaq__footer-link">Discord</a>
               <a href="https://github.com/pantheon-hds/core" target="_blank" rel="noopener noreferrer" className="lfaq__footer-link">GitHub</a>
             </div>

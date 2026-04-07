@@ -109,7 +109,8 @@
 
 .lfaq__footer-links {
   display: flex;
-  gap: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem 2rem;
 }
 
 .lfaq__footer-link {
