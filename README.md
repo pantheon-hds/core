@@ -93,7 +93,6 @@ Paths are not exclusive — one player can walk multiple paths simultaneously.
 - ✅ Player profiles with statues
 - ✅ Public shareable profile pages (`/u/username`)
 - ✅ Pantheon leaderboard
-- ✅ Sandbox testing environment
 - ✅ E2E test suite (Playwright)
 
 ### In development:
@@ -115,7 +114,7 @@ Paths are not exclusive — one player can walk multiple paths simultaneously.
 | Database | PostgreSQL (Supabase) |
 | Hosting | Vercel |
 | Auth | Steam OpenID |
-| Testing | Playwright (E2E) + Jest (unit) |
+| Testing | Playwright (E2E) + Vitest (unit) |
 
 ---
 
@@ -172,7 +171,6 @@ src/
 │   │   ├── Pantheon.tsx             # Public leaderboard
 │   │   ├── Profile.tsx              # Personal profile
 │   │   ├── PublicProfile.tsx        # Shareable /u/username page
-│   │   ├── Sandbox.tsx              # Developer testing environment
 │   │   ├── SteamCallback.tsx        # Steam OpenID callback handler
 │   │   └── WelcomeScreen.tsx        # Post-login onboarding
 │   └── ui/                          # Shared reusable components
@@ -189,9 +187,13 @@ src/
 │   ├── useToast.ts                  # Toast notification state
 │   └── useUserData.ts               # DB user, ranks, statues via react-query
 ├── services/                        # External integrations
+│   ├── adminService.ts              # Admin operations
+│   ├── challengeService.ts          # Challenge + game queries
+│   ├── pantheonService.ts           # Pantheon leaderboard queries
+│   ├── profileService.ts            # Profile + judge application
 │   ├── steamApi.ts                  # Steam Web API calls
 │   ├── submissionService.ts         # Submission CRUD operations
-│   └── supabase.ts                  # Supabase client + DB query functions
+│   └── supabase.ts                  # Supabase client + core DB functions
 ├── types/
 │   ├── database.types.ts            # Auto-generated Supabase types
 │   └── index.ts                     # Shared TypeScript interfaces
@@ -271,7 +273,7 @@ This project has no investors and no advertising. If you believe in the idea, yo
 
 ## Community
 
-- **Discord:** discord.gg/pantheonhds
+- **Email:** pantheon.honor.democracy.skill@gmail.com
 - **Reddit:** reddit.com/r/PantheonHDS
 - **X (Twitter):** x.com/pantheonhds
 - **Platform:** pantheonhds.com
