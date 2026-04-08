@@ -243,9 +243,6 @@ Visit https://pantheonhds.com, connect your Steam account, and try everything. R
 3. Make your changes
 4. Open a Pull Request
 
-### Become a judge
-If you have Platinum rank in any supported game — apply through your Profile page on the platform.
-
 ### Support the project
 This project has no investors and no advertising. If you believe in the idea, you can support it voluntarily.
 
