@@ -12,6 +12,7 @@ const LandingHome: React.FC = () => {
         <div className="lh__hero-content">
           <img src="/logo-hero.png" alt="Pantheon" className="lh__hero-logo" />
           <h1 className="lh__hero-title">PANTHEON</h1>
+          <div className="lh__hero-beta">Closed Beta</div>
           <div className="lh__hero-tagline">Where 100% is just the beginning.</div>
           <div className="lh__hero-principles">
             <span>Honor</span>

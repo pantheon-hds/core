@@ -52,7 +52,6 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ children }) => {
           </div>
           <div className="ll__footer-principles">Honor · Democracy · Skill</div>
           <div className="ll__footer-links">
-            <a href="https://discord.com/users/1485317934959169786" target="_blank" rel="noopener noreferrer" className="ll__footer-link">Discord</a>
             <a href="https://reddit.com/r/PantheonHDS" target="_blank" rel="noopener noreferrer" className="ll__footer-link">Reddit</a>
             <a href="https://x.com/pantheonhds" target="_blank" rel="noopener noreferrer" className="ll__footer-link">X</a>
             <a href="https://github.com/pantheon-hds/core" target="_blank" rel="noopener noreferrer" className="ll__footer-link">GitHub</a>
