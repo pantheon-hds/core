@@ -237,9 +237,6 @@ All tables have Row Level Security (RLS) enabled via Supabase.
 ### Play and test
 Visit https://pantheonhds.com, connect your Steam account, and try everything. Report bugs as [GitHub Issues](https://github.com/pantheon-hds/core/issues/new/choose).
 
-### Suggest challenges
-What do YOU consider worthy of a Platinum rank in your favourite game? Open an issue with the tag `challenge-suggestion`.
-
 ### Contribute code
 1. Fork the repository
 2. Create a branch: `git checkout -b feature/your-feature`

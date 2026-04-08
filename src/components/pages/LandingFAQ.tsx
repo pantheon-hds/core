@@ -28,10 +28,6 @@ const faqData = [
     answer: "The full platform code is available on GitHub at github.com/pantheon-hds/core. Anyone can read it, audit the security, and contribute improvements. Transparency is how trust is built."
   },
   {
-    question: "How do I suggest a new game?",
-    answer: "Join our Discord server and post in the #suggestions channel. Any game with Steam achievements can be added. The community discusses and votes on which games to add next."
-  },
-  {
     question: "How do I report a bug?",
     answer: "Two ways: open an issue on GitHub at github.com/pantheon-hds/core/issues, or post in the #bug-reports channel on Discord. Please include a description of what happened and what you expected to happen."
   },
