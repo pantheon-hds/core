@@ -34,7 +34,7 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
 
   const handleJudgeApplication = useCallback(async () => {
     if (!dbUserId || !judgeGameId || !judgeMotivation.trim()) {
-      setJudgeMessage('Please select a game and write your motivation.');
+      setJudgeMessage('Please select a game and describe your motivation.');
       return;
     }
     setJudgeSubmitting(true);

@@ -11,7 +11,7 @@ const ranks = [
   { tier: 'Platinum', color: '#9ac4e4', how: 'Community · Judge verified', desc: 'Complete community challenges. Verified by real judges.' },
   { tier: 'Diamond', color: '#b8e4ff', how: 'Community · Judge verified', desc: 'Elite challenges. Only the dedicated reach this far.' },
   { tier: 'Master', color: '#d4a8f4', how: 'Community · Judge verified', desc: 'Master-level challenges. True mastery of the game.' },
-  { tier: 'Grandmaster', color: '#f4d4a8', how: 'Community recognition', desc: 'Beyond challenges. The community recognizes your legacy.' },
+  { tier: 'Grandmaster', color: '#f4d4a8', how: 'Community · Judge verified', desc: 'Grandmaster-level challenges. The pinnacle of skill.' },
   { tier: 'Legend', color: '#e45a3a', how: 'Community vote only', desc: 'The highest honor. Granted by community vote alone. Your statue stands forever.' },
 ] as { tier: string; color: string; how: string; desc: string; sub?: string }[];
 

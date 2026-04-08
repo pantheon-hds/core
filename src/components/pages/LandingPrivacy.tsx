@@ -7,7 +7,7 @@ const sections = [
     title: 'What we collect',
     text: `When you join the waitlist: your email address and an optional message.
 
-When you log in with Steam: your Steam ID, username, and avatar URL. These are public data provided by Steam — we never receive your password.
+When you log in with Steam: your Steam ID, username, and avatar URL. This data is public — provided by Steam. We never receive your password.
 
 We also read your Steam achievement data to assign your rank automatically. This data is public on Steam.`,
   },

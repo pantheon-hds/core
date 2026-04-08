@@ -29,7 +29,7 @@ const faqData = [
   },
   {
     question: "How do I suggest a new game?",
-    answer: "Join our Discord server and post in the #game-suggestions channel. Any game with Steam achievements can be added. The community discusses and votes on which games to add next."
+    answer: "Join our Discord server and post in the #suggestions channel. Any game with Steam achievements can be added. The community discusses and votes on which games to add next."
   },
   {
     question: "How do I report a bug?",

@@ -44,7 +44,7 @@ const LandingHome: React.FC = () => {
             <p>So I asked myself:</p>
           </div>
           <div className="lh__quote">
-            "What if 100% achievements is not the end of a game, but only the beginning?"
+            "What if 100% is not the end of a game, but only the beginning?"
           </div>
           <div className="lh__quote-author">Voland, Founder</div>
         </div>

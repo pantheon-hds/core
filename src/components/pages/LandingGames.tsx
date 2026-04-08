@@ -67,7 +67,7 @@ const LandingGames: React.FC = () => {
               <div className="lg__game-studio">Community decides</div>
               <div className="lg__game-divider" />
               <div className="lg__game-desc">
-                What game should we add next? Any game with Steam achievements can be added. Join Discord and suggest it.
+                What game should we add next? Any game with Steam achievements can be added. Join our Discord and suggest it.
               </div>
             </div>
           </div>
