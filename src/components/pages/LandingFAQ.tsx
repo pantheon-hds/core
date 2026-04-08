@@ -28,6 +28,10 @@ const faqData = [
     answer: "The full platform code is available on GitHub at github.com/pantheon-hds/core. Anyone can read it, audit the security, and contribute improvements. Transparency is how trust is built."
   },
   {
+    question: "Should my submission video be public?",
+    answer: "We recommend uploading your video as unlisted on YouTube. Unlisted means the video is not visible on your channel or in search — only people with the direct link can watch it. This way judges can verify your run without it appearing publicly on your profile."
+  },
+  {
     question: "How do I report a bug?",
     answer: "Two ways: open an issue on GitHub at github.com/pantheon-hds/core/issues, or post in the #bug-reports channel on Discord. Please include a description of what happened and what you expected to happen."
   },

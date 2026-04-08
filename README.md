@@ -265,7 +265,7 @@ This project has no investors and no advertising. If you believe in the idea, yo
 
 ---
 
-## Community
+## Contacts
 
 - **Email:** pantheon.honor.democracy.skill@gmail.com
 - **Reddit:** reddit.com/r/PantheonHDS
