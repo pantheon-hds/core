@@ -25,7 +25,6 @@ const Pantheon    = lazy(() => import('./components/pages/Pantheon'));
 const Profile     = lazy(() => import('./components/pages/Profile'));
 const Admin       = lazy(() => import('./components/pages/Admin'));
 const JudgePanel  = lazy(() => import('./components/pages/JudgePanel'));
-const Sandbox     = lazy(() => import('./components/pages/Sandbox'));
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 5 * 60 * 1000 } }, // cache 5 minutes
@@ -58,7 +57,6 @@ const AppShell: React.FC<{ user: SteamUser | null; onLogout: () => void }> = ({ 
     profile: 'Player Profile',
     admin: 'Admin Panel',
     judge: 'Judge Panel',
-    sandbox: 'Sandbox',
   };
 
   const isFounder = user?.steamId === 'VOLAND_FOUNDER';
@@ -93,7 +91,6 @@ const AppShell: React.FC<{ user: SteamUser | null; onLogout: () => void }> = ({ 
                 {page === 'profile' && <Profile user={user} />}
                 {page === 'admin' && <Admin user={user} />}
                 {page === 'judge' && <JudgePanel user={user} />}
-                {page === 'sandbox' && <Sandbox user={user} />}
               </Suspense>
             </ErrorBoundary>
           </div>

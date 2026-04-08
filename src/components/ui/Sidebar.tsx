@@ -3,7 +3,7 @@ import './Sidebar.css';
 import { SteamUser } from '../pages/SteamCallback';
 import { getUserBySteamId } from '../../services/supabase';
 
-export type Page = 'dashboard' | 'pantheon' | 'profile' | 'admin' | 'judge' | 'sandbox';
+export type Page = 'dashboard' | 'pantheon' | 'profile' | 'admin' | 'judge';
 
 interface SidebarProps {
   current: Page;
@@ -96,17 +96,6 @@ const Sidebar: React.FC<SidebarProps> = ({ current, onChange, user, onLogout, is
           </button>
         )}
 
-        {user?.steamId === 'VOLAND_FOUNDER' && (
-          <button
-            className={"sidebar__nav-item" + (current === 'sandbox' ? " sidebar__nav-item--active" : "")}
-            onClick={() => onChange('sandbox')}
-          >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1">
-              <path d="M5 2 L3 12 M9 2 L11 12 M2 5 L12 5 M2 9 L12 9"/>
-            </svg>
-            <span>Sandbox</span>
-          </button>
-        )}
       </nav>
 
       <div className="sidebar__footer">
