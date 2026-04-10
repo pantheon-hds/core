@@ -21,20 +21,20 @@ interface Props {
 const RankCard: React.FC<Props> = ({
   ranks, statues, games, challenges, dbUsername, copied, onCopy, approvedChallengeIds,
 }) => {
-  // Per-game progress — show for games that have challenges
+  // Per-game progress — show for all games where user has a rank
   const perGameProgress = games
     .map(game => {
-      const gameChallenges = challenges.filter(c => c.game_id === game.id);
-      if (gameChallenges.length === 0) return null;
-
       const rank = ranks.find(r => r.game_id === game.id);
+      if (!rank) return null; // no rank in this game yet — skip
+
+      const gameChallenges = challenges.filter(c => c.game_id === game.id);
       const gameApprovedIds = approvedChallengeIds.filter(id =>
         gameChallenges.some(c => c.id === id)
       );
-      const progress = getProgressInfo(rank?.tier ?? null, gameApprovedIds, gameChallenges);
+      const progress = getProgressInfo(rank.tier, gameApprovedIds, gameChallenges);
       return { game, rank, progress };
     })
-    .filter(Boolean) as { game: Game; rank: UserRank | undefined; progress: ReturnType<typeof getProgressInfo> }[];
+    .filter(Boolean) as { game: Game; rank: UserRank; progress: ReturnType<typeof getProgressInfo> }[];
 
   return (
     <>
