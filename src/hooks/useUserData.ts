@@ -33,12 +33,14 @@ export function useUserData(user: SteamUser | null, games: Game[]): UseUserDataR
     queryKey: ['ranks', dbUser?.id],
     queryFn: () => getUserRanks(dbUser!.id),
     enabled: !!dbUser?.id,
+    refetchInterval: 30 * 1000,
   });
 
   const { data: statues = [], isLoading: statuesLoading, isError: statuesError } = useQuery({
     queryKey: ['statues', dbUser?.id],
     queryFn: () => getUserStatues(dbUser!.id),
     enabled: !!dbUser?.id,
+    refetchInterval: 30 * 1000,
   });
 
   // Achievement check — cached per user for 5 minutes to prevent flooding the Edge Function
@@ -53,6 +55,7 @@ export function useUserData(user: SteamUser | null, games: Game[]): UseUserDataR
   // Invalidates the ranks cache — React Query refetches automatically
   const refreshRanks = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['ranks', dbUser?.id] });
+    queryClient.invalidateQueries({ queryKey: ['statues', dbUser?.id] });
   }, [queryClient, dbUser?.id]);
 
   const isBanned =
