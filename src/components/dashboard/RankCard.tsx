@@ -24,7 +24,7 @@ const RankCard: React.FC<Props> = ({
   // Per-game progress — show for all games where user has a rank
   const perGameProgress = games
     .map(game => {
-      const rank = ranks.find(r => r.game_id === game.id);
+      const rank = ranks.find(r => r.game?.id === game.id);
       if (!rank) return null; // no rank in this game yet — skip
 
       const gameChallenges = challenges.filter(c => c.game_id === game.id);
