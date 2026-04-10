@@ -99,10 +99,11 @@ export async function submitWaitlist(email: string, reason: string): Promise<{ s
   return { success: true };
 }
 
-export async function validateInviteCode(code: string): Promise<boolean> {
+// Returns a nonce string on success (to be passed through Steam OAuth), null on failure
+export async function validateInviteCode(code: string): Promise<string | null> {
   const { data, error } = await supabase.rpc('validate_invite_code', { p_code: code.trim().toUpperCase() });
-  if (error) { console.error('Error validating invite code:', error); return false; }
-  return data === true;
+  if (error) { console.error('Error validating invite code:', error); return null; }
+  return (data as string) || null;
 }
 
 export async function sendInvite(token: string, waitlistId: string, email: string): Promise<{ success: boolean; error?: string }> {

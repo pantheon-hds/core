@@ -105,6 +105,45 @@ serve(async (req) => {
     let userId: string
 
     if (!existingUser) {
+      // New user — require a valid invite nonce from the OAuth flow
+      const inviteNonce = url.searchParams.get('invite_nonce')
+
+      if (!inviteNonce) {
+        return new Response(null, {
+          status: 302,
+          headers: { ...corsHeaders, Location: `${APP_URL}/beta?reason=no_access` }
+        })
+      }
+
+      const { data: invite } = await supabase
+        .from('invite_codes')
+        .select('id, used_at')
+        .eq('nonce', inviteNonce)
+        .eq('used', true)
+        .single()
+
+      if (!invite) {
+        return new Response(null, {
+          status: 302,
+          headers: { ...corsHeaders, Location: `${APP_URL}/beta?reason=no_access` }
+        })
+      }
+
+      // Nonce expires after 1 hour
+      const usedAt = new Date(invite.used_at)
+      if (Date.now() - usedAt.getTime() > 60 * 60 * 1000) {
+        return new Response(null, {
+          status: 302,
+          headers: { ...corsHeaders, Location: `${APP_URL}/beta?reason=no_access` }
+        })
+      }
+
+      // Consume the nonce — mark as fully used so it can't be reused
+      await supabase
+        .from('invite_codes')
+        .update({ nonce: null, used: true })
+        .eq('id', invite.id)
+
       const { data: inserted } = await supabase.from('users').insert({
         steam_id: steamId,
         username: profile.username,
