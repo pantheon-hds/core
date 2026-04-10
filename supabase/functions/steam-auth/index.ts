@@ -119,7 +119,7 @@ serve(async (req) => {
         .from('invite_codes')
         .select('id, used_at')
         .eq('nonce', inviteNonce)
-        .eq('used', true)
+        .eq('used', false)
         .single()
 
       if (!invite) {
