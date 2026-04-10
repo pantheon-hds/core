@@ -15,7 +15,11 @@ serve(async (req: Request) => {
   try {
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
+    const sessionToken = req.headers.get('x-session-token')
+    console.log('send-invite: x-session-token present:', !!sessionToken, '| length:', sessionToken?.length ?? 0)
+
     if (!await requireAdmin(req, supabase)) {
+      console.log('send-invite: requireAdmin failed')
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -112,10 +116,15 @@ serve(async (req: Request) => {
     }
 
     // Mark waitlist entry as approved
-    await supabase
+    const { error: waitlistError } = await supabase
       .from('waitlist')
       .update({ status: 'approved' })
       .eq('id', waitlistId)
+
+    if (waitlistError) {
+      console.error('Error updating waitlist status:', waitlistError)
+      // Non-fatal — code was sent, just log the error
+    }
 
     console.log(`Invite sent to ${email}, code: ${code}`)
 
