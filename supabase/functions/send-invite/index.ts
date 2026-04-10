@@ -67,11 +67,11 @@ serve(async (req: Request) => {
             </div>
 
             <p style="color: #9a9080; font-size: 13px; margin-bottom: 8px;">
-              ⚠ This code is single-use. Do not share it.
+              &#9888; This code is single-use. Do not share it.
             </p>
 
             <a href="${APP_URL}/app" style="display: inline-block; background: #e8a830; color: #0a0a0f; padding: 14px 28px; text-decoration: none; font-weight: bold; font-family: monospace; letter-spacing: 1px; margin-top: 20px; margin-bottom: 24px;">
-              Enter Pantheon →
+              Enter Pantheon &rarr;
             </a>
 
             <div style="background: #12121e; border: 1px solid #2a2a3e; padding: 16px 24px; margin-bottom: 36px;">
@@ -81,7 +81,7 @@ serve(async (req: Request) => {
             </div>
 
             <div style="border-top: 1px solid #2a2a3e; padding-top: 24px; color: #5a5048; font-size: 12px; line-height: 1.8;">
-              Honor · Democracy · Skill<br/>
+              Honor &middot; Democracy &middot; Skill<br/>
               Voland, Founder
             </div>
           </div>
