@@ -36,15 +36,6 @@
   50%       { filter: drop-shadow(0 0 16px rgba(196,74,42,0.95)); }
 }
 
-.statue-svg--legend .statue-aura {
-  animation: legendAura 2.8s ease-in-out infinite;
-}
-
-@keyframes legendAura {
-  0%, 100% { opacity: 0.35; }
-  50%       { opacity: 1.00; }
-}
-
 /* ── Grandmaster ── */
 .statue-svg--grandmaster {
   animation: statueFloat 4.5s ease-in-out infinite;
@@ -58,55 +49,4 @@
 @keyframes grandmasterGlow {
   0%, 100% { filter: drop-shadow(0 0 4px rgba(244,212,168,0.50)); }
   50%       { filter: drop-shadow(0 0 14px rgba(244,212,168,0.90)); }
-}
-
-/* ── Master: orb pulse ── */
-.statue-svg--master .statue-orb {
-  animation: masterOrb 2.2s ease-in-out infinite;
-}
-.statue-svg--master .statue-orb:last-of-type {
-  animation-delay: 0.3s;
-}
-
-@keyframes masterOrb {
-  0%, 100% { opacity: 0.30; }
-  50%       { opacity: 0.85; }
-}
-
-.statue-svg--master.statue-svg--unique {
-  animation: statueFloat 4s ease-in-out infinite,
-             masterGlow 2.4s ease-in-out infinite;
-}
-
-@keyframes masterGlow {
-  0%, 100% { filter: drop-shadow(0 0 4px rgba(212,168,244,0.50)); }
-  50%       { filter: drop-shadow(0 0 14px rgba(212,168,244,0.90)); }
-}
-
-/* ── Diamond: sparkle particles ── */
-.statue-svg--diamond .statue-sparkle {
-  animation: diamondSparkle 2.2s ease-in-out infinite;
-  transform-origin: center;
-}
-.statue-svg--diamond .statue-sparkle:nth-of-type(2) { animation-delay: 0.73s; }
-.statue-svg--diamond .statue-sparkle:nth-of-type(3) { animation-delay: 1.47s; }
-
-@keyframes diamondSparkle {
-  0%, 100% { opacity: 0;   transform: scale(0.2); }
-  50%       { opacity: 1.0; transform: scale(1.0); }
-}
-
-.statue-svg--diamond.statue-svg--unique {
-  animation: statueFloat 4s ease-in-out infinite,
-             diamondGlow 2.5s ease-in-out infinite;
-}
-
-@keyframes diamondGlow {
-  0%, 100% { filter: drop-shadow(0 0 4px rgba(168,212,244,0.50)); }
-  50%       { filter: drop-shadow(0 0 14px rgba(168,212,244,0.90)); }
-}
-
-/* ── Platinum: slower, heavier feel ── */
-.statue-svg--platinum {
-  animation: statueFloat 5.5s ease-in-out infinite;
 }
