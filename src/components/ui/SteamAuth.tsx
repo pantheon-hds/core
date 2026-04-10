@@ -5,10 +5,7 @@ const STEAM_OPENID_URL = 'https://steamcommunity.com/openid/login';
 const APP_URL = 'https://pantheonhds.com';
 
 const buildSteamAuthUrl = (): string => {
-  const nonce = sessionStorage.getItem('invite_nonce');
-  const returnTo = nonce
-    ? `${APP_URL}/app?invite_nonce=${encodeURIComponent(nonce)}`
-    : `${APP_URL}/app`;
+  const returnTo = `${APP_URL}/app`;
 
   const params = new URLSearchParams({
     'openid.ns': 'http://specs.openid.net/auth/2.0',

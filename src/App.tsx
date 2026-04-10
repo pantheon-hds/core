@@ -170,7 +170,7 @@ const App: React.FC = () => {
           }
           localStorage.setItem('pantheon_user', JSON.stringify(steamUser));
           localStorage.setItem('pantheon_beta', 'true');
-          sessionStorage.removeItem('invite_nonce');
+          localStorage.removeItem('invite_nonce');
           window.location.href = '/app';
         }}
         onError={() => { window.location.href = '/app'; }}

@@ -77,9 +77,13 @@ const SteamCallback: React.FC<SteamCallbackProps> = ({ onSuccess, onError }) => 
 
         setMessage('Verifying with Steam...');
 
+        // Attach invite nonce from localStorage so steam-auth can validate new users
+        const inviteNonce = localStorage.getItem('invite_nonce');
+        const nonceParam = inviteNonce ? `&invite_nonce=${encodeURIComponent(inviteNonce)}` : '';
+
         // Redirect browser directly to Edge Function
         // This avoids CORS issues with fetch + redirects
-        window.location.href = `${SUPABASE_URL}/functions/v1/steam-auth?${params.toString()}`;
+        window.location.href = `${SUPABASE_URL}/functions/v1/steam-auth?${params.toString()}${nonceParam}`;
 
       } catch (error) {
         console.error('Steam callback error:', error);

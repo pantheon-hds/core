@@ -30,7 +30,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onFounderLogin }) => {
     const nonce = await validateInviteCode(betaInput.trim());
     setBetaLoading(false);
     if (nonce) {
-      sessionStorage.setItem('invite_nonce', nonce);
+      localStorage.setItem('invite_nonce', nonce);
       localStorage.setItem('pantheon_beta', 'true');
       setBetaUnlocked(true);
     } else {
