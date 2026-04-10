@@ -18,6 +18,7 @@ import LandingFAQ from './components/pages/LandingFAQ';
 import PublicProfile from './components/pages/PublicProfile';
 import NotFound from './components/pages/NotFound';
 import LandingPrivacy from './components/pages/LandingPrivacy';
+import FounderGate from './components/pages/FounderGate';
 
 // Lazily loaded — split into separate chunks to reduce initial bundle
 const Dashboard   = lazy(() => import('./components/pages/Dashboard'));
@@ -145,6 +146,7 @@ const AppRoutes: React.FC = () => {
       />
       <Route path="/u/:username" element={<PublicProfile />} />
       <Route path="/privacy" element={<LandingPrivacy />} />
+      <Route path="/f0und3r-g4te-9x2k" element={<FounderGate onLogin={handleFounderLogin} />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
