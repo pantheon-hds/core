@@ -6,17 +6,29 @@ import { getClientIp, checkRateLimit, rateLimitedResponse } from '../_shared/rat
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
-// Challenge tiers map 1:1 to rank tiers for the five challenge-eligible tiers.
-const CHALLENGE_TIER_TO_RANK: Record<string, string> = {
-  Platinum: 'Platinum',
-  Diamond: 'Diamond',
-  Master: 'Master',
-  Grandmaster: 'Grandmaster',
-  Legend: 'Legend',
+const RANK_ORDER: Record<string, number> = {
+  'Legend': 0, 'Grandmaster': 1, 'Master': 2, 'Diamond': 3,
+  'Platinum': 4, 'Gold': 5, 'Silver III': 6, 'Silver II': 7, 'Silver I': 8,
+  'Bronze III': 9, 'Bronze II': 10, 'Bronze I': 11,
 }
+
+const RANK_PROGRESSION: Record<string, { challengeTier: string; required: number; nextRank: string }> = {
+  'Bronze I':    { challengeTier: 'Platinum', required: 5, nextRank: 'Platinum' },
+  'Bronze II':   { challengeTier: 'Platinum', required: 5, nextRank: 'Platinum' },
+  'Bronze III':  { challengeTier: 'Platinum', required: 5, nextRank: 'Platinum' },
+  'Silver I':    { challengeTier: 'Platinum', required: 4, nextRank: 'Platinum' },
+  'Silver II':   { challengeTier: 'Platinum', required: 4, nextRank: 'Platinum' },
+  'Silver III':  { challengeTier: 'Platinum', required: 4, nextRank: 'Platinum' },
+  'Gold':        { challengeTier: 'Platinum', required: 3, nextRank: 'Platinum' },
+  'Platinum':    { challengeTier: 'Diamond',  required: 2, nextRank: 'Diamond'  },
+  'Diamond':     { challengeTier: 'Master',   required: 2, nextRank: 'Master'   },
+  'Master':      { challengeTier: 'Grandmaster', required: 1, nextRank: 'Grandmaster' },
+}
+const UNRANKED_PROGRESSION = { challengeTier: 'Platinum', required: 5, nextRank: 'Platinum' }
 
 /**
  * Awards a rank + statue after a submission is approved.
+ * Rank is only awarded when the user has enough approved challenges to advance.
  * Mirrors the logic in submissionService.ts — kept here to avoid cross-service coupling.
  */
 async function awardRank(supabase: SupabaseClient, submissionId: string): Promise<void> {
@@ -42,27 +54,62 @@ async function awardRank(supabase: SupabaseClient, submissionId: string): Promis
     return
   }
 
-  const rankTier = CHALLENGE_TIER_TO_RANK[challenge.tier] ?? challenge.tier
-
-  const [{ error: rankError }, { error: statueError }] = await Promise.all([
-    supabase.from('ranks').upsert(
-      { user_id: sub.user_id, game_id: challenge.game_id, tier: rankTier, method: 'community_verified' },
-      { onConflict: 'user_id,game_id' }
-    ),
-    supabase.from('statues').upsert(
-      {
-        user_id: sub.user_id,
-        game_id: challenge.game_id,
-        tier: rankTier,
-        challenge: challenge.title,
-        is_unique: challenge.tier === 'Legend',
-      },
-      { onConflict: 'user_id,game_id' }
-    ),
-  ])
-
-  if (rankError) console.error('awardRank: rank upsert failed', rankError)
+  // Always update statue
+  const { error: statueError } = await supabase.from('statues').upsert(
+    {
+      user_id: sub.user_id,
+      game_id: challenge.game_id,
+      tier: challenge.tier,
+      challenge: challenge.title,
+      is_unique: challenge.tier === 'Legend',
+    },
+    { onConflict: 'user_id,game_id' }
+  )
   if (statueError) console.error('awardRank: statue upsert failed', statueError)
+
+  // Get current rank
+  const { data: currentRank } = await supabase
+    .from('ranks')
+    .select('tier, method')
+    .eq('user_id', sub.user_id)
+    .eq('game_id', challenge.game_id)
+    .maybeSingle()
+
+  const currentTier = currentRank?.tier ?? null
+  const req = currentTier ? RANK_PROGRESSION[currentTier] : UNRANKED_PROGRESSION
+
+  if (!req) return // Grandmaster+ no further progression
+  if (challenge.tier !== req.challengeTier) return // Wrong tier for current path
+
+  // Count approved submissions for required tier in this game
+  const { data: tierChallenges } = await supabase
+    .from('challenges')
+    .select('id')
+    .eq('game_id', challenge.game_id)
+    .eq('tier', req.challengeTier)
+
+  const tierChallengeIds = (tierChallenges ?? []).map((c: { id: number }) => c.id)
+  if (tierChallengeIds.length === 0) return
+
+  const { count } = await supabase
+    .from('submissions')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', sub.user_id)
+    .eq('status', 'approved')
+    .in('challenge_id', tierChallengeIds)
+
+  if ((count ?? 0) < req.required) return // Not enough yet
+
+  // Don't downgrade a community_verified rank that's already higher
+  if (currentRank?.method === 'community_verified' && currentTier) {
+    if ((RANK_ORDER[req.nextRank] ?? 99) >= (RANK_ORDER[currentTier] ?? 99)) return
+  }
+
+  const { error: rankError } = await supabase.from('ranks').upsert(
+    { user_id: sub.user_id, game_id: challenge.game_id, tier: req.nextRank, method: 'community_verified' },
+    { onConflict: 'user_id,game_id' }
+  )
+  if (rankError) console.error('awardRank: rank upsert failed', rankError)
 }
 
 serve(async (req: Request) => {

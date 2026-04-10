@@ -19,9 +19,22 @@ interface Props {
 }
 
 const RankCard: React.FC<Props> = ({
-  ranks, statues, games, challenges, dbUsername, copied, onCopy, topRank, approvedChallengeIds,
+  ranks, statues, games, challenges, dbUsername, copied, onCopy, approvedChallengeIds,
 }) => {
-  const progress = topRank ? getProgressInfo(topRank.tier, approvedChallengeIds, challenges) : null;
+  // Per-game progress — show for games that have challenges
+  const perGameProgress = games
+    .map(game => {
+      const gameChallenges = challenges.filter(c => c.game_id === game.id);
+      if (gameChallenges.length === 0) return null;
+
+      const rank = ranks.find(r => r.game_id === game.id);
+      const gameApprovedIds = approvedChallengeIds.filter(id =>
+        gameChallenges.some(c => c.id === id)
+      );
+      const progress = getProgressInfo(rank?.tier ?? null, gameApprovedIds, gameChallenges);
+      return { game, rank, progress };
+    })
+    .filter(Boolean) as { game: Game; rank: UserRank | undefined; progress: ReturnType<typeof getProgressInfo> }[];
 
   return (
     <>
@@ -66,37 +79,45 @@ const RankCard: React.FC<Props> = ({
         </div>
       </div>
 
-      {progress && !progress.isLegend && progress.required > 0 && (
-        <div className="dashboard__progress">
-          <div className="dashboard__progress-header">
-            <span className="dashboard__progress-label">Path to {progress.nextRank}</span>
-            <span className="dashboard__progress-count">
-              {progress.completed} / {progress.required} {progress.challengeTier} challenges
-            </span>
-          </div>
-          <div className="dashboard__progress-dots">
-            {Array.from({ length: progress.required }).map((_, i) => (
-              <div
-                key={i}
-                className={"dashboard__progress-dot" + (i < progress.completed ? ' dashboard__progress-dot--done' : '')}
-                style={i < progress.completed ? { background: TIER_COLORS[progress.challengeTier!] || '#c9922a' } : {}}
-              />
-            ))}
-          </div>
-          {progress.completed >= progress.required && (
-            <div className="dashboard__progress-ready">
-              Ready to advance! Submit your next challenge to unlock {progress.nextRank}.
+      {perGameProgress.map(({ game, progress }) => {
+        if (progress.isLegend) {
+          return (
+            <div key={game.id} className="dashboard__progress dashboard__progress--legend">
+              <div className="dashboard__progress-game">{game.title}</div>
+              <div className="dashboard__progress-label">You are Grandmaster. The path to Legend awaits.</div>
+              <div className="dashboard__progress-legend-text">Legend rank is granted by community vote only.</div>
             </div>
-          )}
-        </div>
-      )}
+          );
+        }
 
-      {progress?.isLegend && (
-        <div className="dashboard__progress dashboard__progress--legend">
-          <div className="dashboard__progress-label">You are Grandmaster. The path to Legend awaits.</div>
-          <div className="dashboard__progress-legend-text">Legend rank is granted by community vote only.</div>
-        </div>
-      )}
+        if (progress.required === 0) return null;
+
+        return (
+          <div key={game.id} className="dashboard__progress">
+            <div className="dashboard__progress-game">{game.title}</div>
+            <div className="dashboard__progress-header">
+              <span className="dashboard__progress-label">Path to {progress.nextRank}</span>
+              <span className="dashboard__progress-count">
+                {progress.completed} / {progress.required} {progress.challengeTier} challenges
+              </span>
+            </div>
+            <div className="dashboard__progress-dots">
+              {Array.from({ length: progress.required }).map((_, i) => (
+                <div
+                  key={i}
+                  className={"dashboard__progress-dot" + (i < progress.completed ? ' dashboard__progress-dot--done' : '')}
+                  style={i < progress.completed ? { background: TIER_COLORS[progress.challengeTier!] || '#c9922a' } : {}}
+                />
+              ))}
+            </div>
+            {progress.completed >= progress.required && (
+              <div className="dashboard__progress-ready">
+                Ready to advance! Submit your next challenge to unlock {progress.nextRank}.
+              </div>
+            )}
+          </div>
+        );
+      })}
     </>
   );
 };

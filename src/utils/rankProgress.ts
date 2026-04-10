@@ -12,10 +12,18 @@ interface ChallengeRef {
 }
 
 export function getProgressInfo(
-  currentTier: string,
+  currentTier: string | null,
   approvedChallengeIds: (number | null)[],
   challenges: ChallengeRef[]
 ): ProgressInfo {
+  // Unranked users treated the same as Bronze (need 5 Platinum challenges)
+  if (!currentTier) {
+    const completed = challenges.filter(
+      c => c.tier === 'Platinum' && approvedChallengeIds.includes(c.id)
+    ).length;
+    return { nextRank: 'Platinum', required: 5, completed, challengeTier: 'Platinum', isLegend: false };
+  }
+
   const isBronze = currentTier.startsWith('Bronze');
   const isSilver = currentTier.startsWith('Silver');
   const isGold = currentTier === 'Gold';
