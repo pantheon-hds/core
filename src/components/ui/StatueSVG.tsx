@@ -38,7 +38,7 @@ const TIER_GLOW: Record<string, string> = {
 };
 
 const StatueSVG: React.FC<Props> = ({ tier, size = 80, unique = false }) => {
-  const src = TIER_IMAGE[tier] ?? '/ranks/bronze-1.png';
+  const src = TIER_IMAGE[tier] ?? '/ranks/unranked.png';
   const glow = TIER_GLOW[tier] ?? 'rgba(232,168,48,0.8)';
 
   const cls = [

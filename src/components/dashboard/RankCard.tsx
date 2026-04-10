@@ -39,8 +39,8 @@ const RankCard: React.FC<Props> = ({
               ))
             : (
               <div className="dashboard__rank-statue-item">
-                <StatueSVG tier="Bronze I" size={80} />
-                <div className="dashboard__rank-statue-tier" style={{ color: '#c9922a' }}>No rank yet</div>
+                <StatueSVG tier="unranked" size={80} />
+                <div className="dashboard__rank-statue-tier" style={{ color: '#888' }}>No rank yet</div>
                 <div className="dashboard__rank-statue-game">Play games to earn ranks</div>
               </div>
             )
