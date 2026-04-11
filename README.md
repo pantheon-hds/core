@@ -86,7 +86,7 @@ Paths are not exclusive — one player can walk multiple paths simultaneously.
 ### What works:
 - ✅ Steam OpenID authentication
 - ✅ Automatic rank assignment via Steam API
-- ✅ Community challenge submission system
+- ✅ Submission and judge voting flow (challenges in development)
 - ✅ Judge application and assignment system
 - ✅ Anonymous blind voting by judges
 - ✅ Admin panel for platform management
@@ -96,7 +96,6 @@ Paths are not exclusive — one player can walk multiple paths simultaneously.
 - ✅ E2E test suite (Playwright)
 
 ### In development:
-- 🔨 Persistent auth via Supabase Auth
 - 🔨 Discord webhook notifications
 - 🔨 Mobile adaptation
 - 🔨 Guild system
