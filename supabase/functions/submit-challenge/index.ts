@@ -17,10 +17,12 @@ serve(async (req: Request) => {
     if (!allowed) return rateLimitedResponse(corsHeaders)
 
     const userId = await verifySessionToken(req, supabase)
+    console.log('userId:', userId)
     if (!userId) return json({ success: false, error: 'Unauthorized' }, 403)
 
     const body = await req.json()
     const { action, challengeId, videoUrl, comment } = body
+    console.log('action:', action, 'body:', JSON.stringify(body))
 
     // GET my submissions
     if (action === 'list') {
@@ -61,6 +63,7 @@ serve(async (req: Request) => {
         })
         .eq('id', submissionId)
 
+      console.log('withdraw update error:', error)
       if (error) return json({ success: false, error: error.message }, 500)
       return json({ success: true })
     }
