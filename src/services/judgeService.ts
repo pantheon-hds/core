@@ -20,15 +20,31 @@ async function callAction(token: string, fnName: string, action: string): Promis
   }
 }
 
+interface RawSubmission {
+  id: string;
+  video_url: string;
+  comment: string | null;
+  submitted_at: string;
+  user: { username: string } | null;
+  challenge: { title: string; tier: string; description: string } | null;
+}
+
 /** Admin view — all submissions currently pending or in review. */
 export async function fetchAdminPendingSubmissions(token: string): Promise<JudgeAssignment[]> {
   const result = await callAction(token, 'admin-action', 'list-pending-submissions');
-  return ((result.data as JudgeAssignment[]) || []).map((s: JudgeAssignment & { id: string; submitted_at?: string }) => ({
+  return ((result.data as RawSubmission[]) || []).map(s => ({
     id: s.id,
-    assigned_at: s.assigned_at ?? (s as { submitted_at?: string }).submitted_at ?? '',
+    assigned_at: s.submitted_at,
     vote: null,
     timestamp_note: null,
-    submission: s.submission,
+    submission: {
+      id: s.id,
+      video_url: s.video_url,
+      comment: s.comment ?? '',
+      submitted_at: s.submitted_at,
+      user: s.user ?? { username: 'Unknown' },
+      challenge: s.challenge ?? { title: 'Unknown', tier: '', description: '' },
+    },
   }));
 }
 
