@@ -44,19 +44,23 @@ export async function getUserBySteamId(steamId: string) {
 }
 
 export async function checkAchievements(steamId: string, appId: string) {
-  const response = await fetch(
-    `${SUPABASE_URL}/functions/v1/check-achievements`,
-    {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ steamId, appId }),
-    }
-  );
-  if (!response.ok) return null;
-  return response.json();
+  try {
+    const response = await fetch(
+      `${SUPABASE_URL}/functions/v1/check-achievements`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ steamId, appId }),
+      }
+    );
+    if (!response.ok) return null;
+    return await response.json();
+  } catch {
+    return null;
+  }
 }
 
 export const REAPPLY_DAYS = 30;
@@ -120,8 +124,12 @@ export async function sendInvite(token: string, waitlistId: string, email: strin
     }
   );
   if (!response.ok) {
-    const data = await response.json();
-    return { success: false, error: data.error || 'Failed to send invite' };
+    try {
+      const data = await response.json();
+      return { success: false, error: data.error || 'Failed to send invite' };
+    } catch {
+      return { success: false, error: 'Failed to send invite' };
+    }
   }
   return { success: true };
 }
@@ -199,19 +207,23 @@ export async function submitChallenge(
 }
 
 export async function assignJudges(token: string, submissionId: string): Promise<boolean> {
-  const response = await fetch(
-    `${SUPABASE_URL}/functions/v1/assign-judges`,
-    {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-        'x-session-token': token,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ submissionId }),
-    }
-  );
-  return response.ok;
+  try {
+    const response = await fetch(
+      `${SUPABASE_URL}/functions/v1/assign-judges`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'x-session-token': token,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ submissionId }),
+      }
+    );
+    return response.ok;
+  } catch {
+    return false;
+  }
 }
 
 export async function revokeToken(token: string): Promise<void> {

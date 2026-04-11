@@ -23,30 +23,45 @@ async function verifySteamLogin(params: URLSearchParams): Promise<boolean> {
   const validationParams = new URLSearchParams(params)
   validationParams.set('openid.mode', 'check_authentication')
 
-  const response = await fetch('https://steamcommunity.com/openid/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: validationParams.toString(),
-  })
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 10000)
 
-  const text = await response.text()
-  return text.includes('is_valid:true')
+  try {
+    const response = await fetch('https://steamcommunity.com/openid/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: validationParams.toString(),
+      signal: controller.signal,
+    })
+    const text = await response.text()
+    return text.includes('is_valid:true')
+  } finally {
+    clearTimeout(timeout)
+  }
 }
 
 async function getSteamProfile(steamId: string) {
   const url = `https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key=${STEAM_API_KEY}&steamids=${steamId}`
-  const response = await fetch(url)
-  const data = await response.json()
 
-  if (!data.response?.players?.length) return null
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 10000)
 
-  const player = data.response.players[0]
-  return {
-    steamId: player.steamid,
-    username: player.personaname,
-    avatarUrl: player.avatarfull,
-    profileUrl: player.profileurl,
-    isPublic: player.communityvisibilitystate === 3,
+  try {
+    const response = await fetch(url, { signal: controller.signal })
+    const data = await response.json()
+
+    if (!data.response?.players?.length) return null
+
+    const player = data.response.players[0]
+    return {
+      steamId: player.steamid,
+      username: player.personaname,
+      avatarUrl: player.avatarfull,
+      profileUrl: player.profileurl,
+      isPublic: player.communityvisibilitystate === 3,
+    }
+  } finally {
+    clearTimeout(timeout)
   }
 }
 

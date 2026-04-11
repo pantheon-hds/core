@@ -59,8 +59,22 @@ serve(async (req: Request) => {
     console.log(`Checking steamId: ${steamId}, appId: ${appId}`)
 
     const url = `https://api.steampowered.com/ISteamUserStats/GetPlayerAchievements/v1/?key=${STEAM_API_KEY}&steamid=${steamId}&appid=${appId}&l=english`
-    const response = await fetch(url)
-    const data = await response.json()
+
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 10000)
+
+    let data: { playerstats?: { success: boolean; achievements?: { achieved: number }[] } }
+    try {
+      const response = await fetch(url, { signal: controller.signal })
+      data = await response.json()
+    } catch {
+      return new Response(
+        JSON.stringify({ error: 'Steam API unavailable' }),
+        { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    } finally {
+      clearTimeout(timeout)
+    }
 
     if (!data.playerstats?.success) {
       return new Response(

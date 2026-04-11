@@ -91,6 +91,8 @@ serve(async (req: Request) => {
     if (action === 'apply-judge') {
       const { gameId, motivation } = payload as { gameId?: string; motivation?: string }
       if (!gameId || !motivation) return json({ success: false, error: 'gameId and motivation required' }, 400)
+      const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+      if (!UUID_RE.test(gameId)) return json({ success: false, error: 'Invalid gameId' }, 400)
       if (typeof motivation !== 'string' || motivation.trim().length < 10 || motivation.length > 1000) {
         return json({ success: false, error: 'Motivation must be between 10 and 1000 characters' }, 400)
       }

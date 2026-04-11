@@ -126,13 +126,16 @@ export function useSubmissions(
       return { success: false, error: result.error };
     }
 
-    await assignJudges(params.token, result.submissionId);
+    const judgesAssigned = await assignJudges(params.token, result.submissionId);
     setSubmissions(prev =>
       prev.map(s => s.id === optimisticId ? { ...s, id: result.submissionId } : s)
     );
     setSubmitting(false);
+    if (!judgesAssigned) {
+      showToast('Submission created. Judge assignment failed — an admin will review.', 'info');
+    }
     return { success: true };
-  }, [dbUserId, hasActiveSubmission, isOnCooldown]);
+  }, [dbUserId, hasActiveSubmission, isOnCooldown, showToast]);
 
   const withdraw = useCallback(async (submissionId: string): Promise<ServiceResult> => {
     if (!token) return { success: false, error: 'Not authenticated' };
