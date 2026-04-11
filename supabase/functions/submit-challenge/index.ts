@@ -17,12 +17,17 @@ serve(async (req: Request) => {
     if (!allowed) return rateLimitedResponse(corsHeaders)
 
     const userId = await verifySessionToken(req, supabase)
-    console.log('userId:', userId)
     if (!userId) return json({ success: false, error: 'Unauthorized' }, 403)
 
-    const body = await req.json()
-    const { action, challengeId, videoUrl, comment } = body
-    console.log('action:', action, 'body:', JSON.stringify(body))
+    let body: Record<string, unknown>
+    try {
+      body = await req.json()
+    } catch {
+      return json({ success: false, error: 'Invalid JSON' }, 400)
+    }
+    const { action, challengeId, videoUrl, comment } = body as {
+      action?: string; challengeId?: number; videoUrl?: string; comment?: string
+    }
 
     // GET my submissions
     if (action === 'list') {
@@ -63,12 +68,18 @@ serve(async (req: Request) => {
         })
         .eq('id', submissionId)
 
-      console.log('withdraw update error:', error)
       if (error) return json({ success: false, error: error.message }, 500)
       return json({ success: true })
     }
 
     if (!challengeId || !videoUrl) return json({ success: false, error: 'challengeId and videoUrl required' }, 400)
+
+    // Validate videoUrl — only YouTube and Twitch allowed
+    const isValidVideo = (url: string) =>
+      /^https:\/\/(www\.)?(youtube\.com\/watch\?|youtu\.be\/|twitch\.tv\/)/.test(url)
+    if (!isValidVideo(videoUrl)) {
+      return json({ success: false, error: 'Only YouTube or Twitch links are allowed.' }, 400)
+    }
 
     // Check for active submission
     const { data: active } = await supabase

@@ -77,12 +77,23 @@ serve(async (req: Request) => {
     const userId = await verifySessionToken(req, supabase)
     if (!userId) return json({ success: false, error: 'Unauthorized' }, 403)
 
-    const { action, ...payload } = await req.json()
+    let action: string, payload: Record<string, unknown>
+    try {
+      const body = await req.json()
+      action = body.action
+      const { action: _, ...rest } = body
+      payload = rest
+    } catch {
+      return json({ success: false, error: 'Invalid JSON' }, 400)
+    }
 
     // Submit judge application
     if (action === 'apply-judge') {
-      const { gameId, motivation } = payload
+      const { gameId, motivation } = payload as { gameId?: string; motivation?: string }
       if (!gameId || !motivation) return json({ success: false, error: 'gameId and motivation required' }, 400)
+      if (typeof motivation !== 'string' || motivation.trim().length < 10 || motivation.length > 1000) {
+        return json({ success: false, error: 'Motivation must be between 10 and 1000 characters' }, 400)
+      }
 
       const { error } = await supabase.from('judge_applications').insert({
         user_id: userId,
@@ -179,8 +190,10 @@ serve(async (req: Request) => {
 
       // Award rank if approved
       if (finalStatus === 'approved') {
-        const sub = updated[0] as { id: string; user_id: string; challenge_id: number }
-        await awardRankOnApproval(supabase, sub.user_id, sub.challenge_id)
+        const sub = updated[0] as { id: string; user_id: string; challenge_id: number } | undefined
+        if (sub?.user_id && sub?.challenge_id) {
+          await awardRankOnApproval(supabase, sub.user_id, sub.challenge_id)
+        }
       }
 
       return json({ success: true, finalised: true, finalStatus })
