@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { supabase, assignJudges, submitChallenge } from '../services/supabase';
+import { supabase, assignJudges, submitChallenge, fetchMySubmissions } from '../services/supabase';
 import { useToast } from './useToast';
 import type { ServiceResult } from '../services/submissionService';
 import type { Submission, SubmissionStatus } from '../types';
@@ -35,13 +35,11 @@ export function useSubmissions(
   const submissionsRef = useRef(submissions);
   useEffect(() => { submissionsRef.current = submissions; }, [submissions]);
 
-  const loadSubmissions = useCallback(async (userId: string) => {
-    const { data } = await supabase
-      .from('submissions')
-      .select('id, challenge_id, status, cooldown_until')
-      .eq('user_id', userId);
-    setSubmissions((data as Submission[]) || []);
-  }, []);
+  const loadSubmissions = useCallback(async (_userId: string) => {
+    if (!token) return;
+    const data = await fetchMySubmissions(token);
+    setSubmissions(data);
+  }, [token]);
 
   useEffect(() => {
     if (!dbUserId) return;

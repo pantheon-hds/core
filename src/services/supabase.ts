@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '../types/database.types';
-import type { UserRank, UserStatue } from '../types';
+import type { UserRank, UserStatue, Submission } from '../types';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder.supabase.co';
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-key';
@@ -140,6 +140,24 @@ export async function rejectWaitlistEntry(token: string, id: string, rejectionRe
     }
   );
   return response.ok;
+}
+
+export async function fetchMySubmissions(token: string): Promise<Submission[]> {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/submit-challenge`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'x-session-token': token,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ action: 'list' }),
+    });
+    const data = await res.json();
+    return data.submissions ?? [];
+  } catch {
+    return [];
+  }
 }
 
 export async function submitChallenge(

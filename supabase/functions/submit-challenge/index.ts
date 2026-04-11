@@ -19,7 +19,18 @@ serve(async (req: Request) => {
     const userId = await verifySessionToken(req, supabase)
     if (!userId) return json({ success: false, error: 'Unauthorized' }, 403)
 
-    const { challengeId, videoUrl, comment } = await req.json()
+    const body = await req.json()
+    const { action, challengeId, videoUrl, comment } = body
+
+    // GET my submissions
+    if (action === 'list') {
+      const { data } = await supabase
+        .from('submissions')
+        .select('id, challenge_id, status, cooldown_until')
+        .eq('user_id', userId)
+      return json({ success: true, submissions: data ?? [] })
+    }
+
     if (!challengeId || !videoUrl) return json({ success: false, error: 'challengeId and videoUrl required' }, 400)
 
     // Check for active submission
