@@ -84,7 +84,7 @@ const Sidebar: React.FC<SidebarProps> = ({ current, onChange, user, onLogout, is
           </button>
         )}
 
-        {isJudge && !isAdmin && (
+        {(isJudge || isAdmin) && (
           <button
             className={"sidebar__nav-item" + (current === 'judge' ? " sidebar__nav-item--active" : "")}
             onClick={() => onChange('judge')}
