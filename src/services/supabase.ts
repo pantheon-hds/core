@@ -142,6 +142,27 @@ export async function rejectWaitlistEntry(token: string, id: string, rejectionRe
   return response.ok;
 }
 
+export async function submitChallenge(
+  token: string,
+  params: { challengeId: number; videoUrl: string; comment: string | null }
+): Promise<{ success: boolean; submissionId: string; error?: string }> {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/submit-challenge`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'x-session-token': token,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(params),
+    });
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    return { success: false, submissionId: '', error: (err as Error).message };
+  }
+}
+
 export async function assignJudges(token: string, submissionId: string): Promise<boolean> {
   const response = await fetch(
     `${SUPABASE_URL}/functions/v1/assign-judges`,

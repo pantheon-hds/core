@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { supabase, assignJudges } from '../services/supabase';
+import { supabase, assignJudges, submitChallenge } from '../services/supabase';
 import { useToast } from './useToast';
 import type { ServiceResult } from '../services/submissionService';
 import type { Submission, SubmissionStatus } from '../types';
@@ -116,27 +116,21 @@ export function useSubmissions(
     };
     setSubmissions(prev => [...prev, optimistic]);
 
-    const { data: inserted, error } = await supabase
-      .from('submissions')
-      .insert({
-        user_id: dbUserId,
-        challenge_id: params.challengeId,
-        video_url: params.videoUrl,
-        comment: params.comment,
-        status: 'pending',
-      })
-      .select('id')
-      .single();
+    const result = await submitChallenge(params.token, {
+      challengeId: params.challengeId,
+      videoUrl: params.videoUrl,
+      comment: params.comment,
+    });
 
-    if (error) {
+    if (!result.success) {
       setSubmissions(prev => prev.filter(s => s.id !== optimisticId));
       setSubmitting(false);
-      return { success: false, error: error.message };
+      return { success: false, error: result.error };
     }
 
-    await assignJudges(params.token, inserted.id);
+    await assignJudges(params.token, result.submissionId);
     setSubmissions(prev =>
-      prev.map(s => s.id === optimisticId ? { ...s, id: inserted.id } : s)
+      prev.map(s => s.id === optimisticId ? { ...s, id: result.submissionId } : s)
     );
     setSubmitting(false);
     return { success: true };
