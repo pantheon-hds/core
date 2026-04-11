@@ -109,55 +109,31 @@ export async function awardRankForChallenge(
   return { success: true };
 }
 
-// Judge path: record a vote and finalise the submission if all judges have voted.
+// Judge path: record a vote via Edge Function (handles 2/3 majority logic server-side).
 export async function recordJudgeVote(
   assignmentId: string,
   submissionId: string,
   vote: 'approved' | 'rejected',
-  timestampNote: string
+  timestampNote: string,
+  token: string
 ): Promise<VoteResult> {
-  const { error: voteError } = await supabase
-    .from('submission_judges')
-    .update({ vote, timestamp_note: timestampNote, voted_at: new Date().toISOString() })
-    .eq('id', assignmentId);
+  const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+  const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
-  if (voteError) return { success: false, error: voteError.message, finalised: false };
-
-  // Check if all judges have now voted
-  const { data: allVotes } = await supabase
-    .from('submission_judges')
-    .select('vote')
-    .eq('submission_id', submissionId);
-
-  if (!allVotes) return { success: true, finalised: false };
-
-  const totalVoted = allVotes.filter(v => v.vote !== null).length;
-  const totalJudges = allVotes.length;
-
-  if (totalVoted < totalJudges) return { success: true, finalised: false };
-
-  const approvedVotes = allVotes.filter(v => v.vote === 'approved').length;
-  const finalStatus = approvedVotes >= Math.ceil(totalJudges / 2) ? 'approved' : 'rejected';
-
-  // Guard against race condition: only process if we're the one to change the status
-  const { data: updated } = await supabase
-    .from('submissions')
-    .update({ status: finalStatus })
-    .eq('id', submissionId)
-    .in('status', ['pending', 'in_review'])
-    .select('id, user_id, challenge_id');
-
-  if (!updated || updated.length === 0) {
-    // Another judge already finalised this submission
-    return { success: true, finalised: false };
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/profile-action`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'x-session-token': token,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ action: 'record-judge-vote', assignmentId, submissionId, vote, timestampNote }),
+    });
+    const result = await res.json();
+    if (!result.success) return { success: false, error: result.error, finalised: false };
+    return { success: true, finalised: result.finalised ?? false };
+  } catch (err) {
+    return { success: false, error: (err as Error).message, finalised: false };
   }
-
-  if (finalStatus === 'approved') {
-    const sub = updated[0];
-    if (!sub.user_id || !sub.challenge_id) return { success: true, finalised: true };
-    const awardResult = await awardRankForChallenge(sub.user_id, sub.challenge_id);
-    if (!awardResult.success) return { ...awardResult, finalised: true };
-  }
-
-  return { success: true, finalised: true };
 }

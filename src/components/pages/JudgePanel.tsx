@@ -68,7 +68,7 @@ const JudgePanel: React.FC<JudgePanelProps> = ({ user }) => {
         showToast(`Submission ${vote} by founder.`, vote === 'approved' ? 'success' : 'info');
       }
     } else {
-      const result = await recordJudgeVote(assignmentId, submissionId, vote, timestamp);
+      const result = await recordJudgeVote(assignmentId, submissionId, vote, timestamp, user!.token);
       if (!result.success) {
         showToast(`Error: ${result.error}`, 'error');
       } else {
@@ -76,7 +76,7 @@ const JudgePanel: React.FC<JudgePanelProps> = ({ user }) => {
           prev.map(a => a.id === assignmentId ? { ...a, vote, timestamp_note: timestamp } : a)
         );
         if (result.finalised) {
-          showToast(`Submission ${vote}! All judges have voted.`, vote === 'approved' ? 'success' : 'info');
+          showToast(`Submission ${vote}! Majority reached.`, vote === 'approved' ? 'success' : 'info');
         }
       }
     }
