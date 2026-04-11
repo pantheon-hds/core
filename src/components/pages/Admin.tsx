@@ -60,7 +60,7 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
 
   const { data: judgeApps = [] } = useQuery({
     queryKey: ['admin-judge-apps'],
-    queryFn: adminService.fetchAdminJudgeApps,
+    queryFn: () => adminService.fetchAdminJudgeApps(user!.token),
     enabled: isAdmin,
   });
 

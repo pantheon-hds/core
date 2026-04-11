@@ -144,12 +144,9 @@ export async function fetchAdminGames(): Promise<Game[]> {
   return (data as Game[]) || [];
 }
 
-export async function fetchAdminJudgeApps(): Promise<JudgeApplication[]> {
-  const { data } = await supabase
-    .from('judge_applications')
-    .select('*, user:users(username, steam_id), game:games(title)')
-    .order('applied_at', { ascending: false });
-  return (data as JudgeApplication[]) || [];
+export async function fetchAdminJudgeApps(token: string): Promise<JudgeApplication[]> {
+  const result = await callAdminAction(token, 'list-judge-apps');
+  return (result.data as JudgeApplication[]) || [];
 }
 
 export async function fetchAdminWaitlist(steamId: string): Promise<WaitlistEntry[]> {

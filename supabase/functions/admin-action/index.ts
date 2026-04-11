@@ -302,6 +302,15 @@ serve(async (req: Request) => {
         return json({ success: true, game })
       }
 
+      case 'list-judge-apps': {
+        const { data, error } = await supabase
+          .from('judge_applications')
+          .select('*, user:users(username, steam_id), game:games(title)')
+          .order('applied_at', { ascending: false })
+        if (error) return json({ success: false, error: error.message }, 500)
+        return json({ success: true, data })
+      }
+
       default:
         return json({ success: false, error: `Unknown action: ${action}` }, 400)
     }
