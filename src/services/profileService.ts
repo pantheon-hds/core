@@ -1,4 +1,7 @@
 import { supabase } from './supabase';
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 import type { JudgeEligibility, JudgeApplication } from '../types';
 
 export interface PublicProfileData {
@@ -90,15 +93,23 @@ export async function checkJudgeEligibility(userId: string): Promise<JudgeEligib
 }
 
 export async function submitJudgeApplication(
-  userId: string,
+  token: string,
   gameId: number,
   motivation: string
 ): Promise<boolean> {
-  const { error } = await supabase.from('judge_applications').insert({
-    user_id: userId,
-    game_id: gameId,
-    motivation,
-    status: 'pending',
-  });
-  return !error;
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/profile-action`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'x-session-token': token,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ action: 'apply-judge', gameId, motivation }),
+    });
+    const data = await res.json();
+    return data.success === true;
+  } catch {
+    return false;
+  }
 }

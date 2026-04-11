@@ -38,7 +38,7 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
       return;
     }
     setJudgeSubmitting(true);
-    const success = await submitJudgeApplication(dbUserId, parseInt(judgeGameId), judgeMotivation);
+    const success = await submitJudgeApplication(user!.token, parseInt(judgeGameId), judgeMotivation);
     if (success) {
       setJudgeMessage('Application submitted! The admin will review it.');
       setShowJudgeForm(false);
