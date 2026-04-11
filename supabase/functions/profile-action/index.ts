@@ -144,14 +144,24 @@ serve(async (req: Request) => {
       if (!allVotes) return json({ success: true, finalised: false })
 
       const totalJudges = allVotes.length
+      const votedCount = allVotes.filter((v: { vote: string | null }) => v.vote !== null).length
       const approvedVotes = allVotes.filter((v: { vote: string | null }) => v.vote === 'approved').length
       const rejectedVotes = allVotes.filter((v: { vote: string | null }) => v.vote === 'rejected').length
-      const majority = Math.ceil(totalJudges / 2)
 
-      // Finalise early if majority already reached
       let finalStatus: string | null = null
-      if (approvedVotes >= majority) finalStatus = 'approved'
-      else if (rejectedVotes >= majority) finalStatus = 'rejected'
+
+      if (totalJudges === 3) {
+        // 3 judges: early finalisation as soon as 2/3 agree
+        if (approvedVotes >= 2) finalStatus = 'approved'
+        else if (rejectedVotes >= 2) finalStatus = 'rejected'
+      } else if (totalJudges === 2) {
+        // 2 judges: wait for both to vote
+        if (votedCount < 2) return json({ success: true, finalised: false })
+        if (approvedVotes === 2) finalStatus = 'approved'
+        else if (rejectedVotes === 2) finalStatus = 'rejected'
+        // Split (1-1): leave as in_review, Voland decides as tiebreaker
+        else return json({ success: true, finalised: false, tiebreak: true })
+      }
 
       if (!finalStatus) return json({ success: true, finalised: false })
 

@@ -115,50 +115,81 @@ describe('recordJudgeVote', () => {
 });
 
 // ── Pure majority logic ───────────────────────────────────────────────────────
-// Tests for the 2/3 majority formula used in the Edge Function.
-// We test the formula directly here so it's fast and deterministic.
+// Mirrors the logic in profile-action Edge Function (record-judge-vote).
 
-describe('majority calculation logic (2/3 rule)', () => {
-  function calcMajority(votes: Array<'approved' | 'rejected' | null>) {
-    const totalJudges = votes.length;
-    const approvedVotes = votes.filter(v => v === 'approved').length;
-    const rejectedVotes = votes.filter(v => v === 'rejected').length;
-    const majority = Math.ceil(totalJudges / 2);
+type Vote = 'approved' | 'rejected' | null;
+type Result = 'approved' | 'rejected' | 'tiebreak' | null;
 
-    if (approvedVotes >= majority) return 'approved';
-    if (rejectedVotes >= majority) return 'rejected';
-    return null; // not yet decided
+function calcMajority(votes: Vote[]): Result {
+  const totalJudges = votes.length;
+  const votedCount = votes.filter(v => v !== null).length;
+  const approvedVotes = votes.filter(v => v === 'approved').length;
+  const rejectedVotes = votes.filter(v => v === 'rejected').length;
+
+  if (totalJudges === 3) {
+    if (approvedVotes >= 2) return 'approved';
+    if (rejectedVotes >= 2) return 'rejected';
+    return null;
   }
 
-  it('3 judges: requires 2 approvals to approve', () => {
-    expect(calcMajority(['approved', 'approved', null])).toBe('approved');
-  });
+  if (totalJudges === 2) {
+    if (votedCount < 2) return null; // waiting for second vote
+    if (approvedVotes === 2) return 'approved';
+    if (rejectedVotes === 2) return 'rejected';
+    return 'tiebreak'; // 1-1 → Voland decides
+  }
 
-  it('3 judges: requires 2 rejections to reject', () => {
-    expect(calcMajority(['rejected', 'rejected', null])).toBe('rejected');
-  });
+  return null;
+}
 
-  it('3 judges: 1 approve is not enough', () => {
+describe('majority logic — 3 judges', () => {
+  it('1 approve is not enough', () => {
     expect(calcMajority(['approved', null, null])).toBeNull();
   });
 
-  it('3 judges: 1 approve + 1 reject is not decided yet', () => {
+  it('2 approvals → approved immediately (early finalisation)', () => {
+    expect(calcMajority(['approved', 'approved', null])).toBe('approved');
+  });
+
+  it('2 rejections → rejected immediately', () => {
+    expect(calcMajority(['rejected', 'rejected', null])).toBe('rejected');
+  });
+
+  it('1 approve + 1 reject → not decided yet', () => {
     expect(calcMajority(['approved', 'rejected', null])).toBeNull();
   });
 
-  it('3 judges: all approve → approved', () => {
+  it('all approve → approved', () => {
     expect(calcMajority(['approved', 'approved', 'approved'])).toBe('approved');
   });
 
-  it('3 judges: all reject → rejected', () => {
+  it('all reject → rejected', () => {
     expect(calcMajority(['rejected', 'rejected', 'rejected'])).toBe('rejected');
   });
 
-  it('3 judges: 2 approve + 1 reject → approved (majority wins)', () => {
+  it('2 approve + 1 reject → approved', () => {
     expect(calcMajority(['approved', 'approved', 'rejected'])).toBe('approved');
   });
 
-  it('3 judges: 2 reject + 1 approve → rejected (majority wins)', () => {
+  it('2 reject + 1 approve → rejected', () => {
     expect(calcMajority(['rejected', 'rejected', 'approved'])).toBe('rejected');
+  });
+});
+
+describe('majority logic — 2 judges', () => {
+  it('1 vote cast, 1 pending → not decided yet', () => {
+    expect(calcMajority(['approved', null])).toBeNull();
+  });
+
+  it('both approve → approved', () => {
+    expect(calcMajority(['approved', 'approved'])).toBe('approved');
+  });
+
+  it('both reject → rejected', () => {
+    expect(calcMajority(['rejected', 'rejected'])).toBe('rejected');
+  });
+
+  it('1 approve + 1 reject → tiebreak (Voland decides)', () => {
+    expect(calcMajority(['approved', 'rejected'])).toBe('tiebreak');
   });
 });

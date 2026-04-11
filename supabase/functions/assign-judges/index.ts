@@ -72,12 +72,14 @@ serve(async (req: Request) => {
 
     const rankedIds = (rankedUserIds || []).map((r: { user_id: string }) => r.user_id)
 
+    const fallbackResponse = (message: string) => new Response(
+      JSON.stringify({ success: true, judgesAssigned: 0, message }),
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+
     if (rankedIds.length === 0) {
       console.log('No ranked users for this game — falling back to admin review')
-      return new Response(
-        JSON.stringify({ success: true, judgesAssigned: 0, message: 'No eligible judges — admin will review manually' }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      return fallbackResponse('No eligible judges — admin will review manually')
     }
 
     const { data: eligibleJudgesRaw } = await supabase
@@ -89,15 +91,13 @@ serve(async (req: Request) => {
 
     const eligibleJudges = (eligibleJudgesRaw || []) as { id: string }[]
 
-    if (eligibleJudges.length === 0) {
-      console.log('No eligible judges found — falling back to admin review')
-      return new Response(
-        JSON.stringify({ success: true, judgesAssigned: 0, message: 'No eligible judges — admin will review manually' }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+    // Need at least 2 judges for a fair vote; otherwise Voland reviews manually
+    if (eligibleJudges.length < 2) {
+      console.log(`Only ${eligibleJudges.length} eligible judge(s) — falling back to admin review`)
+      return fallbackResponse('Not enough judges — admin will review manually')
     }
 
-    // Uniformly random selection of up to 3 judges
+    // Select up to 3 judges (2 or 3 depending on availability)
     const selected = shuffleArray(eligibleJudges).slice(0, 3)
 
     const { error: assignError } = await supabase
