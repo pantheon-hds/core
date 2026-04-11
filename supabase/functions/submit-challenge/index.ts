@@ -31,6 +31,40 @@ serve(async (req: Request) => {
       return json({ success: true, submissions: data ?? [] })
     }
 
+    // WITHDRAW a submission
+    if (action === 'withdraw') {
+      const { submissionId } = body
+      if (!submissionId) return json({ success: false, error: 'submissionId required' }, 400)
+
+      // Verify this submission belongs to the user
+      const { data: sub } = await supabase
+        .from('submissions')
+        .select('id, status')
+        .eq('id', submissionId)
+        .eq('user_id', userId)
+        .maybeSingle()
+
+      if (!sub) return json({ success: false, error: 'Submission not found' }, 404)
+      if (sub.status !== 'pending' && sub.status !== 'in_review') {
+        return json({ success: false, error: 'Cannot withdraw this submission' }, 400)
+      }
+
+      const cooldownUntil = new Date()
+      cooldownUntil.setHours(cooldownUntil.getHours() + 24)
+
+      const { error } = await supabase
+        .from('submissions')
+        .update({
+          status: 'withdrawn',
+          withdrawn_at: new Date().toISOString(),
+          cooldown_until: cooldownUntil.toISOString(),
+        })
+        .eq('id', submissionId)
+
+      if (error) return json({ success: false, error: error.message }, 500)
+      return json({ success: true })
+    }
+
     if (!challengeId || !videoUrl) return json({ success: false, error: 'challengeId and videoUrl required' }, 400)
 
     // Check for active submission

@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { supabase, assignJudges, submitChallenge, fetchMySubmissions } from '../services/supabase';
+import { supabase, assignJudges, submitChallenge, fetchMySubmissions, withdrawSubmission } from '../services/supabase';
 import { useToast } from './useToast';
 import type { ServiceResult } from '../services/submissionService';
 import type { Submission, SubmissionStatus } from '../types';
@@ -135,26 +135,17 @@ export function useSubmissions(
   }, [dbUserId, hasActiveSubmission, isOnCooldown]);
 
   const withdraw = useCallback(async (submissionId: string): Promise<ServiceResult> => {
-    const cooldownUntil = new Date();
-    cooldownUntil.setHours(cooldownUntil.getHours() + 24);
+    if (!token) return { success: false, error: 'Not authenticated' };
 
-    const { error } = await supabase
-      .from('submissions')
-      .update({
-        status: 'withdrawn' as SubmissionStatus,
-        withdrawn_at: new Date().toISOString(),
-        cooldown_until: cooldownUntil.toISOString(),
-      })
-      .eq('id', submissionId);
-
-    if (error) {
+    const result = await withdrawSubmission(token, submissionId);
+    if (!result.success) {
       showToast('Failed to withdraw submission. Please try again.', 'error');
-      return { success: false, error: error.message };
+      return result;
     }
 
     if (dbUserId) await loadSubmissions(dbUserId);
     return { success: true };
-  }, [dbUserId, loadSubmissions, showToast]);
+  }, [token, dbUserId, loadSubmissions, showToast]);
 
   return {
     submissions,

@@ -160,6 +160,23 @@ export async function fetchMySubmissions(token: string): Promise<Submission[]> {
   }
 }
 
+export async function withdrawSubmission(token: string, submissionId: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/submit-challenge`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'x-session-token': token,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ action: 'withdraw', submissionId }),
+    });
+    return await res.json();
+  } catch (err) {
+    return { success: false, error: (err as Error).message };
+  }
+}
+
 export async function submitChallenge(
   token: string,
   params: { challengeId: number; videoUrl: string; comment: string | null }
