@@ -35,8 +35,8 @@ const JudgePanel: React.FC<JudgePanelProps> = ({ user }) => {
     setIsAdmin(!!dbUser?.is_admin);
 
     const data = dbUser.is_admin
-      ? await fetchAdminPendingSubmissions()
-      : await fetchJudgeAssignments(dbUser.id);
+      ? await fetchAdminPendingSubmissions(user.token)
+      : await fetchJudgeAssignments(user.token);
 
     setAssignments(data);
     setLoading(false);

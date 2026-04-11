@@ -36,6 +36,22 @@ serve(async (req: Request) => {
       return json({ success: true })
     }
 
+    // List judge assignments for current user
+    if (action === 'list-judge-assignments') {
+      const { data, error } = await supabase
+        .from('submission_judges')
+        .select(`id, assigned_at, vote, timestamp_note,
+          submission:submissions(
+            id, video_url, comment, submitted_at,
+            user:users(username),
+            challenge:challenges(title, tier, description)
+          )`)
+        .eq('judge_user_id', userId)
+        .order('assigned_at', { ascending: false })
+      if (error) return json({ success: false, error: error.message }, 500)
+      return json({ success: true, data })
+    }
+
     return json({ success: false, error: `Unknown action: ${action}` }, 400)
 
   } catch (err) {

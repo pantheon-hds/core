@@ -302,6 +302,18 @@ serve(async (req: Request) => {
         return json({ success: true, game })
       }
 
+      case 'list-pending-submissions': {
+        const { data, error } = await supabase
+          .from('submissions')
+          .select(`id, video_url, comment, submitted_at,
+            user:users(username),
+            challenge:challenges(title, tier, description)`)
+          .in('status', ['pending', 'in_review'])
+          .order('submitted_at', { ascending: true })
+        if (error) return json({ success: false, error: error.message }, 500)
+        return json({ success: true, data })
+      }
+
       case 'list-judge-apps': {
         const { data, error } = await supabase
           .from('judge_applications')
