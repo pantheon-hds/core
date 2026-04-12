@@ -39,7 +39,9 @@ export async function getUserByToken(token: string) {
       headers: {
         'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
         'x-session-token': token,
+        'Content-Type': 'application/json',
       },
+      body: '{}',
     });
     if (!res.ok) return null;
     return await res.json();
