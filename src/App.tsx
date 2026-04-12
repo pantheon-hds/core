@@ -8,6 +8,7 @@ import WelcomeScreen from './components/pages/WelcomeScreen';
 import type { FounderUser } from './types';
 import { supabase, revokeToken } from './services/supabase';
 import ErrorBoundary from './components/ui/ErrorBoundary';
+import { useUserData } from './hooks/useUserData';
 
 // Eagerly loaded — always needed on first paint
 import LandingHome from './components/pages/LandingHome';
@@ -51,6 +52,7 @@ const getSavedUser = (): SteamUser | null => {
 const AppShell: React.FC<{ user: SteamUser | null; onLogout: () => void }> = ({ user, onLogout }) => {
   const [page, setPage] = useState<Page>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { isAdmin, isJudge } = useUserData(user, []);
 
   const titles: Record<Page, string> = {
     dashboard: 'Dashboard',
@@ -74,6 +76,8 @@ const AppShell: React.FC<{ user: SteamUser | null; onLogout: () => void }> = ({ 
           user={user}
           onLogout={onLogout}
           isOpen={sidebarOpen}
+          isAdmin={isAdmin}
+          isJudge={isJudge}
         />
         <div className="app__main">
           <div className="app__topbar">

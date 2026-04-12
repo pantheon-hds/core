@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import './Sidebar.css';
 import { SteamUser } from '../pages/SteamCallback';
-import { getUserByToken } from '../../services/supabase';
 
 export type Page = 'dashboard' | 'pantheon' | 'profile' | 'admin' | 'judge';
 
@@ -11,21 +10,11 @@ interface SidebarProps {
   user: SteamUser | null;
   onLogout?: () => void;
   isOpen?: boolean;
+  isAdmin?: boolean;
+  isJudge?: boolean;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ current, onChange, user, onLogout, isOpen }) => {
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [isJudge, setIsJudge] = useState(false);
-
-  useEffect(() => {
-    if (!user) return;
-    getUserByToken(user.token).then(dbUser => {
-      setIsAdmin(dbUser?.is_admin || false);
-      setIsJudge(dbUser?.is_judge || false);
-    }).catch(e => {
-      console.warn('Failed to load user roles:', e);
-    });
-  }, [user]);
+const Sidebar: React.FC<SidebarProps> = ({ current, onChange, user, onLogout, isOpen, isAdmin = false, isJudge = false }) => {
 
   const initials = user?.username
     ? user.username.slice(0, 2).toUpperCase()

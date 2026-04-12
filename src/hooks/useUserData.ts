@@ -17,6 +17,8 @@ interface UseUserDataResult {
   isBanned: boolean;
   banReason: string | null;
   banUntil: string | null;
+  isAdmin: boolean;
+  isJudge: boolean;
 }
 
 export function useUserData(user: SteamUser | null, games: Game[]): UseUserDataResult {
@@ -73,5 +75,7 @@ export function useUserData(user: SteamUser | null, games: Game[]): UseUserDataR
     isBanned,
     banReason: dbUser?.ban_reason ?? null,
     banUntil: dbUser?.banned_until ?? null,
+    isAdmin: dbUser?.is_admin ?? false,
+    isJudge: dbUser?.is_judge ?? false,
   };
 }
