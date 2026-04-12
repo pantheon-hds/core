@@ -176,12 +176,33 @@ serve(async (req) => {
 
     const token = await signSessionToken(userId)
 
-    // Redirect to /app with user data + signed session token
-    const redirectUrl = `${APP_URL}/app?steamId=${steamId}&username=${encodeURIComponent(profile.username)}&avatar=${encodeURIComponent(profile.avatarUrl)}&public=${profile.isPublic}&token=${encodeURIComponent(token)}`
+    // Store a one-time auth code so the JWT never appears in the redirect URL.
+    // SteamCallback will POST this code to exchange-code to get the token.
+    const code = crypto.randomUUID().replace(/-/g, '')
+    const expiresAt = new Date(Date.now() + 60 * 1000).toISOString()
+
+    const { error: codeError } = await supabase.from('auth_codes').insert({
+      code,
+      user_id: userId,
+      steam_id: steamId,
+      username: profile.username,
+      avatar_url: profile.avatarUrl,
+      is_public: profile.isPublic,
+      token,
+      expires_at: expiresAt,
+    })
+
+    if (codeError) {
+      console.error('Failed to store auth code:', codeError)
+      return new Response(null, {
+        status: 302,
+        headers: { ...corsHeaders, Location: `${APP_URL}/app?error=auth_failed` }
+      })
+    }
 
     return new Response(null, {
       status: 302,
-      headers: { ...corsHeaders, Location: redirectUrl }
+      headers: { ...corsHeaders, Location: `${APP_URL}/app?code=${code}` }
     })
 
   } catch (error) {

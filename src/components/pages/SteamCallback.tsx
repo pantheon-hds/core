@@ -25,37 +25,56 @@ const SteamCallback: React.FC<SteamCallbackProps> = ({ onSuccess, onError }) => 
     const handleCallback = async () => {
       try {
         const params = new URLSearchParams(window.location.search);
-        const steamId = params.get('steamId');
-        const username = params.get('username');
-        const avatar = params.get('avatar');
-        const isPublic = params.get('public') === 'true';
-        const token = params.get('token') || '';
 
-        // Success path — Steam already verified by Edge Function
-        if (steamId && username && token) {
+        // Success path — exchange one-time code for JWT (token never travels in URL)
+        const code = params.get('code');
+        if (code) {
           setStatus('checking');
+          setMessage('Completing login...');
+
+          const res = await fetch(`${SUPABASE_URL}/functions/v1/exchange-code`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ code }),
+          });
+
+          if (!res.ok) {
+            setStatus('error');
+            setMessage('Login failed. Please try again.');
+            setTimeout(onError, 2000);
+            return;
+          }
+
+          const data = await res.json();
+          if (!data.success) {
+            setStatus('error');
+            setMessage('Login failed. Please try again.');
+            setTimeout(onError, 2000);
+            return;
+          }
+
           setMessage('Checking achievements...');
 
           const user: SteamUser = {
-            steamId,
-            username: decodeURIComponent(username),
-            avatarUrl: decodeURIComponent(avatar || ''),
-            isPublic,
-            token: decodeURIComponent(token),
+            steamId: data.steamId,
+            username: data.username,
+            avatarUrl: data.avatarUrl,
+            isPublic: data.isPublic,
+            token: data.token,
           };
 
           try {
-            await fetch(
-              `${SUPABASE_URL}/functions/v1/check-achievements`,
-              {
-                method: 'POST',
-                headers: {
-                  'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ steamId, appId: '3228590' }),
-              }
-            );
+            await fetch(`${SUPABASE_URL}/functions/v1/check-achievements`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ steamId: data.steamId, appId: '3228590' }),
+            });
           } catch (e) {
             console.warn('Achievement check failed (will retry on dashboard load):', e);
           }

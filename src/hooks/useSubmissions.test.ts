@@ -12,35 +12,25 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock('../services/supabase', () => ({
   supabase: {
-    from: vi.fn().mockImplementation(() => ({
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockImplementation(() =>
-          Promise.resolve({ data: mocks.submissionsData, error: null })
-        ),
-      }),
-      insert: vi.fn().mockReturnValue({
-        select: vi.fn().mockReturnValue({
-          single: vi.fn().mockImplementation(() =>
-            mocks.insertError
-              ? Promise.resolve({ data: null, error: { message: mocks.insertError } })
-              : Promise.resolve({ data: { id: 'inserted-id' }, error: null })
-          ),
-        }),
-      }),
-      update: vi.fn().mockReturnValue({
-        eq: vi.fn().mockImplementation(() =>
-          mocks.updateError
-            ? Promise.resolve({ data: null, error: { message: mocks.updateError } })
-            : Promise.resolve({ data: null, error: null })
-        ),
-      }),
-    })),
     channel: vi.fn().mockReturnValue({
       on: vi.fn().mockReturnThis(),
       subscribe: vi.fn().mockReturnThis(),
     }),
     removeChannel: vi.fn(),
   },
+  fetchMySubmissions: vi.fn().mockImplementation(() =>
+    Promise.resolve(mocks.submissionsData)
+  ),
+  submitChallenge: vi.fn().mockImplementation(() =>
+    mocks.insertError
+      ? Promise.resolve({ success: false, submissionId: '', error: mocks.insertError })
+      : Promise.resolve({ success: true, submissionId: 'inserted-id' })
+  ),
+  withdrawSubmission: vi.fn().mockImplementation(() =>
+    mocks.updateError
+      ? Promise.resolve({ success: false, error: mocks.updateError })
+      : Promise.resolve({ success: true })
+  ),
   assignJudges: vi.fn().mockResolvedValue(true),
 }));
 
