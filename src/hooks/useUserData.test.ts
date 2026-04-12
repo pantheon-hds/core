@@ -11,7 +11,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('../services/supabase', () => ({
-  getUserBySteamId: vi.fn().mockImplementation(() =>
+  getUserByToken: vi.fn().mockImplementation(() =>
     Promise.resolve(mocks.dbUser)
   ),
   getUserRanks: vi.fn().mockImplementation(() =>

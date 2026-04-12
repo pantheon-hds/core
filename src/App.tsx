@@ -160,7 +160,7 @@ const App: React.FC = () => {
       <SteamCallback
         onSuccess={async (steamUser) => {
           const { data } = await supabase
-            .from('users')
+            .from('public_profiles')
             .select('id')
             .eq('steam_id', steamUser.steamId)
             .maybeSingle();

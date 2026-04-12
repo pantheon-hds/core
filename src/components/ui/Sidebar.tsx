@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import './Sidebar.css';
 import { SteamUser } from '../pages/SteamCallback';
-import { getUserBySteamId } from '../../services/supabase';
+import { getUserByToken } from '../../services/supabase';
 
 export type Page = 'dashboard' | 'pantheon' | 'profile' | 'admin' | 'judge';
 
@@ -19,7 +19,7 @@ const Sidebar: React.FC<SidebarProps> = ({ current, onChange, user, onLogout, is
 
   useEffect(() => {
     if (!user) return;
-    getUserBySteamId(user.steamId).then(dbUser => {
+    getUserByToken(user.token).then(dbUser => {
       setIsAdmin(dbUser?.is_admin || false);
       setIsJudge(dbUser?.is_judge || false);
     }).catch(e => {

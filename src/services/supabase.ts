@@ -32,15 +32,20 @@ export async function getUserStatues(userId: string): Promise<UserStatue[]> {
   return (data as UserStatue[]) || [];
 }
 
-export async function getUserBySteamId(steamId: string) {
-  const { data, error } = await supabase
-    .from('users')
-    .select('*')
-    .eq('steam_id', steamId)
-    .single();
-
-  if (error) { console.error('Error fetching user:', error); return null; }
-  return data;
+export async function getUserByToken(token: string) {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/get-my-profile`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'x-session-token': token,
+      },
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
 }
 
 export async function checkAchievements(steamId: string, appId: string) {

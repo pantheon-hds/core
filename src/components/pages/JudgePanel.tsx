@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import './JudgePanel.css';
 import { SteamUser } from './SteamCallback';
-import { getUserBySteamId } from '../../services/supabase';
+import { getUserByToken } from '../../services/supabase';
 import { fetchAdminPendingSubmissions, fetchJudgeAssignments } from '../../services/judgeService';
 import { safeVideoUrl } from '../../utils/videoUrl';
 import { recordJudgeVote } from '../../services/submissionService';
@@ -25,7 +25,7 @@ const JudgePanel: React.FC<JudgePanelProps> = ({ user }) => {
     if (!user) return;
     setLoading(true);
 
-    const dbUser = await getUserBySteamId(user.steamId);
+    const dbUser = await getUserByToken(user.token);
     if (!dbUser?.is_judge && !dbUser?.is_admin) {
       setIsJudge(false);
       setLoading(false);

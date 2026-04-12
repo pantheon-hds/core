@@ -2,7 +2,7 @@ import React, { useState, useCallback, useMemo } from 'react';
 import './Admin.css';
 import { SteamUser } from './SteamCallback';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { getUserBySteamId, sendInvite, rejectWaitlistEntry } from '../../services/supabase';
+import { getUserByToken, sendInvite, rejectWaitlistEntry } from '../../services/supabase';
 import * as adminService from '../../services/adminService';
 import { useToast } from '../../hooks/useToast';
 import { Toast } from '../ui/Toast';
@@ -33,7 +33,7 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
   // ── Auth check ───────────────────────────────────────────────────────────────
   const { data: dbUser, isLoading: authLoading } = useQuery({
     queryKey: ['admin-auth', user?.steamId],
-    queryFn: () => getUserBySteamId(user!.steamId),
+    queryFn: () => getUserByToken(user!.token),
     enabled: !!user,
     staleTime: 30 * 1000,
   });
@@ -72,7 +72,7 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
 
   const { data: allUsers = [] } = useQuery({
     queryKey: ['admin-users'],
-    queryFn: adminService.fetchAdminUsers,
+    queryFn: () => adminService.fetchAdminUsers(user!.token),
     enabled: isAdmin,
   });
 

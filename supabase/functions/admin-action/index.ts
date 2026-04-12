@@ -323,6 +323,15 @@ serve(async (req: Request) => {
         return json({ success: true, data })
       }
 
+      case 'list-users': {
+        const { data, error } = await supabase
+          .from('users')
+          .select('id, username, steam_id, is_admin, is_judge, is_test, is_banned, ban_reason, banned_until, created_at')
+          .order('created_at', { ascending: false })
+        if (error) return json({ success: false, error: error.message }, 500)
+        return json({ success: true, data })
+      }
+
       default:
         return json({ success: false, error: `Unknown action: ${action}` }, 400)
     }

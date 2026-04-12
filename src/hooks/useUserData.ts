@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { getUserBySteamId, getUserRanks, getUserStatues, checkAchievements } from '../services/supabase';
+import { getUserByToken, getUserRanks, getUserStatues, checkAchievements } from '../services/supabase';
 import type { SteamUser } from '../components/pages/SteamCallback';
 import type { UserRank, UserStatue } from '../types';
 
@@ -24,7 +24,7 @@ export function useUserData(user: SteamUser | null, games: Game[]): UseUserDataR
 
   const { data: dbUser, isLoading: dbUserLoading } = useQuery({
     queryKey: ['dbUser', user?.steamId],
-    queryFn: () => getUserBySteamId(user!.steamId),
+    queryFn: () => getUserByToken(user!.token),
     enabled: !!user,
     staleTime: 30 * 1000, // 30s — short so bans take effect quickly
   });

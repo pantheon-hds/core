@@ -15,7 +15,7 @@ export interface PublicProfileData {
 
 export async function getPublicProfile(username: string): Promise<PublicProfileData | null> {
   const { data: user, error } = await supabase
-    .from('users')
+    .from('public_profiles')
     .select('id, username, avatar_url, steam_id, created_at')
     .eq('username', username)
     .single();
@@ -67,7 +67,7 @@ export async function checkJudgeEligibility(userId: string): Promise<JudgeEligib
     .limit(1);
 
   const { data: user } = await supabase
-    .from('users')
+    .from('public_profiles')
     .select('created_at, is_judge')
     .eq('id', userId)
     .single();

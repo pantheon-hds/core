@@ -154,10 +154,7 @@ export async function fetchAdminWaitlist(steamId: string): Promise<WaitlistEntry
   return (data as WaitlistEntry[]) || [];
 }
 
-export async function fetchAdminUsers(): Promise<DBUser[]> {
-  const { data } = await supabase
-    .from('users')
-    .select('id, username, steam_id, is_admin, is_judge, is_test, is_banned, ban_reason, banned_until, created_at')
-    .order('created_at', { ascending: false });
-  return (data as DBUser[]) || [];
+export async function fetchAdminUsers(token: string): Promise<DBUser[]> {
+  const result = await callAdminAction(token, 'list-users');
+  return (result.data as DBUser[]) || [];
 }
