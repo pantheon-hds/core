@@ -511,6 +511,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      award_rank_on_approval: {
+        Args: { p_user_id: string; p_challenge_id: number }
+        Returns: undefined
+      }
       check_rate_limit: {
         Args: {
           p_endpoint: string

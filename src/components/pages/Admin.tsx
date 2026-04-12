@@ -31,7 +31,7 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
   const { toast, showToast } = useToast();
 
   // ── Auth check ───────────────────────────────────────────────────────────────
-  const { data: dbUser, isLoading: authLoading } = useQuery({
+  const { data: dbUser, isLoading: authLoading, isError: authError } = useQuery({
     queryKey: ['admin-auth', user?.steamId],
     queryFn: () => getUserByToken(user!.token),
     enabled: !!user,
@@ -221,6 +221,7 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
 
   // ── Render ────────────────────────────────────────────────────────────────────
   if (authLoading) return <div className="admin__loading">Loading...</div>;
+  if (authError) return <div className="admin__denied">Failed to verify access. Check your connection and refresh.</div>;
   if (!isAdmin) return <div className="admin__denied">Access denied.</div>;
 
   const pendingSubmissions = submissions.filter(s => s.status === 'pending').length;

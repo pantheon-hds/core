@@ -16,6 +16,7 @@ const JudgePanel: React.FC<JudgePanelProps> = ({ user }) => {
   const [isJudge, setIsJudge] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [assignments, setAssignments] = useState<JudgeAssignment[]>([]);
   const [timestamps, setTimestamps] = useState<Record<string, string>>({});
   const [voting, setVoting] = useState<Record<string, boolean>>({});
@@ -24,22 +25,28 @@ const JudgePanel: React.FC<JudgePanelProps> = ({ user }) => {
   const loadAssignments = useCallback(async () => {
     if (!user) return;
     setLoading(true);
+    setLoadError(false);
 
-    const dbUser = await getUserByToken(user.token);
-    if (!dbUser?.is_judge && !dbUser?.is_admin) {
-      setIsJudge(false);
+    try {
+      const dbUser = await getUserByToken(user.token);
+      if (!dbUser?.is_judge && !dbUser?.is_admin) {
+        setIsJudge(false);
+        setLoading(false);
+        return;
+      }
+      setIsJudge(true);
+      setIsAdmin(!!dbUser?.is_admin);
+
+      const data = dbUser.is_admin
+        ? await fetchAdminPendingSubmissions(user.token)
+        : await fetchJudgeAssignments(user.token);
+
+      setAssignments(data);
       setLoading(false);
-      return;
+    } catch {
+      setLoadError(true);
+      setLoading(false);
     }
-    setIsJudge(true);
-    setIsAdmin(!!dbUser?.is_admin);
-
-    const data = dbUser.is_admin
-      ? await fetchAdminPendingSubmissions(user.token)
-      : await fetchJudgeAssignments(user.token);
-
-    setAssignments(data);
-    setLoading(false);
   }, [user]);
 
   useEffect(() => {
@@ -87,6 +94,7 @@ const JudgePanel: React.FC<JudgePanelProps> = ({ user }) => {
   const pendingCount = assignments.filter(a => !a.vote).length;
 
   if (loading) return <div className="judge__loading">Loading...</div>;
+  if (loadError) return <div className="judge__loading">Failed to load assignments. Check your connection and refresh.</div>;
   if (!isJudge) return <div className="judge__denied">You are not a judge.</div>;
 
   return (

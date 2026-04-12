@@ -23,7 +23,7 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
   useEffect(() => () => clearTimeout(judgeMessageTimerRef.current), []);
 
   const { games } = useChallenges();
-  const { dbUserId, ranks, statues, isLoading } = useUserData(user, games);
+  const { dbUserId, ranks, statues, isLoading, isError } = useUserData(user, games);
   const queryClient = useQueryClient();
 
   const { data: judgeEligibility } = useQuery({
@@ -50,6 +50,14 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
     clearTimeout(judgeMessageTimerRef.current);
     judgeMessageTimerRef.current = setTimeout(() => setJudgeMessage(''), 4000);
   }, [dbUserId, judgeGameId, judgeMotivation, queryClient]);
+
+  if (isError) {
+    return (
+      <div className="profile">
+        <div className="profile__empty">Failed to load profile data. Check your connection and refresh.</div>
+      </div>
+    );
+  }
 
   const topRank = ranks[0];
   const username = user?.username || 'Guest';
