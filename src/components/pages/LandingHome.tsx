@@ -84,7 +84,7 @@ const LandingHome: React.FC = () => {
           <div className="lh__steps">
             {[
               { num: '01', title: 'Connect Steam', text: 'Link your account. We automatically detect your completed games and award Gold rank.' },
-              { num: '02', title: 'Take Challenges', text: 'Community-created challenges push you beyond 100%. Record your attempt. Submit your video.' },
+              { num: '02', title: 'Take Challenges', text: 'Community challenges are in development. The first testers will shape them from scratch — what they are, how they work, what counts as proof.' },
               { num: '03', title: 'Get Verified', text: 'Real judges watch your video anonymously and vote. 2 of 3 must approve. No algorithms.' },
               { num: '04', title: 'Earn Your Statue', text: 'Your rank rises. A statue is placed in your Hall. Reach Legend and stand in the Pantheon forever.' },
             ].map((step, i) => (

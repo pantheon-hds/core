@@ -38,17 +38,16 @@ const LandingBeta: React.FC = () => {
             </div>
           )}
           <div className="lb__label">Closed Beta</div>
-          <h1 className="lb__title">Be One of the First</h1>
+          <h1 className="lb__title">We Need Testers</h1>
           <div className="lb__subtitle">
-            Pantheon is being built in public, with the community. The first members shape everything:
-            challenges, rules, culture. There are no second chances to be first.
+            Pantheon is in closed beta. Challenges don't exist yet — they will be built together with the first testers. If you want to help shape what this platform becomes, this is the moment.
           </div>
 
           {!submitted ? (
             <div className="lb__content">
               <div className="lb__form-section">
-                <div className="lb__form-title">Join the Waitlist</div>
-                <div className="lb__form-text">We review every application personally. No spam. Ever.</div>
+                <div className="lb__form-title">Request Tester Access</div>
+                <div className="lb__form-text">We're looking for people who want to help build this, not just use it. We review every application personally.</div>
                 <form className="lb__form" onSubmit={handleSubmit}>
                   <div className="lb__field">
                     <label className="lb__label-field" htmlFor="beta-email">Email *</label>
