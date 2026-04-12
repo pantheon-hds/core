@@ -146,7 +146,7 @@ const AppRoutes: React.FC = () => {
       />
       <Route path="/u/:username" element={<PublicProfile />} />
       <Route path="/privacy" element={<LandingPrivacy />} />
-      <Route path="/f0und3r-g4te-9x2k" element={<FounderGate onLogin={handleFounderLogin} />} />
+      <Route path={import.meta.env.VITE_FOUNDER_GATE_PATH ?? '/founder-gate'} element={<FounderGate onLogin={handleFounderLogin} />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

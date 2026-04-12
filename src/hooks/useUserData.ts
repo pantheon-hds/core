@@ -33,14 +33,14 @@ export function useUserData(user: SteamUser | null, games: Game[]): UseUserDataR
     queryKey: ['ranks', dbUser?.id],
     queryFn: () => getUserRanks(dbUser!.id),
     enabled: !!dbUser?.id,
-    refetchInterval: 30 * 1000,
+    refetchInterval: 2 * 60 * 1000,
   });
 
   const { data: statues = [], isLoading: statuesLoading, isError: statuesError } = useQuery({
     queryKey: ['statues', dbUser?.id],
     queryFn: () => getUserStatues(dbUser!.id),
     enabled: !!dbUser?.id,
-    refetchInterval: 30 * 1000,
+    refetchInterval: 2 * 60 * 1000,
   });
 
   // Achievement check — cached per user for 5 minutes to prevent flooding the Edge Function
