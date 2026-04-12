@@ -1,6 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { corsHeaders, verifySessionToken } from '../_shared/adminGuard.ts'
+import { corsHeaders, json, verifySessionToken } from '../_shared/adminGuard.ts'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
 const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
@@ -24,21 +24,11 @@ serve(async (req: Request) => {
     const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_KEY!)
 
     const callerId = await verifySessionToken(req, supabase)
-    if (!callerId) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
+    if (!callerId) return json({ error: 'Unauthorized' }, 401)
 
     const { submissionId } = await req.json()
 
-    if (!submissionId) {
-      return new Response(
-        JSON.stringify({ error: 'submissionId required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
+    if (!submissionId) return json({ error: 'submissionId required' }, 400)
 
     const { data: submission } = await supabase
       .from('submissions')
@@ -46,20 +36,10 @@ serve(async (req: Request) => {
       .eq('id', submissionId)
       .single()
 
-    if (!submission) {
-      return new Response(
-        JSON.stringify({ error: 'Submission not found' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
+    if (!submission) return json({ error: 'Submission not found' }, 404)
 
     // Verify the caller owns this submission — prevents hijacking another user's submission
-    if (submission.user_id !== callerId) {
-      return new Response(
-        JSON.stringify({ error: 'Forbidden' }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
+    if (submission.user_id !== callerId) return json({ error: 'Forbidden' }, 403)
 
     const gameId = submission.challenge?.game_id
     const submitterUserId = submission.user_id
@@ -72,10 +52,7 @@ serve(async (req: Request) => {
 
     const rankedIds = (rankedUserIds || []).map((r: { user_id: string }) => r.user_id)
 
-    const fallbackResponse = (message: string) => new Response(
-      JSON.stringify({ success: true, judgesAssigned: 0, message }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+    const fallbackResponse = (message: string) => json({ success: true, judgesAssigned: 0, message })
 
     if (rankedIds.length === 0) {
       console.log('No ranked users for this game — falling back to admin review')
@@ -109,10 +86,7 @@ serve(async (req: Request) => {
 
     if (assignError) {
       console.error('Error assigning judges:', assignError)
-      return new Response(
-        JSON.stringify({ error: assignError.message }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      return json({ error: assignError.message }, 500)
     }
 
     const { error: statusError } = await supabase
@@ -127,16 +101,10 @@ serve(async (req: Request) => {
 
     console.log(`Assigned ${selected.length} judges to submission ${submissionId}`)
 
-    return new Response(
-      JSON.stringify({ success: true, judgesAssigned: selected.length }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+    return json({ success: true, judgesAssigned: selected.length })
 
   } catch (error) {
     console.error('Error:', error)
-    return new Response(
-      JSON.stringify({ error: 'Internal error', details: (error as Error).message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+    return json({ error: 'Internal error', details: (error as Error).message }, 500)
   }
 })

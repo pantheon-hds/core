@@ -1,16 +1,11 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { corsHeaders, json } from '../_shared/adminGuard.ts'
 import { getClientIp, checkRateLimit, rateLimitedResponse } from '../_shared/rateLimit.ts'
 
 const STEAM_API_KEY = Deno.env.get('STEAM_API_KEY')
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
 const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-}
 
 // Must stay in sync with determineRank() in src/services/steamApi.ts
 function getTier(percentage: number): string | null {
@@ -50,10 +45,7 @@ serve(async (req: Request) => {
     }
 
     if (!steamId || !appId) {
-      return new Response(
-        JSON.stringify({ error: 'steamId and appId are required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      return json({ error: 'steamId and appId are required' }, 400)
     }
 
     console.log(`Checking steamId: ${steamId}, appId: ${appId}`)
@@ -68,19 +60,13 @@ serve(async (req: Request) => {
       const response = await fetch(url, { signal: controller.signal })
       data = await response.json()
     } catch {
-      return new Response(
-        JSON.stringify({ error: 'Steam API unavailable' }),
-        { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      return json({ error: 'Steam API unavailable' }, 502)
     } finally {
       clearTimeout(timeout)
     }
 
     if (!data.playerstats?.success) {
-      return new Response(
-        JSON.stringify({ error: 'Could not fetch achievements', appId }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      return json({ error: 'Could not fetch achievements', appId }, 400)
     }
 
     const achievements: { achieved: number }[] = data.playerstats.achievements || []
@@ -148,16 +134,10 @@ serve(async (req: Request) => {
       }
     }
 
-    return new Response(
-      JSON.stringify({ steamId, appId, total, unlocked, percentage, tier }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+    return json({ steamId, appId, total, unlocked, percentage, tier })
 
   } catch (error) {
     console.error('Error:', error)
-    return new Response(
-      JSON.stringify({ error: 'Internal error', details: (error as Error).message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+    return json({ error: 'Internal error', details: (error as Error).message }, 500)
   }
 })

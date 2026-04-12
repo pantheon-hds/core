@@ -74,9 +74,17 @@ serve(async (req: Request) => {
 
     if (!challengeId || !videoUrl) return json({ success: false, error: 'challengeId and videoUrl required' }, 400)
 
-    // Validate videoUrl — only YouTube and Twitch allowed
-    const isValidVideo = (url: string) =>
-      /^https:\/\/(www\.)?(youtube\.com\/watch\?|youtu\.be\/|twitch\.tv\/)/.test(url)
+    // Validate videoUrl — only YouTube and Twitch allowed.
+    // Must stay in sync with isValidVideoUrl() in src/utils/videoUrl.ts
+    const ALLOWED_DOMAINS = ['youtube.com', 'youtu.be', 'twitch.tv']
+    const isValidVideo = (url: string) => {
+      try {
+        const { hostname, protocol } = new URL(url)
+        if (protocol !== 'https:') return false
+        const domain = hostname.replace(/^www\./, '')
+        return ALLOWED_DOMAINS.some(d => domain === d || domain.endsWith('.' + d))
+      } catch { return false }
+    }
     if (!isValidVideo(videoUrl)) {
       return json({ success: false, error: 'Only YouTube or Twitch links are allowed.' }, 400)
     }

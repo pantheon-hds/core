@@ -28,7 +28,7 @@ serve(async (req) => {
 
     const { data: founder } = await supabase
       .from('users')
-      .select('*')
+      .select('id')
       .eq('steam_id', 'VOLAND_FOUNDER')
       .single()
 

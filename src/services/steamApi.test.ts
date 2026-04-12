@@ -58,22 +58,24 @@ describe('determineRank', () => {
   });
 
   describe('Bronze I', () => {
-    it('returns Bronze I at 0%', () => {
-      expect(determineRank(0)).toBe('Bronze I');
+    it('returns Bronze I at exactly 1%', () => {
+      expect(determineRank(1)).toBe('Bronze I');
     });
 
     it('returns Bronze I at 24%', () => {
       expect(determineRank(24)).toBe('Bronze I');
     });
+  });
 
-    it('returns Bronze I at 1%', () => {
-      expect(determineRank(1)).toBe('Bronze I');
+  describe('no rank', () => {
+    it('returns null at 0%', () => {
+      expect(determineRank(0)).toBeNull();
     });
   });
 
-  it('returns a valid RankTier for every boundary value', () => {
+  it('returns a valid RankTier or null for every boundary value', () => {
     const boundaries = [0, 1, 24, 25, 49, 50, 74, 75, 89, 90, 94, 95, 99, 100];
-    const validTiers = ['Gold', 'Silver III', 'Silver II', 'Silver I', 'Bronze III', 'Bronze II', 'Bronze I'];
+    const validTiers = [null, 'Gold', 'Silver III', 'Silver II', 'Silver I', 'Bronze III', 'Bronze II', 'Bronze I'];
     for (const pct of boundaries) {
       expect(validTiers).toContain(determineRank(pct));
     }

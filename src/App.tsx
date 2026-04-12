@@ -34,7 +34,7 @@ const queryClient = new QueryClient({
 
 const isSteamCallback = (): boolean => {
   const params = new URLSearchParams(window.location.search);
-  return params.has('openid.claimed_id') || params.has('steamId');
+  return params.has('openid.claimed_id') || params.has('code') || params.has('steamId');
 };
 
 const getSavedUser = (): SteamUser | null => {
