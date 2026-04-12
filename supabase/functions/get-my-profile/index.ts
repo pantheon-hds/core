@@ -10,12 +10,7 @@ serve(async (req) => {
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
-  const token = req.headers.get('x-session-token')
-  const secret = Deno.env.get('APP_SESSION_SECRET')
-  console.log('token present:', !!token, '| secret present:', !!secret)
-
   const userId = await verifySessionToken(req, supabase)
-  console.log('userId:', userId)
   if (!userId) return json({ error: 'Unauthorized' }, 401)
 
   const { data, error } = await supabase
