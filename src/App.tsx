@@ -19,6 +19,7 @@ import LandingFAQ from './components/pages/LandingFAQ';
 import PublicProfile from './components/pages/PublicProfile';
 import NotFound from './components/pages/NotFound';
 import LandingPrivacy from './components/pages/LandingPrivacy';
+import LandingNews from './components/pages/LandingNews';
 import FounderGate from './components/pages/FounderGate';
 
 // Lazily loaded — split into separate chunks to reduce initial bundle
@@ -154,6 +155,7 @@ const AppRoutes: React.FC = () => {
         }
       />
       <Route path="/u/:username" element={<PublicProfile />} />
+      <Route path="/news" element={<LandingNews />} />
       <Route path="/privacy" element={<LandingPrivacy />} />
       <Route path={import.meta.env.VITE_FOUNDER_GATE_PATH ?? '/founder-gate'} element={<FounderGate onLogin={handleFounderLogin} />} />
       <Route path="*" element={<NotFound />} />
