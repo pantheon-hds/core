@@ -158,33 +158,3 @@ export async function fetchAdminUsers(token: string): Promise<DBUser[]> {
   const result = await callAdminAction(token, 'list-users');
   return (result.data as DBUser[]) || [];
 }
-
-// ── Sandbox ───────────────────────────────────────────────────────────────────
-
-export function sandboxCreateJudges(
-  token: string,
-  count: number
-): Promise<AdminResult & { created?: string[] }> {
-  return callAdminAction(token, 'sandbox-create-judges', { count });
-}
-
-export function sandboxCreateSubmission(
-  token: string,
-  challengeId: number,
-  judgeIds: string[]
-): Promise<AdminResult & { submissionId?: string }> {
-  return callAdminAction(token, 'sandbox-create-submission', { challengeId, judgeIds });
-}
-
-export function sandboxSimulateVote(
-  token: string,
-  assignmentId: string,
-  submissionId: string,
-  vote: 'approved' | 'rejected'
-): Promise<AdminResult & { finalStatus?: string | null }> {
-  return callAdminAction(token, 'sandbox-simulate-vote', { assignmentId, submissionId, vote });
-}
-
-export function sandboxClearAll(token: string): Promise<AdminResult> {
-  return callAdminAction(token, 'sandbox-clear-all');
-}
