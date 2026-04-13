@@ -250,6 +250,33 @@ serve(async (req: Request) => {
         return json({ success: true, data })
       }
 
+      case 'list-challenges': {
+        const { data, error } = await supabase
+          .from('challenges')
+          .select('*, game:games(id, title)')
+          .order('created_at', { ascending: false })
+        if (error) return json({ success: false, error: error.message }, 500)
+        return json({ success: true, data })
+      }
+
+      case 'list-games': {
+        const { data, error } = await supabase
+          .from('games')
+          .select('*')
+          .order('title')
+        if (error) return json({ success: false, error: error.message }, 500)
+        return json({ success: true, data })
+      }
+
+      case 'list-waitlist': {
+        const { data, error } = await supabase
+          .from('waitlist')
+          .select('id, email, reason, status, rejection_reason, applied_at')
+          .order('applied_at', { ascending: false })
+        if (error) return json({ success: false, error: error.message }, 500)
+        return json({ success: true, data })
+      }
+
       // ── Sandbox (test data, founder-only) ─────────────────────────────────
       // These actions are also protected by requireAdmin — Voland's account
       // must have is_admin = true in the DB.
@@ -337,6 +364,9 @@ serve(async (req: Request) => {
           .select('vote')
           .eq('submission_id', submissionId)
 
+        // NOTE: this mirrors resolveVotes() in src/utils/judgeVoting.ts.
+        // Edge Functions can't import frontend utils, so the logic is duplicated.
+        // If voting rules change, update BOTH this block and judgeVoting.ts.
         let finalStatus: string | null = null
         if (allVotes && allVotes.length > 0) {
           const votes = allVotes.map(v => v.vote as string | null)

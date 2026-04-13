@@ -6,7 +6,6 @@
  * are intentionally absent from the frontend.
  */
 
-import { supabase } from './supabase';
 import type { Game, Challenge, Submission, JudgeApplication, WaitlistEntry, DBUser } from '../types';
 
 async function fetchWithTimeout(url: string, options: RequestInit, ms = 10000): Promise<Response> {
@@ -135,20 +134,14 @@ export async function fetchAdminSubmissions(token: string): Promise<Submission[]
   return (result.data as Submission[]) || [];
 }
 
-export async function fetchAdminChallenges(): Promise<Challenge[]> {
-  const { data } = await supabase
-    .from('challenges')
-    .select('*, game:games(id, title)')
-    .order('created_at', { ascending: false });
-  return (data as Challenge[]) || [];
+export async function fetchAdminChallenges(token: string): Promise<Challenge[]> {
+  const result = await callAdminAction(token, 'list-challenges');
+  return (result.data as Challenge[]) || [];
 }
 
-export async function fetchAdminGames(): Promise<Game[]> {
-  const { data } = await supabase
-    .from('games')
-    .select('*')
-    .order('title');
-  return (data as Game[]) || [];
+export async function fetchAdminGames(token: string): Promise<Game[]> {
+  const result = await callAdminAction(token, 'list-games');
+  return (result.data as Game[]) || [];
 }
 
 export async function fetchAdminJudgeApps(token: string): Promise<JudgeApplication[]> {
@@ -156,9 +149,9 @@ export async function fetchAdminJudgeApps(token: string): Promise<JudgeApplicati
   return (result.data as JudgeApplication[]) || [];
 }
 
-export async function fetchAdminWaitlist(steamId: string): Promise<WaitlistEntry[]> {
-  const { data } = await supabase.rpc('get_waitlist_admin', { p_steam_id: steamId });
-  return (data as WaitlistEntry[]) || [];
+export async function fetchAdminWaitlist(token: string): Promise<WaitlistEntry[]> {
+  const result = await callAdminAction(token, 'list-waitlist');
+  return (result.data as WaitlistEntry[]) || [];
 }
 
 export async function fetchAdminUsers(token: string): Promise<DBUser[]> {

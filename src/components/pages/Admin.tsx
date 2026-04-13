@@ -48,13 +48,13 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
 
   const { data: challenges = [] } = useQuery({
     queryKey: ['admin-challenges'],
-    queryFn: adminService.fetchAdminChallenges,
+    queryFn: () => adminService.fetchAdminChallenges(user!.token),
     enabled: isAdmin,
   });
 
   const { data: games = [] } = useQuery({
     queryKey: ['admin-games'],
-    queryFn: adminService.fetchAdminGames,
+    queryFn: () => adminService.fetchAdminGames(user!.token),
     enabled: isAdmin,
   });
 
@@ -66,7 +66,7 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
 
   const { data: waitlist = [] } = useQuery({
     queryKey: ['admin-waitlist', user?.steamId],
-    queryFn: () => adminService.fetchAdminWaitlist(user!.steamId),
+    queryFn: () => adminService.fetchAdminWaitlist(user!.token),
     enabled: isAdmin && !!user,
   });
 
