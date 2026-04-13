@@ -39,10 +39,10 @@ const LandingHome: React.FC = () => {
           <div className="lh__label">The Story</div>
           <h2 className="lh__title">You got 100%.<br />Now what?</h2>
           <div className="lh__story-text">
-            <p>I have loved video games my entire life. For years, my way of honoring a game I loved was simple: get 100%. Every achievement. Every secret. Every hidden ending.</p>
-            <p>But after the last achievement popped, I felt something unexpected. <em>Emptiness.</em> The game was over. There was nowhere left to go.</p>
-            <p>I had done something genuinely hard. But where could I show it? Nobody cared about a Steam profile screenshot.</p>
-            <p>So I asked myself:</p>
+            <p>I was madly in love with games. I adored them, I lived for them. I didn't just beat each game; I drank it in, like a thirsty person in the desert.</p>
+            <p>But after I finished a game, I felt empty inside. The achievements I earned on Steam gave me no satisfaction. I felt like a student who passed an exam and immediately forgot everything.</p>
+            <p>And then I thought that after every game, I wanted to be left with an aftertaste I'd remember for a long time. That I'd done something truly challenging. And for there to be a place for people like me, who love to push games to the limit.</p>
+            <p>I searched for such a place. And I didn't find it. So I decided to build it myself.</p>
           </div>
           <div className="lh__quote">
             "What if 100% is not the end of a game, but only the beginning?"
