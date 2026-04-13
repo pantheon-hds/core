@@ -144,7 +144,7 @@ Find your keys at: Supabase Dashboard → Settings → API
 npm start        # dev server at localhost:3000
 npm run build    # production build
 npm test         # unit tests
-npm run test:e2e # E2E tests (requires npm start running)
+npm run test:e2e # E2E tests (requires build first)
 ```
 
 ---
@@ -165,14 +165,22 @@ src/
 │   ├── pages/                       # Route-level page components
 │   │   ├── Admin.tsx                # Admin panel
 │   │   ├── Dashboard.tsx            # Main player dashboard
+│   │   ├── FounderGate.tsx          # Secret founder login page
 │   │   ├── JudgePanel.tsx           # Judge voting interface
-│   │   ├── Landing.tsx              # Landing page router
+│   │   ├── LandingHome.tsx          # Home page
+│   │   ├── LandingRanks.tsx         # Ranks info page
+│   │   ├── LandingGames.tsx         # Games info page
+│   │   ├── LandingBeta.tsx          # Beta waitlist page
+│   │   ├── LandingFAQ.tsx           # FAQ page
+│   │   ├── NotFound.tsx             # 404 page
 │   │   ├── Pantheon.tsx             # Public leaderboard
 │   │   ├── Profile.tsx              # Personal profile
 │   │   ├── PublicProfile.tsx        # Shareable /u/username page
+│   │   ├── Sandbox.tsx              # Testing environment (founder only)
 │   │   ├── SteamCallback.tsx        # Steam OpenID callback handler
-│   │   └── WelcomeScreen.tsx        # Post-login onboarding
+│   │   └── WelcomeScreen.tsx        # Login screen with beta gate
 │   └── ui/                          # Shared reusable components
+│       ├── ConfirmDialog.tsx
 │       ├── ErrorBoundary.tsx
 │       ├── Sidebar.tsx
 │       ├── StatueSVG.tsx
@@ -182,12 +190,13 @@ src/
 │   └── ranks.ts                     # Rank tiers, colors, ordering
 ├── hooks/                           # Custom React hooks
 │   ├── useChallenges.ts             # Fetch challenges + games via react-query
-│   ├── useSubmissions.ts            # Submissions state + Supabase Realtime
+│   ├── useSubmissions.ts            # Submissions state + optimistic updates
 │   ├── useToast.ts                  # Toast notification state
 │   └── useUserData.ts               # DB user, ranks, statues via react-query
 ├── services/                        # External integrations
-│   ├── adminService.ts              # Admin operations
+│   ├── adminService.ts              # Admin + sandbox operations via Edge Function
 │   ├── challengeService.ts          # Challenge + game queries
+│   ├── judgeService.ts              # Judge panel operations
 │   ├── pantheonService.ts           # Pantheon leaderboard queries
 │   ├── profileService.ts            # Profile + judge application
 │   ├── steamApi.ts                  # Steam Web API calls
@@ -197,7 +206,11 @@ src/
 │   ├── database.types.ts            # Supabase DB types (maintained manually)
 │   └── index.ts                     # Shared TypeScript interfaces
 └── utils/
-    └── rankProgress.ts              # Rank progress calculation helpers
+    ├── banUtils.ts                  # Ban status helpers
+    ├── judgeSelection.ts            # Judge selection algorithm
+    ├── judgeVoting.ts               # resolveVotes() — voting majority logic
+    ├── rankProgress.ts              # Rank progress calculation
+    └── videoUrl.ts                  # Video URL validation (YouTube + Twitch)
 ```
 
 ---
