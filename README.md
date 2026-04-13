@@ -10,13 +10,13 @@
 
 ## What is Pantheon?
 
-Pantheon is a community-driven achievement platform for players who love games deeply.
+Pantheon is a place for players who love to get the most out of a game. Where 100% Steam achievements are just a warm-up.
 
-You got 100% achievements. Now what?
+Usually, 100% is the end, but not here.
 
-Most platforms stop there. Pantheon begins there.
+Here, everything is just beginning.
 
-Here, players earn ranks by completing community-created challenges — verified by real players, not algorithms. The community decides who is a Legend. No money. No pay-to-win. Just skill.
+Here, a player is like Hercules, who completed the 12 labors, only instead of labors, there are challenges created by other players. And the more challenges they complete, the closer they get to Legend status. When will you be able to sit back and say — I got everything and more out of this game!
 
 **Live platform:** https://pantheonhds.com
 
