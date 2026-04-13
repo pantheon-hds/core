@@ -194,7 +194,7 @@ src/
 │   ├── submissionService.ts         # Submission CRUD operations
 │   └── supabase.ts                  # Supabase client + core DB functions
 ├── types/
-│   ├── database.types.ts            # Auto-generated Supabase types
+│   ├── database.types.ts            # Supabase DB types (maintained manually)
 │   └── index.ts                     # Shared TypeScript interfaces
 └── utils/
     └── rankProgress.ts              # Rank progress calculation helpers
