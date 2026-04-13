@@ -39,7 +39,7 @@ export async function getPantheonData(): Promise<PantheonEntry[]> {
   };
 
   const statueCounts: Record<string, { total: number; unique: number }> = {};
-  ((statues || []) as StatueCount[]).forEach(s => {
+  (Array.isArray(statues) ? (statues as StatueCount[]) : []).forEach(s => {
     if (!statueCounts[s.user_id]) statueCounts[s.user_id] = { total: 0, unique: 0 };
     statueCounts[s.user_id].total++;
     if (s.is_unique) statueCounts[s.user_id].unique++;
@@ -47,7 +47,7 @@ export async function getPantheonData(): Promise<PantheonEntry[]> {
 
   const byUser: Record<string, PantheonEntry> = {};
 
-  (ranks as PantheonRankRow[]).forEach(r => {
+  (Array.isArray(ranks) ? (ranks as PantheonRankRow[]) : []).forEach(r => {
     const user = r.user;
     if (!user) return;
     const existing = byUser[user.id];

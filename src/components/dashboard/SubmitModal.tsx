@@ -8,6 +8,7 @@ interface Props {
   comment: string;
   submitting: boolean;
   submitMessage: string;
+  submitMessageIsError: boolean;
   onVideoUrlChange: (val: string) => void;
   onCommentChange: (val: string) => void;
   onSubmit: () => void;
@@ -15,11 +16,10 @@ interface Props {
 }
 
 const SubmitModal: React.FC<Props> = ({
-  challenge, videoUrl, comment, submitting, submitMessage,
+  challenge, videoUrl, comment, submitting, submitMessage, submitMessageIsError,
   onVideoUrlChange, onCommentChange, onSubmit, onClose,
 }) => {
-  const isError = submitMessage.includes('Error') || submitMessage.includes('Only') ||
-    submitMessage.includes('already') || submitMessage.includes('cooldown');
+  const isError = submitMessageIsError;
 
   return (
     <div className="dashboard__modal-overlay" onClick={onClose}>

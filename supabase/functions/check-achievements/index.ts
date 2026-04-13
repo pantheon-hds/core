@@ -1,6 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { corsHeaders, json } from '../_shared/adminGuard.ts'
+import { corsHeaders, json, verifySessionToken } from '../_shared/adminGuard.ts'
 import { getClientIp, checkRateLimit, rateLimitedResponse } from '../_shared/rateLimit.ts'
 
 const STEAM_API_KEY = Deno.env.get('STEAM_API_KEY')
@@ -30,6 +30,9 @@ serve(async (req: Request) => {
     const allowed = await checkRateLimit(supabase, ip, 'check-achievements', 20, 60)
     if (!allowed) return rateLimitedResponse(corsHeaders)
 
+    const callerId = await verifySessionToken(req, supabase)
+    if (!callerId) return json({ error: 'Unauthorized' }, 401)
+
     let steamId: string
     let appId: string
 
@@ -46,6 +49,18 @@ serve(async (req: Request) => {
 
     if (!steamId || !appId) {
       return json({ error: 'steamId and appId are required' }, 400)
+    }
+
+    // Verify the steamId belongs to the authenticated user — prevents one user from
+    // triggering rank mutations for another user's Steam account.
+    const { data: callerUser } = await supabase
+      .from('users')
+      .select('steam_id')
+      .eq('id', callerId)
+      .single()
+
+    if (!callerUser || callerUser.steam_id !== steamId) {
+      return json({ error: 'Forbidden' }, 403)
     }
 
     console.log(`Checking steamId: ${steamId}, appId: ${appId}`)

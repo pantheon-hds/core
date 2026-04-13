@@ -48,7 +48,7 @@ export function useUserData(user: SteamUser | null, games: Game[]): UseUserDataR
   // Achievement check — cached per user for 5 minutes to prevent flooding the Edge Function
   useQuery({
     queryKey: ['achievements', user?.steamId],
-    queryFn: () => Promise.all(games.map(g => checkAchievements(user!.steamId, g.steam_app_id))),
+    queryFn: () => Promise.all(games.map(g => checkAchievements(user!.steamId, g.steam_app_id, user!.token))),
     enabled: !!user && !!dbUser && games.length > 0,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,

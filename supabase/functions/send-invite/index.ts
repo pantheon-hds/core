@@ -45,8 +45,13 @@ serve(async (req: Request) => {
     const code = `${segment()}-${segment()}-${segment()}`
 
     // Send email FIRST — only save code if delivery succeeds
-    const emailRes = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
+    const emailController = new AbortController()
+    const emailTimeout = setTimeout(() => emailController.abort(), 10000)
+    let emailRes: Response
+    try {
+      emailRes = await fetch('https://api.resend.com/emails', {
+        signal: emailController.signal,
+        method: 'POST',
       headers: {
         'Authorization': `Bearer ${RESEND_API_KEY}`,
         'Content-Type': 'application/json',
@@ -92,6 +97,14 @@ serve(async (req: Request) => {
         `,
       }),
     })
+    } catch (fetchErr) {
+      clearTimeout(emailTimeout)
+      return new Response(
+        JSON.stringify({ error: 'Email service unavailable' }),
+        { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+    clearTimeout(emailTimeout)
 
     if (!emailRes.ok) {
       const emailError = await emailRes.text()
@@ -126,7 +139,7 @@ serve(async (req: Request) => {
       // Non-fatal — code was sent, just log the error
     }
 
-    console.log(`Invite sent to ${email}, code: ${code}`)
+    console.log(`Invite sent to ${email}`)
 
     return new Response(
       JSON.stringify({ success: true }),

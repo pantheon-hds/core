@@ -8,7 +8,7 @@ export async function fetchChallenges(): Promise<Challenge[]> {
     .from('challenges')
     .select('*, game:games(id, title)')
     .order('tier', { ascending: true });
-  return (data as Challenge[]) || [];
+  return Array.isArray(data) ? (data as Challenge[]) : [];
 }
 
 export async function fetchGames(): Promise<Game[]> {

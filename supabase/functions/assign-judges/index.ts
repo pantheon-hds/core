@@ -1,6 +1,8 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders, json, verifySessionToken } from '../_shared/adminGuard.ts'
+import { getClientIp, checkRateLimit, rateLimitedResponse } from '../_shared/rateLimit.ts'
+import { makeLogger } from '../_shared/logger.ts'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
 const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
@@ -20,11 +22,26 @@ serve(async (req: Request) => {
     return new Response('ok', { headers: corsHeaders })
   }
 
+  const reqId = crypto.randomUUID()
+  const log = makeLogger('assign-judges', reqId)
+
   try {
     const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_KEY!)
 
+    const ip = getClientIp(req)
+    log.info('request received', { ip, method: req.method })
+
+    const allowed = await checkRateLimit(supabase, ip, 'assign-judges', 10, 60)
+    if (!allowed) {
+      log.warn('rate limited', { ip })
+      return rateLimitedResponse(corsHeaders)
+    }
+
     const callerId = await verifySessionToken(req, supabase)
-    if (!callerId) return json({ error: 'Unauthorized' }, 401)
+    if (!callerId) {
+      log.warn('unauthorized', { ip })
+      return json({ error: 'Unauthorized' }, 401)
+    }
 
     const { submissionId } = await req.json()
 
@@ -36,10 +53,27 @@ serve(async (req: Request) => {
       .eq('id', submissionId)
       .single()
 
-    if (!submission) return json({ error: 'Submission not found' }, 404)
+    if (!submission) {
+      log.warn('submission not found', { submissionId })
+      return json({ error: 'Submission not found' }, 404)
+    }
 
     // Verify the caller owns this submission — prevents hijacking another user's submission
-    if (submission.user_id !== callerId) return json({ error: 'Forbidden' }, 403)
+    if (submission.user_id !== callerId) {
+      log.warn('forbidden: caller does not own submission', { callerId, submissionId })
+      return json({ error: 'Forbidden' }, 403)
+    }
+
+    // Idempotency: if judges are already assigned, return success without creating duplicates
+    const { data: existingJudges } = await supabase
+      .from('submission_judges')
+      .select('judge_user_id')
+      .eq('submission_id', submissionId)
+
+    if (existingJudges && existingJudges.length > 0) {
+      log.info('judges already assigned, idempotent return', { submissionId, count: existingJudges.length })
+      return json({ success: true, judgesAssigned: existingJudges.length, alreadyAssigned: true })
+    }
 
     const gameId = submission.challenge?.game_id
     const submitterUserId = submission.user_id
@@ -52,10 +86,12 @@ serve(async (req: Request) => {
 
     const rankedIds = (rankedUserIds || []).map((r: { user_id: string }) => r.user_id)
 
-    const fallbackResponse = (message: string) => json({ success: true, judgesAssigned: 0, message })
+    const fallbackResponse = (message: string) => {
+      log.warn('falling back to admin review', { submissionId, reason: message })
+      return json({ success: true, judgesAssigned: 0, message })
+    }
 
     if (rankedIds.length === 0) {
-      console.log('No ranked users for this game — falling back to admin review')
       return fallbackResponse('No eligible judges — admin will review manually')
     }
 
@@ -70,8 +106,7 @@ serve(async (req: Request) => {
 
     // Need at least 2 judges for a fair vote; otherwise Voland reviews manually
     if (eligibleJudges.length < 2) {
-      console.log(`Only ${eligibleJudges.length} eligible judge(s) — falling back to admin review`)
-      return fallbackResponse('Not enough judges — admin will review manually')
+      return fallbackResponse(`Only ${eligibleJudges.length} eligible judge(s) — admin will review manually`)
     }
 
     // Select up to 3 judges (2 or 3 depending on availability)
@@ -85,7 +120,7 @@ serve(async (req: Request) => {
       })))
 
     if (assignError) {
-      console.error('Error assigning judges:', assignError)
+      log.error('failed to insert judges', { submissionId, error: assignError.message })
       return json({ error: assignError.message }, 500)
     }
 
@@ -95,16 +130,15 @@ serve(async (req: Request) => {
       .eq('id', submissionId)
 
     if (statusError) {
-      console.error('Error updating submission status:', statusError)
-      // Judges are assigned — don't fail the whole request, just log
+      // Judges are assigned — don't fail the whole request
+      log.warn('failed to set submission status to in_review', { submissionId, error: statusError.message })
     }
 
-    console.log(`Assigned ${selected.length} judges to submission ${submissionId}`)
-
+    log.info('judges assigned', { submissionId, count: selected.length })
     return json({ success: true, judgesAssigned: selected.length })
 
   } catch (error) {
-    console.error('Error:', error)
-    return json({ error: 'Internal error', details: (error as Error).message }, 500)
+    log.error('unhandled exception', { error: (error as Error).message })
+    return json({ error: 'Internal error' }, 500)
   }
 })

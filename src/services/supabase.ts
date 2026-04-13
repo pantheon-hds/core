@@ -10,6 +10,17 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY);
 // Re-export types so existing imports from this file keep working
 export type { UserRank, UserStatue };
 
+/** fetch() wrapper that aborts after `ms` milliseconds (default 10s). */
+async function fetchWithTimeout(url: string, options: RequestInit, ms = 10000): Promise<Response> {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), ms);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(id);
+  }
+}
+
 export async function getUserRanks(userId: string): Promise<UserRank[]> {
   const { data, error } = await supabase
     .from('ranks')
@@ -34,7 +45,7 @@ export async function getUserStatues(userId: string): Promise<UserStatue[]> {
 
 export async function getUserByToken(token: string) {
   try {
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/get-my-profile`, {
+    const res = await fetchWithTimeout(`${SUPABASE_URL}/functions/v1/get-my-profile`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
@@ -50,14 +61,15 @@ export async function getUserByToken(token: string) {
   }
 }
 
-export async function checkAchievements(steamId: string, appId: string) {
+export async function checkAchievements(steamId: string, appId: string, token: string) {
   try {
-    const response = await fetch(
+    const response = await fetchWithTimeout(
       `${SUPABASE_URL}/functions/v1/check-achievements`,
       {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'x-session-token': token,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ steamId, appId }),
@@ -118,7 +130,7 @@ export async function validateInviteCode(code: string): Promise<string | null> {
 }
 
 export async function sendInvite(token: string, waitlistId: string, email: string): Promise<{ success: boolean; error?: string }> {
-  const response = await fetch(
+  const response = await fetchWithTimeout(
     `${SUPABASE_URL}/functions/v1/send-invite`,
     {
       method: 'POST',
@@ -142,7 +154,7 @@ export async function sendInvite(token: string, waitlistId: string, email: strin
 }
 
 export async function rejectWaitlistEntry(token: string, id: string, rejectionReason: string): Promise<boolean> {
-  const response = await fetch(
+  const response = await fetchWithTimeout(
     `${SUPABASE_URL}/functions/v1/send-rejection`,
     {
       method: 'POST',
@@ -159,7 +171,7 @@ export async function rejectWaitlistEntry(token: string, id: string, rejectionRe
 
 export async function fetchMySubmissions(token: string): Promise<Submission[]> {
   try {
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/submit-challenge`, {
+    const res = await fetchWithTimeout(`${SUPABASE_URL}/functions/v1/submit-challenge`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
@@ -177,7 +189,7 @@ export async function fetchMySubmissions(token: string): Promise<Submission[]> {
 
 export async function withdrawSubmission(token: string, submissionId: string): Promise<{ success: boolean; error?: string }> {
   try {
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/submit-challenge`, {
+    const res = await fetchWithTimeout(`${SUPABASE_URL}/functions/v1/submit-challenge`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
@@ -197,7 +209,7 @@ export async function submitChallenge(
   params: { challengeId: number; videoUrl: string; comment: string | null }
 ): Promise<{ success: boolean; submissionId: string; error?: string }> {
   try {
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/submit-challenge`, {
+    const res = await fetchWithTimeout(`${SUPABASE_URL}/functions/v1/submit-challenge`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
@@ -215,7 +227,7 @@ export async function submitChallenge(
 
 export async function assignJudges(token: string, submissionId: string): Promise<boolean> {
   try {
-    const response = await fetch(
+    const response = await fetchWithTimeout(
       `${SUPABASE_URL}/functions/v1/assign-judges`,
       {
         method: 'POST',
@@ -235,7 +247,7 @@ export async function assignJudges(token: string, submissionId: string): Promise
 
 export async function revokeToken(token: string): Promise<void> {
   try {
-    await fetch(`${SUPABASE_URL}/functions/v1/logout`, {
+    await fetchWithTimeout(`${SUPABASE_URL}/functions/v1/logout`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,

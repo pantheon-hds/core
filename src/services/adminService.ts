@@ -9,6 +9,16 @@
 import { supabase } from './supabase';
 import type { Game, Challenge, Submission, JudgeApplication, WaitlistEntry, DBUser } from '../types';
 
+async function fetchWithTimeout(url: string, options: RequestInit, ms = 10000): Promise<Response> {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), ms);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(id);
+  }
+}
+
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
@@ -23,7 +33,7 @@ async function callAdminAction(
   payload: Record<string, unknown> = {}
 ): Promise<AdminResult & Record<string, unknown>> {
   try {
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/admin-action`, {
+    const res = await fetchWithTimeout(`${SUPABASE_URL}/functions/v1/admin-action`, {
       method: 'POST',
       headers: {
         // Supabase requires anon key for Edge Function routing
@@ -118,14 +128,11 @@ export function addGame(
   return callAdminAction(token, 'add-game', data);
 }
 
-// ── Read queries (no token needed — RLS allows admin reads) ──────────────────
+// ── Read queries ──────────────────────────────────────────────────────────────
 
-export async function fetchAdminSubmissions(): Promise<Submission[]> {
-  const { data } = await supabase
-    .from('submissions')
-    .select('*, user:users(username, steam_id), challenge:challenges(title, tier)')
-    .order('submitted_at', { ascending: false });
-  return (data as Submission[]) || [];
+export async function fetchAdminSubmissions(token: string): Promise<Submission[]> {
+  const result = await callAdminAction(token, 'list-all-submissions');
+  return (result.data as Submission[]) || [];
 }
 
 export async function fetchAdminChallenges(): Promise<Challenge[]> {
@@ -157,4 +164,34 @@ export async function fetchAdminWaitlist(steamId: string): Promise<WaitlistEntry
 export async function fetchAdminUsers(token: string): Promise<DBUser[]> {
   const result = await callAdminAction(token, 'list-users');
   return (result.data as DBUser[]) || [];
+}
+
+// ── Sandbox ───────────────────────────────────────────────────────────────────
+
+export function sandboxCreateJudges(
+  token: string,
+  count: number
+): Promise<AdminResult & { created?: string[] }> {
+  return callAdminAction(token, 'sandbox-create-judges', { count });
+}
+
+export function sandboxCreateSubmission(
+  token: string,
+  challengeId: number,
+  judgeIds: string[]
+): Promise<AdminResult & { submissionId?: string }> {
+  return callAdminAction(token, 'sandbox-create-submission', { challengeId, judgeIds });
+}
+
+export function sandboxSimulateVote(
+  token: string,
+  assignmentId: string,
+  submissionId: string,
+  vote: 'approved' | 'rejected'
+): Promise<AdminResult & { finalStatus?: string | null }> {
+  return callAdminAction(token, 'sandbox-simulate-vote', { assignmentId, submissionId, vote });
+}
+
+export function sandboxClearAll(token: string): Promise<AdminResult> {
+  return callAdminAction(token, 'sandbox-clear-all');
 }

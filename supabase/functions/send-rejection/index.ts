@@ -70,13 +70,18 @@ serve(async (req: Request) => {
     }
 
     // Send rejection email via Resend
-    const emailRes = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${RESEND_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
+    const emailController = new AbortController()
+    const emailTimeout = setTimeout(() => emailController.abort(), 10000)
+    let emailRes: Response
+    try {
+      emailRes = await fetch('https://api.resend.com/emails', {
+        signal: emailController.signal,
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${RESEND_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
         from: 'Pantheon <noreply@pantheonhds.com>',
         to: entry.email,
         subject: 'Your Pantheon Beta Application',
@@ -113,8 +118,16 @@ serve(async (req: Request) => {
             </div>
           </div>
         `,
-      }),
-    })
+        }),
+      })
+    } catch (fetchErr) {
+      clearTimeout(emailTimeout)
+      return new Response(
+        JSON.stringify({ error: 'Email service unavailable' }),
+        { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+    clearTimeout(emailTimeout)
 
     if (!emailRes.ok) {
       const emailError = await emailRes.text()
@@ -125,7 +138,7 @@ serve(async (req: Request) => {
       )
     }
 
-    console.log(`Rejection sent to ${entry.email}, reason: ${rejectionReason}`)
+    console.log(`Rejection sent to ${entry.email}`)
 
     return new Response(
       JSON.stringify({ success: true }),
@@ -135,7 +148,7 @@ serve(async (req: Request) => {
   } catch (error) {
     console.error('Error:', error)
     return new Response(
-      JSON.stringify({ error: 'Internal error', details: (error as Error).message }),
+      JSON.stringify({ error: 'Internal error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }

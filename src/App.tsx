@@ -110,9 +110,13 @@ const AppRoutes: React.FC = () => {
   const [user, setUser] = useState<SteamUser | null>(getSavedUser());
 
   const handleLogout = () => {
-    const saved = localStorage.getItem('pantheon_user');
-    const token = saved ? JSON.parse(saved)?.token : null;
-    if (token) revokeToken(token); // fire-and-forget — don't block the UI
+    try {
+      const saved = localStorage.getItem('pantheon_user');
+      const token = saved ? JSON.parse(saved)?.token : null;
+      if (token) revokeToken(token); // fire-and-forget — don't block the UI
+    } catch {
+      // Corrupted localStorage value — continue with logout regardless
+    }
     localStorage.removeItem('pantheon_user');
     setUser(null);
     navigate('/');
@@ -127,6 +131,7 @@ const AppRoutes: React.FC = () => {
       token: founderUser.token,
     };
     localStorage.setItem('pantheon_user', JSON.stringify(steamUser));
+    localStorage.removeItem('invite_nonce');
     setUser(steamUser);
     navigate('/app');
   };

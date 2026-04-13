@@ -15,6 +15,7 @@
 
 # claude code
 /.claude
+/CLAUDE.md
 
 # private ideas
 /ideas.md

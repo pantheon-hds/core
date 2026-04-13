@@ -3,6 +3,7 @@ import './SteamCallback.css';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const DEFAULT_CHECK_APP_ID = import.meta.env.VITE_DEFAULT_CHECK_APP_ID as string | undefined;
 
 interface SteamCallbackProps {
   onSuccess: (user: SteamUser) => void;
@@ -66,17 +67,20 @@ const SteamCallback: React.FC<SteamCallbackProps> = ({ onSuccess, onError }) => 
             token: data.token,
           };
 
-          try {
-            await fetch(`${SUPABASE_URL}/functions/v1/check-achievements`, {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ steamId: data.steamId, appId: '3228590' }),
-            });
-          } catch (e) {
-            console.warn('Achievement check failed (will retry on dashboard load):', e);
+          if (DEFAULT_CHECK_APP_ID) {
+            try {
+              await fetch(`${SUPABASE_URL}/functions/v1/check-achievements`, {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                  'x-session-token': data.token,
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ steamId: data.steamId, appId: DEFAULT_CHECK_APP_ID }),
+              });
+            } catch (e) {
+              console.warn('Achievement check failed (will retry on dashboard load):', e);
+            }
           }
 
           window.history.replaceState({}, '', '/app');

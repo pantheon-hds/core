@@ -42,7 +42,7 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
   // ── Per-resource queries (enabled only when admin confirmed) ─────────────────
   const { data: submissions = [] } = useQuery({
     queryKey: ['admin-submissions'],
-    queryFn: adminService.fetchAdminSubmissions,
+    queryFn: () => adminService.fetchAdminSubmissions(user!.token),
     enabled: isAdmin,
   });
 
@@ -90,11 +90,13 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
 
   // ── Challenges ───────────────────────────────────────────────────────────────
   const handleAddChallenge = async (data: { title: string; description: string; tier: string; game_id: string }): Promise<boolean> => {
+    const gameId = parseInt(data.game_id, 10);
+    if (isNaN(gameId)) { showToast('Invalid game selection', 'error'); return false; }
     const result = await adminService.addChallenge(user!.token, {
       title: data.title,
       description: data.description,
       tier: data.tier,
-      gameId: parseInt(data.game_id),
+      gameId,
     });
     if (!result.success) { showToast(`Error: ${result.error}`, 'error'); return false; }
     showToast('Challenge added!', 'success');
@@ -103,11 +105,13 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
   };
 
   const handleEditChallenge = async (id: number, data: { title: string; description: string; tier: string; game_id: string }): Promise<boolean> => {
+    const gameId = parseInt(data.game_id, 10);
+    if (isNaN(gameId)) { showToast('Invalid game selection', 'error'); return false; }
     const result = await adminService.editChallenge(user!.token, id, {
       title: data.title,
       description: data.description,
       tier: data.tier,
-      gameId: parseInt(data.game_id),
+      gameId,
     });
     if (!result.success) { showToast(`Error: ${result.error}`, 'error'); return false; }
     showToast('Challenge updated!', 'success');

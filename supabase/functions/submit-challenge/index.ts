@@ -2,6 +2,7 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders, json, verifySessionToken } from '../_shared/adminGuard.ts'
 import { getClientIp, checkRateLimit, rateLimitedResponse } from '../_shared/rateLimit.ts'
+import { makeLogger } from '../_shared/logger.ts'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -9,15 +10,26 @@ const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
+  const reqId = crypto.randomUUID()
+  const log = makeLogger('submit-challenge', reqId)
+
   try {
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
     const ip = getClientIp(req)
+    log.info('request received', { ip, method: req.method })
+
     const allowed = await checkRateLimit(supabase, ip, 'submit-challenge', 10, 60)
-    if (!allowed) return rateLimitedResponse(corsHeaders)
+    if (!allowed) {
+      log.warn('rate limited', { ip })
+      return rateLimitedResponse(corsHeaders)
+    }
 
     const userId = await verifySessionToken(req, supabase)
-    if (!userId) return json({ success: false, error: 'Unauthorized' }, 403)
+    if (!userId) {
+      log.warn('unauthorized', { ip })
+      return json({ success: false, error: 'Unauthorized' }, 403)
+    }
 
     let body: Record<string, unknown>
     try {
@@ -97,7 +109,10 @@ serve(async (req: Request) => {
       .in('status', ['pending', 'in_review'])
       .maybeSingle()
 
-    if (active) return json({ success: false, error: 'You already have an active submission. Wait for the result.' }, 400)
+    if (active) {
+      log.warn('blocked: active submission exists', { userId })
+      return json({ success: false, error: 'You already have an active submission. Wait for the result.' }, 400)
+    }
 
     // Check cooldown
     const { data: cooldownRow } = await supabase
@@ -110,6 +125,7 @@ serve(async (req: Request) => {
       .maybeSingle()
 
     if (cooldownRow?.cooldown_until && new Date(cooldownRow.cooldown_until) > new Date()) {
+      log.warn('blocked: on cooldown', { userId, cooldownUntil: cooldownRow.cooldown_until })
       return json({ success: false, error: 'You are on cooldown. Please wait 24 hours after withdrawing.' }, 400)
     }
 
@@ -125,12 +141,16 @@ serve(async (req: Request) => {
       .select('id')
       .single()
 
-    if (error) return json({ success: false, error: error.message }, 500)
+    if (error) {
+      log.error('insert failed', { userId, challengeId, error: error.message })
+      return json({ success: false, error: error.message }, 500)
+    }
 
+    log.info('submission created', { userId, challengeId, submissionId: inserted.id })
     return json({ success: true, submissionId: inserted.id })
 
   } catch (err) {
-    console.error('submit-challenge error:', err)
+    log.error('unhandled exception', { error: (err as Error).message })
     return json({ success: false, error: 'Internal error' }, 500)
   }
 })

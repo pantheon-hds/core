@@ -2,15 +2,21 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import './Sandbox.css';
 import { SteamUser } from './SteamCallback';
 import { supabase } from '../../services/supabase';
+import {
+  sandboxCreateJudges,
+  sandboxCreateSubmission,
+  sandboxSimulateVote,
+  sandboxClearAll,
+} from '../../services/adminService';
 
-interface SandboxProps { user: SteamUser | null; }
+interface SandboxProps { user: SteamUser | null; token?: string; }
 
 interface SandboxJudge { id: string; username: string; steam_id: string; is_judge: boolean | null; }
 interface SandboxSubmission { id: string; status: string | null; submitted_at: string | null; is_test: boolean | null; challenge: { title: string; tier: string } | null; }
 interface SandboxChallenge { id: number; title: string; tier: string; game: { title: string } | null; }
 interface SandboxAssignment { id: string; submission_id: string | null; vote: string | null; is_test: boolean | null; judge: { username: string } | null; submission: { is_test: boolean | null } | null; }
 
-const Sandbox: React.FC<SandboxProps> = ({ user }) => {
+const Sandbox: React.FC<SandboxProps> = ({ user, token }) => {
   const isFounder = user?.steamId === 'VOLAND_FOUNDER';
 
   const [judges, setJudges] = useState<SandboxJudge[]>([]);
@@ -67,135 +73,61 @@ const Sandbox: React.FC<SandboxProps> = ({ user }) => {
 
   // Create test judges
   const handleCreateJudges = async () => {
+    if (!token) { showMessage('Not authenticated'); return; }
     setLoading(true);
-    for (let i = 0; i < judgeCount; i++) {
-      const steamId = `TEST_JUDGE_${Date.now()}_${i}`;
-      const { data: newJudge } = await supabase.from('users').insert({
-  steam_id: steamId,
-  username: `TestJudge_${i + 1}`,
-  is_judge: true,
-  is_test: true,
-  is_admin: false,
-}).select().single();
-
-// Give rank in Hollow Knight and Silksong
-if (newJudge) {
-  await supabase.from('ranks').insert([
-    { user_id: newJudge.id, game_id: 2, tier: 'Gold', method: 'steam_auto', is_test: true },
-    { user_id: newJudge.id, game_id: 3, tier: 'Gold', method: 'steam_auto', is_test: true },
-  ]);
-}
+    const result = await sandboxCreateJudges(token, judgeCount);
+    if (!result.success) {
+      showMessage(`Error: ${result.error}`);
+    } else {
+      showMessage(`Created ${result.created?.length ?? 0} test judges`);
     }
-    showMessage(`Created ${judgeCount} test judges`);
     await loadData();
     setLoading(false);
   };
 
   // Create test submission
   const handleCreateSubmission = async () => {
-    if (!selectedChallenge) {
-      showMessage('Select a challenge first');
-      return;
+    if (!token) { showMessage('Not authenticated'); return; }
+    if (!selectedChallenge) { showMessage('Select a challenge first'); return; }
+
+    setLoading(true);
+    const result = await sandboxCreateSubmission(
+      token,
+      parseInt(selectedChallenge, 10),
+      judges.map(j => j.id)
+    );
+    if (!result.success) {
+      showMessage(`Error: ${result.error}`);
+    } else {
+      showMessage('Test submission created and judges assigned');
     }
-
-    // Get real user ID (Voland)
-    const { data: voland } = await supabase
-      .from('users')
-      .select('id')
-      .eq('steam_id', 'VOLAND_FOUNDER')
-      .single();
-
-    if (!voland) {
-      showMessage('Voland user not found');
-      return;
-    }
-
-    const { data: newSub, error } = await supabase
-      .from('submissions')
-      .insert({
-        user_id: voland.id,
-        challenge_id: parseInt(selectedChallenge),
-        video_url: 'https://www.youtube.com/watch?v=test',
-        comment: 'Test submission',
-        status: 'pending',
-        is_test: true,
-      })
-      .select()
-      .single();
-
-    if (error || !newSub) {
-      showMessage(`Error: ${error?.message}`);
-      return;
-    }
-
-    // Assign test judges to this submission
-    const testJudgeIds = judges.map(j => j.id);
-    if (testJudgeIds.length > 0) {
-      const selected = testJudgeIds.slice(0, 3);
-      await supabase.from('submission_judges').insert(
-        selected.map(judgeId => ({
-          submission_id: newSub.id,
-          judge_user_id: judgeId,
-          is_test: true,
-        }))
-      );
-      await supabase
-        .from('submissions')
-        .update({ status: 'in_review' })
-        .eq('id', newSub.id);
-    }
-
-    showMessage('Test submission created and judges assigned');
     await loadData();
+    setLoading(false);
   };
 
   // Simulate vote for assignment
   const handleSimulateVote = async (assignmentId: string, submissionId: string, vote: 'approved' | 'rejected') => {
-    await supabase
-      .from('submission_judges')
-      .update({
-        vote,
-        timestamp_note: '0:30 — test timestamp',
-        voted_at: new Date().toISOString(),
-      })
-      .eq('id', assignmentId);
-
-    // Check if all voted
-    const { data: allVotes } = await supabase
-      .from('submission_judges')
-      .select('vote')
-      .eq('submission_id', submissionId);
-
-    if (allVotes) {
-      const totalVoted = allVotes.filter(v => v.vote !== null).length;
-      const approvedVotes = allVotes.filter(v => v.vote === 'approved').length;
-      const total = allVotes.length;
-
-      if (totalVoted === total) {
-        const finalStatus = approvedVotes >= Math.ceil(total / 2) ? 'approved' : 'rejected';
-        await supabase
-          .from('submissions')
-          .update({ status: finalStatus })
-          .eq('id', submissionId);
-        showMessage(`Submission ${finalStatus}! (${approvedVotes}/${total} approved)`);
-      }
+    if (!token) { showMessage('Not authenticated'); return; }
+    const result = await sandboxSimulateVote(token, assignmentId, submissionId, vote);
+    if (!result.success) {
+      showMessage(`Error: ${result.error}`);
+    } else if (result.finalStatus) {
+      showMessage(`Submission ${result.finalStatus}!`);
     }
-
     await loadData();
   };
 
   // Clear all test data
   const handleClearAll = async () => {
+    if (!token) { showMessage('Not authenticated'); return; }
     if (!window.confirm('Delete ALL test data? This cannot be undone.')) return;
     setLoading(true);
-
-    await supabase.from('submission_judges').delete().eq('is_test', true);
-    await supabase.from('submissions').delete().eq('is_test', true);
-    await supabase.from('ranks').delete().eq('is_test', true);
-    await supabase.from('statues').delete().eq('is_test', true);
-    await supabase.from('users').delete().eq('is_test', true);
-
-    showMessage('All test data cleared');
+    const result = await sandboxClearAll(token);
+    if (!result.success) {
+      showMessage(`Error: ${result.error}`);
+    } else {
+      showMessage('All test data cleared');
+    }
     await loadData();
     setLoading(false);
   };

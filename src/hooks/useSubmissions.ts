@@ -31,15 +31,26 @@ export function useSubmissions(
   const [submitting, setSubmitting] = useState(false);
   const { toast, showToast } = useToast(5000);
 
-  // Always-fresh ref so stable callbacks can read current submissions
-  const submissionsRef = useRef(submissions);
-  useEffect(() => { submissionsRef.current = submissions; }, [submissions]);
+  // Always-fresh ref so stable callbacks can read current submissions.
+  // Updated synchronously inside the setter to avoid the one-render stale window
+  // that a useEffect-based approach would create.
+  const submissionsRef = useRef<Submission[]>([]);
+  const setSubmissionsAndRef = useCallback(
+    (updater: Submission[] | ((prev: Submission[]) => Submission[])) => {
+      setSubmissions(prev => {
+        const next = typeof updater === 'function' ? updater(prev) : updater;
+        submissionsRef.current = next;
+        return next;
+      });
+    },
+    []
+  );
 
   const loadSubmissions = useCallback(async (_userId: string) => {
     if (!token) return;
     const data = await fetchMySubmissions(token);
-    setSubmissions(data);
-  }, [token]);
+    setSubmissionsAndRef(data);
+  }, [token, setSubmissionsAndRef]);
 
   useEffect(() => {
     if (!dbUserId) return;
@@ -56,7 +67,7 @@ export function useSubmissions(
         { event: 'UPDATE', schema: 'public', table: 'submissions', filter: `user_id=eq.${dbUserId}` },
         (payload) => {
           const updated = payload.new as Submission;
-          setSubmissions(prev =>
+          setSubmissionsAndRef(prev =>
             prev.map(s => s.id === updated.id ? { ...s, ...updated } : s)
           );
           if (updated.status === 'approved') {
@@ -72,7 +83,7 @@ export function useSubmissions(
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [dbUserId, showToast, onApproved]);
+  }, [dbUserId, showToast, onApproved, setSubmissionsAndRef]);
 
   const getSubmissionStatus = useCallback(
     (challengeId: number) => submissionsRef.current.find(s => s.challenge_id === challengeId),
@@ -112,7 +123,7 @@ export function useSubmissions(
       user: null,
       challenge: null,
     };
-    setSubmissions(prev => [...prev, optimistic]);
+    setSubmissionsAndRef(prev => [...prev, optimistic]);
 
     const result = await submitChallenge(params.token, {
       challengeId: params.challengeId,
@@ -121,13 +132,13 @@ export function useSubmissions(
     });
 
     if (!result.success) {
-      setSubmissions(prev => prev.filter(s => s.id !== optimisticId));
+      setSubmissionsAndRef(prev => prev.filter(s => s.id !== optimisticId));
       setSubmitting(false);
       return { success: false, error: result.error };
     }
 
     const judgesAssigned = await assignJudges(params.token, result.submissionId);
-    setSubmissions(prev =>
+    setSubmissionsAndRef(prev =>
       prev.map(s => s.id === optimisticId ? { ...s, id: result.submissionId } : s)
     );
     setSubmitting(false);
@@ -135,7 +146,7 @@ export function useSubmissions(
       showToast('Submission created. Judge assignment failed — an admin will review.', 'info');
     }
     return { success: true };
-  }, [dbUserId, hasActiveSubmission, isOnCooldown, showToast]);
+  }, [dbUserId, hasActiveSubmission, isOnCooldown, showToast, setSubmissionsAndRef]);
 
   const withdraw = useCallback(async (submissionId: string): Promise<ServiceResult> => {
     if (!token) return { success: false, error: 'Not authenticated' };

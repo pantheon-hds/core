@@ -508,7 +508,17 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_profiles: {
+        Row: {
+          id: string
+          username: string
+          steam_id: string
+          avatar_url: string | null
+          created_at: string | null
+          is_judge: boolean | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       award_rank_on_approval: {
@@ -535,7 +545,7 @@ export type Database = {
           status: string
         }[]
       }
-      validate_invite_code: { Args: { p_code: string }; Returns: boolean }
+      validate_invite_code: { Args: { p_code: string }; Returns: string | null }
     }
     Enums: {
       [_ in never]: never

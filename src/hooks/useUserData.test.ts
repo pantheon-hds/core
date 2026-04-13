@@ -23,7 +23,7 @@ vi.mock('../services/supabase', () => ({
   checkAchievements: vi.fn().mockResolvedValue(undefined),
 }));
 
-const STEAM_USER = { steamId: 'steam123', username: 'tester', avatarUrl: '', token: 'tok' };
+const STEAM_USER = { steamId: 'steam123', username: 'tester', avatarUrl: '', token: 'tok', isPublic: true };
 
 function makeWrapper() {
   const client = new QueryClient({

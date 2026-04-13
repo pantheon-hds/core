@@ -75,6 +75,10 @@ serve(async (req: Request) => {
         return json({ success: false, error: 'assignmentId, submissionId, vote and timestampNote required' }, 400)
       }
 
+      if (typeof timestampNote !== 'string' || timestampNote.length > 500) {
+        return json({ success: false, error: 'timestampNote must be 500 characters or fewer' }, 400)
+      }
+
       // Verify this assignment belongs to the current judge
       const { data: assignment } = await supabase
         .from('submission_judges')

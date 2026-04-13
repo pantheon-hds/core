@@ -32,7 +32,7 @@ interface RawSubmission {
 /** Admin view — all submissions currently pending or in review. */
 export async function fetchAdminPendingSubmissions(token: string): Promise<JudgeAssignment[]> {
   const result = await callAction(token, 'admin-action', 'list-pending-submissions');
-  return ((result.data as RawSubmission[]) || []).map(s => ({
+  return (Array.isArray(result.data) ? (result.data as RawSubmission[]) : []).map(s => ({
     id: s.id,
     assigned_at: s.submitted_at,
     vote: null,
@@ -51,5 +51,5 @@ export async function fetchAdminPendingSubmissions(token: string): Promise<Judge
 /** Judge view — assignments for the current judge. */
 export async function fetchJudgeAssignments(token: string): Promise<JudgeAssignment[]> {
   const result = await callAction(token, 'profile-action', 'list-judge-assignments');
-  return (result.data as JudgeAssignment[]) || [];
+  return Array.isArray(result.data) ? (result.data as JudgeAssignment[]) : [];
 }

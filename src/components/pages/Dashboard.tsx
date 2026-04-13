@@ -24,6 +24,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   const [videoUrl, setVideoUrl] = useState('');
   const [comment, setComment] = useState('');
   const [submitMessage, setSubmitMessage] = useState('');
+  const [submitMessageIsError, setSubmitMessageIsError] = useState(false);
   const [copied, setCopied] = useState(false);
   const [withdrawTarget, setWithdrawTarget] = useState<string | null>(null);
 
@@ -59,12 +60,15 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
 
   // Handlers
   const handleSubmit = useCallback(async () => {
+    if (!user?.token) return;
     if (!videoUrl.trim()) {
       setSubmitMessage('Please provide a video URL.');
+      setSubmitMessageIsError(true);
       return;
     }
     if (!isValidVideoUrl(videoUrl)) {
       setSubmitMessage('Only YouTube or Twitch links are allowed.');
+      setSubmitMessageIsError(true);
       return;
     }
 
@@ -72,15 +76,18 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
       challengeId: submitChallenge!.id,
       videoUrl: videoUrl.trim(),
       comment: comment.trim() || null,
-      token: user?.token ?? '',
+      token: user.token,
     });
 
     if (result.success) {
       setSubmitChallenge(null);
       setVideoUrl('');
       setComment('');
+      setSubmitMessage('');
+      setSubmitMessageIsError(false);
     } else {
       setSubmitMessage(result.error ?? 'Submission failed.');
+      setSubmitMessageIsError(true);
     }
   }, [videoUrl, comment, submit, submitChallenge, user?.token]);
 
@@ -101,12 +108,16 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
         clearTimeout(copiedTimerRef.current);
         copiedTimerRef.current = setTimeout(() => setCopied(false), 2000);
       })
-      .catch(() => {});
+      .catch(() => {
+        // Clipboard API not available — prompt user to copy manually
+        window.prompt('Copy your profile link:', `https://pantheonhds.com/u/${dbUsername}`);
+      });
   }, [dbUsername]);
 
   const handleCloseSubmitModal = useCallback(() => {
     setSubmitChallenge(null);
     setSubmitMessage('');
+    setSubmitMessageIsError(false);
   }, []);
 
   // Error / banned screens
@@ -170,6 +181,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
           comment={comment}
           submitting={submitting}
           submitMessage={submitMessage}
+          submitMessageIsError={submitMessageIsError}
           onVideoUrlChange={setVideoUrl}
           onCommentChange={setComment}
           onSubmit={handleSubmit}

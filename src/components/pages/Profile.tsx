@@ -37,8 +37,13 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
       setJudgeMessage('Please select a game and describe your motivation.');
       return;
     }
+    const gameId = parseInt(judgeGameId, 10);
+    if (isNaN(gameId)) {
+      setJudgeMessage('Invalid game selection.');
+      return;
+    }
     setJudgeSubmitting(true);
-    const success = await submitJudgeApplication(user!.token, parseInt(judgeGameId), judgeMotivation);
+    const success = await submitJudgeApplication(user!.token, gameId, judgeMotivation);
     if (success) {
       setJudgeMessage('Application submitted! The admin will review it.');
       setShowJudgeForm(false);

@@ -2,6 +2,7 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { getClientIp, checkRateLimit, rateLimitedResponse } from '../_shared/rateLimit.ts'
 import { signSessionToken } from '../_shared/adminGuard.ts'
+import { makeLogger } from '../_shared/logger.ts'
 
 const STEAM_API_KEY = Deno.env.get('STEAM_API_KEY')
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
@@ -70,11 +71,19 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders })
   }
 
+  const reqId = crypto.randomUUID()
+  const log = makeLogger('steam-auth', reqId)
+
   try {
     const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_KEY!)
     const ip = getClientIp(req)
+    log.info('auth request received', { ip })
+
     const allowed = await checkRateLimit(supabase, ip, 'steam-auth', 10, 60)
-    if (!allowed) return rateLimitedResponse(corsHeaders)
+    if (!allowed) {
+      log.warn('rate limited', { ip })
+      return rateLimitedResponse(corsHeaders)
+    }
 
     const url = new URL(req.url)
     const params = url.searchParams
@@ -97,6 +106,7 @@ serve(async (req) => {
 
     const isValid = await verifySteamLogin(params)
     if (!isValid) {
+      log.warn('steam openid verification failed', { steamId })
       return new Response(null, {
         status: 302,
         headers: { ...corsHeaders, Location: `${APP_URL}/app?error=auth_failed` }
@@ -105,6 +115,7 @@ serve(async (req) => {
 
     const profile = await getSteamProfile(steamId)
     if (!profile) {
+      log.warn('steam profile fetch failed', { steamId })
       return new Response(null, {
         status: 302,
         headers: { ...corsHeaders, Location: `${APP_URL}/app?error=profile_failed` }
@@ -193,22 +204,23 @@ serve(async (req) => {
     })
 
     if (codeError) {
-      console.error('Failed to store auth code:', codeError)
+      log.error('failed to store auth code', { steamId, error: codeError.message })
       return new Response(null, {
         status: 302,
         headers: { ...corsHeaders, Location: `${APP_URL}/app?error=auth_failed` }
       })
     }
 
+    log.info('auth complete', { steamId, isNewUser: !existingUser })
     return new Response(null, {
       status: 302,
       headers: { ...corsHeaders, Location: `${APP_URL}/app?code=${code}` }
     })
 
   } catch (error) {
-    console.error('Steam auth error:', error)
+    log.error('unhandled exception', { error: (error as Error).message })
     return new Response(
-      JSON.stringify({ error: 'Internal error', details: error.message }),
+      JSON.stringify({ error: 'Internal error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }

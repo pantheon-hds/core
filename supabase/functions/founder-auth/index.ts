@@ -22,7 +22,17 @@ serve(async (req) => {
 
     const { password } = await req.json()
 
-    if (!password || password !== FOUNDER_PASSWORD) {
+    // Constant-time comparison to prevent timing-based password discovery
+    const safeCompare = (a: string, b: string): boolean => {
+      const aBytes = new TextEncoder().encode(a)
+      const bBytes = new TextEncoder().encode(b)
+      if (aBytes.length !== bBytes.length) return false
+      let diff = 0
+      for (let i = 0; i < aBytes.length; i++) diff |= aBytes[i] ^ bBytes[i]
+      return diff === 0
+    }
+
+    if (!password || !FOUNDER_PASSWORD || !safeCompare(password, FOUNDER_PASSWORD)) {
       return json({ error: 'Invalid password.' }, 401)
     }
 

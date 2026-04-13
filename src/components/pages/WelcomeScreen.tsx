@@ -24,7 +24,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onFounderLogin }) => {
   const [betaLoading, setBetaLoading] = useState(false);
 
   const handleBetaSubmit = async () => {
-    if (!betaInput.trim()) return;
+    if (!betaInput.trim() || betaLoading) return;
     setBetaLoading(true);
     setBetaError('');
     const nonce = await validateInviteCode(betaInput.trim());
