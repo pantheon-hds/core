@@ -245,6 +245,25 @@
   border-left: 1.5px solid var(--color-border-mid);
 }
 
+.dashboard__modal-field {
+  margin-bottom: 0.75rem;
+}
+
+.dashboard__modal-field-label {
+  font-family: var(--font-display);
+  font-size: 8px;
+  letter-spacing: 0.2em;
+  color: var(--color-gold-dim);
+  text-transform: uppercase;
+  margin-bottom: 0.3rem;
+}
+
+.dashboard__modal-field-value {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
 .dashboard__modal-meta {
   font-family: var(--font-display);
   font-size: 8px;

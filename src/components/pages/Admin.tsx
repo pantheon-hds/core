@@ -89,12 +89,14 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
   };
 
   // ── Challenges ───────────────────────────────────────────────────────────────
-  const handleAddChallenge = async (data: { title: string; description: string; tier: string; game_id: string }): Promise<boolean> => {
+  const handleAddChallenge = async (data: { title: string; description: string; condition: string; verification: string; tier: string; game_id: string }): Promise<boolean> => {
     const gameId = parseInt(data.game_id, 10);
     if (isNaN(gameId)) { showToast('Invalid game selection', 'error'); return false; }
     const result = await adminService.addChallenge(user!.token, {
       title: data.title,
       description: data.description,
+      condition: data.condition,
+      verification: data.verification,
       tier: data.tier,
       gameId,
     });
@@ -104,12 +106,14 @@ const Admin: React.FC<AdminProps> = ({ user }) => {
     return true;
   };
 
-  const handleEditChallenge = async (id: number, data: { title: string; description: string; tier: string; game_id: string }): Promise<boolean> => {
+  const handleEditChallenge = async (id: number, data: { title: string; description: string; condition: string; verification: string; tier: string; game_id: string }): Promise<boolean> => {
     const gameId = parseInt(data.game_id, 10);
     if (isNaN(gameId)) { showToast('Invalid game selection', 'error'); return false; }
     const result = await adminService.editChallenge(user!.token, id, {
       title: data.title,
       description: data.description,
+      condition: data.condition,
+      verification: data.verification,
       tier: data.tier,
       gameId,
     });

@@ -10,6 +10,8 @@ export interface Challenge {
   id: number;
   title: string;
   description: string;
+  condition: string;
+  verification: string;
   tier: string;
   game_id: number;
   attempts: number;
