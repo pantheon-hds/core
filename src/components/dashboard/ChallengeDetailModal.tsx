@@ -17,16 +17,20 @@ const ChallengeDetailModal: React.FC<Props> = ({ challenge, submissionStatus, on
       </div>
       <div className="dashboard__modal-title">{challenge.title}</div>
       <div className="dashboard__modal-desc">{challenge.description}</div>
-      {challenge.condition && (
-        <div className="dashboard__modal-field">
-          <div className="dashboard__modal-field-label">Condition</div>
-          <div className="dashboard__modal-field-value">{challenge.condition}</div>
-        </div>
-      )}
-      {challenge.verification && (
-        <div className="dashboard__modal-field">
-          <div className="dashboard__modal-field-label">Verification</div>
-          <div className="dashboard__modal-field-value">{challenge.verification}</div>
+      {(challenge.condition || challenge.verification) && (
+        <div className="dashboard__modal-fields">
+          {challenge.condition && (
+            <div className="dashboard__modal-field">
+              <div className="dashboard__modal-field-label">Condition</div>
+              <div className="dashboard__modal-field-value">{challenge.condition}</div>
+            </div>
+          )}
+          {challenge.verification && (
+            <div className="dashboard__modal-field">
+              <div className="dashboard__modal-field-label">Verification</div>
+              <div className="dashboard__modal-field-value">{challenge.verification}</div>
+            </div>
+          )}
         </div>
       )}
       <div className="dashboard__modal-meta">{challenge.game?.title}</div>

@@ -245,8 +245,19 @@
   border-left: 1.5px solid var(--color-border-mid);
 }
 
+.dashboard__modal-fields {
+  border-top: 1px solid var(--color-border-mid);
+  padding-top: 0.875rem;
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
 .dashboard__modal-field {
-  margin-bottom: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
 .dashboard__modal-field-label {
@@ -255,7 +266,6 @@
   letter-spacing: 0.2em;
   color: var(--color-gold-dim);
   text-transform: uppercase;
-  margin-bottom: 0.3rem;
 }
 
 .dashboard__modal-field-value {
