@@ -107,13 +107,15 @@ Paths are not exclusive — one player can walk multiple paths simultaneously.
 
 | Layer | Technology |
 |-------|-----------|
-| Frontend | React + TypeScript + Vite |
-| State / Cache | TanStack Query (react-query) |
+| Frontend | React 19 + TypeScript + Vite 8 |
+| State / Cache | TanStack Query v5 |
 | Backend | Supabase Edge Functions (Deno) |
 | Database | PostgreSQL (Supabase) |
 | Hosting | Vercel |
 | Auth | Steam OpenID |
-| Testing | Playwright (E2E) + Vitest (unit) |
+| Testing | Playwright (E2E) + Vitest (unit + integration) |
+| CI/CD | GitHub Actions |
+| Monitoring | Sentry |
 
 ---
 
@@ -141,7 +143,7 @@ VITE_SUPABASE_ANON_KEY=your-anon-key
 Find your keys at: Supabase Dashboard → Settings → API
 
 ```bash
-npm start        # dev server at localhost:3000
+npm run dev      # dev server at localhost:3000
 npm run build    # production build
 npm test         # unit tests
 npm run test:e2e # E2E tests (requires build first)
@@ -176,7 +178,6 @@ src/
 │   │   ├── Pantheon.tsx             # Public leaderboard
 │   │   ├── Profile.tsx              # Personal profile
 │   │   ├── PublicProfile.tsx        # Shareable /u/username page
-│   │   ├── Sandbox.tsx              # Testing environment (founder only)
 │   │   ├── SteamCallback.tsx        # Steam OpenID callback handler
 │   │   └── WelcomeScreen.tsx        # Login screen with beta gate
 │   └── ui/                          # Shared reusable components
@@ -194,7 +195,7 @@ src/
 │   ├── useToast.ts                  # Toast notification state
 │   └── useUserData.ts               # DB user, ranks, statues via react-query
 ├── services/                        # External integrations
-│   ├── adminService.ts              # Admin + sandbox operations via Edge Function
+│   ├── adminService.ts              # Admin operations via Edge Function
 │   ├── challengeService.ts          # Challenge + game queries
 │   ├── judgeService.ts              # Judge panel operations
 │   ├── pantheonService.ts           # Pantheon leaderboard queries
