@@ -210,6 +210,24 @@
   line-height: 1.5;
 }
 
+.admin__item-field {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin-top: 0.5rem;
+  line-height: 1.5;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.admin__item-field-label {
+  color: var(--color-gold-dim);
+  letter-spacing: 0.08em;
+  font-family: var(--font-display);
+  font-size: 10px;
+  text-transform: uppercase;
+  margin-right: 0.3rem;
+}
+
 .admin__delete-btn {
   font-family: var(--font-display);
   font-size: 9px;

@@ -151,13 +151,13 @@ serve(async (req: Request) => {
 
       // ── Challenges ─────────────────────────────────────────────────────────
       case 'add-challenge': {
-        const { title, description, tier, gameId } = payload
-        if (!title || !description || !tier || !gameId) {
-          return json({ success: false, error: 'title, description, tier and gameId required' }, 400)
+        const { title, description, condition, verification, tier, gameId } = payload
+        if (!title || !description || !condition || !verification || !tier || !gameId) {
+          return json({ success: false, error: 'title, description, condition, verification, tier and gameId required' }, 400)
         }
 
         const { error } = await supabase.from('challenges').insert({
-          title, description, tier,
+          title, description, condition, verification, tier,
           game_id: gameId,
           created_by: null,
           attempts: 0,
@@ -169,14 +169,14 @@ serve(async (req: Request) => {
       }
 
       case 'edit-challenge': {
-        const { id, title, description, tier, gameId } = payload
-        if (!id || !title || !description || !tier || !gameId) {
-          return json({ success: false, error: 'id, title, description, tier and gameId required' }, 400)
+        const { id, title, description, condition, verification, tier, gameId } = payload
+        if (!id || !title || !description || !condition || !verification || !tier || !gameId) {
+          return json({ success: false, error: 'id, title, description, condition, verification, tier and gameId required' }, 400)
         }
 
         const { error } = await supabase
           .from('challenges')
-          .update({ title, description, tier, game_id: gameId })
+          .update({ title, description, condition, verification, tier, game_id: gameId })
           .eq('id', id)
 
         if (error) return json({ success: false, error: error.message }, 500)

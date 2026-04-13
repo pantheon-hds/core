@@ -101,7 +101,7 @@ export function removeJudge(token: string, userId: string): Promise<AdminResult>
 
 export function addChallenge(
   token: string,
-  data: { title: string; description: string; tier: string; gameId: number }
+  data: { title: string; description: string; condition: string; verification: string; tier: string; gameId: number }
 ): Promise<AdminResult> {
   return callAdminAction(token, 'add-challenge', data);
 }
@@ -109,7 +109,7 @@ export function addChallenge(
 export function editChallenge(
   token: string,
   id: number,
-  data: { title: string; description: string; tier: string; gameId: number }
+  data: { title: string; description: string; condition: string; verification: string; tier: string; gameId: number }
 ): Promise<AdminResult> {
   return callAdminAction(token, 'edit-challenge', { id, ...data });
 }

@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           active: boolean | null
           attempts: number | null
+          condition: string
           created_at: string | null
           created_by: string | null
           description: string
@@ -26,10 +27,12 @@ export type Database = {
           tier: string
           title: string
           type: string | null
+          verification: string
         }
         Insert: {
           active?: boolean | null
           attempts?: number | null
+          condition?: string
           created_at?: string | null
           created_by?: string | null
           description: string
@@ -38,10 +41,12 @@ export type Database = {
           tier: string
           title: string
           type?: string | null
+          verification?: string
         }
         Update: {
           active?: boolean | null
           attempts?: number | null
+          condition?: string
           created_at?: string | null
           created_by?: string | null
           description?: string
@@ -50,6 +55,7 @@ export type Database = {
           tier?: string
           title?: string
           type?: string | null
+          verification?: string
         }
         Relationships: [
           {
