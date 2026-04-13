@@ -60,17 +60,17 @@ const LandingHome: React.FC = () => {
             <div className="lh__principle">
               <div className="lh__principle-num">01</div>
               <div className="lh__principle-title">Honor</div>
-              <div className="lh__principle-text">Open source. No hidden mechanics. No ads. No pay-to-win. Verify everything yourself.</div>
+              <div className="lh__principle-text">The Pantheon's gates are open to those who embrace the spirit of honest competition, those who face challenges head-on and aren't afraid to step into the arena.</div>
             </div>
             <div className="lh__principle">
               <div className="lh__principle-num">02</div>
               <div className="lh__principle-title">Democracy</div>
-              <div className="lh__principle-text">The community decides who is a Legend. Not algorithms. Not money. Players decide. No one else.</div>
+              <div className="lh__principle-text">You are among equals here. Fight, win, vote, and be part of the Pantheon.</div>
             </div>
             <div className="lh__principle">
               <div className="lh__principle-num">03</div>
               <div className="lh__principle-title">Skill</div>
-              <div className="lh__principle-text">One path to the Pantheon. Earned. Proven. Recognized. Eternal.</div>
+              <div className="lh__principle-text">In the Pantheon, the only currency that matters is your skill.</div>
             </div>
           </div>
         </div>
