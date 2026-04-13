@@ -24,17 +24,13 @@ Here, players earn ranks by completing community-created challenges — verified
 
 ## The Story
 
-I have loved video games my entire life.
+I was madly in love with games. I adored them, I lived for them. I didn't just beat each game; I drank it in, like a thirsty person in the desert.
 
-For years, my way of honoring a game was simple: get 100%. Every achievement. Every collectible. Every secret.
+But after I finished a game, I felt empty inside. The achievements I earned on Steam gave me no satisfaction. I felt like a student who passed an exam and immediately forgot everything.
 
-But after the last achievement popped — I felt something unexpected. Emptiness. The game was over. There was nowhere left to go.
+And then I thought that after every game, I wanted to be left with an aftertaste I'd remember for a long time. That I'd done something truly challenging. And for there to be a place for people like me, who love to push games to the limit.
 
-And I looked around. I had done something genuinely hard. But where could I show it? Nobody cared about a Steam profile screenshot.
-
-So I asked myself: **What if 100% is not the end of a game — but only the beginning?**
-
-Pantheon is my answer.
+I searched for such a place. And I didn't find it. So I decided to build it myself.
 
 *— Voland, Founder*
 
