@@ -8,11 +8,11 @@ const ranks = [
   { tier: 'Bronze', color: '#e8974a', how: 'Automatic · Steam API', desc: '1-74% Steam achievements. Your journey begins.', sub: 'Three tiers: Bronze I · Bronze II · Bronze III' },
   { tier: 'Silver', color: '#d8eaf8', how: 'Automatic · Steam API', desc: '75-99% Steam achievements. Almost there.', sub: 'Three tiers: Silver I · Silver II · Silver III' },
   { tier: 'Gold', color: '#e8a830', how: 'Automatic · Steam API', desc: '100% Steam achievements. The starting point of greatness.' },
-  { tier: 'Platinum', color: '#9ac4e4', how: 'Community · Judge verified', desc: 'Complete community challenges. Verified by real judges.' },
-  { tier: 'Diamond', color: '#b8e4ff', how: 'Community · Judge verified', desc: 'Elite challenges. Only the dedicated reach this far.' },
-  { tier: 'Master', color: '#d4a8f4', how: 'Community · Judge verified', desc: 'Master-level challenges. True mastery of the game.' },
-  { tier: 'Grandmaster', color: '#f4d4a8', how: 'Community · Judge verified', desc: 'Grandmaster-level challenges. The pinnacle of skill.' },
-  { tier: 'Legend', color: '#e45a3a', how: 'Community vote only', desc: 'The highest honor. Granted by community vote alone. Your statue stands forever.' },
+  { tier: 'Platinum', color: '#9ac4e4', how: 'Judge verified', desc: 'Complete community challenges. Verified by real judges.' },
+  { tier: 'Diamond', color: '#b8e4ff', how: 'Judge verified', desc: 'Elite challenges. Only the dedicated reach this far.' },
+  { tier: 'Master', color: '#d4a8f4', how: 'Judge verified', desc: 'Master-level challenges. True mastery of the game.' },
+  { tier: 'Grandmaster', color: '#f4d4a8', how: 'Judge verified', desc: 'Grandmaster-level challenges. The pinnacle of skill.' },
+  { tier: 'Legend', color: '#e45a3a', how: 'Judge verified', desc: 'The highest award. Awarded to those who have proven their place among the best. Legends never die.' },
 ] as { tier: string; color: string; how: string; desc: string; sub?: string }[];
 
 const LandingRanks: React.FC = () => {
