@@ -230,16 +230,6 @@ All tables have Row Level Security (RLS) enabled via Supabase.
 
 ---
 
-## What We Will Never Do
-
-- Sell ranks or statues for money
-- Accept advertising that influences content
-- Sell the platform to a corporation without community consent
-- Remove a Legend statue without a community vote
-- Use AI to verify Legend rank — always humans only
-- Change the three core principles
-
----
 
 ## How to Contribute
 
