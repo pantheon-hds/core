@@ -59,31 +59,12 @@ const LandingGames: React.FC = () => {
               </div>
             </div>
 
-            <div className="lg__game lg__game--soon">
-              <div className="lg__game-header">
-                <div className="lg__game-status lg__game-status--soon">◌ Coming Soon</div>
-              </div>
-              <div className="lg__game-title">Your Suggestion</div>
-              <div className="lg__game-studio">Community decides</div>
-              <div className="lg__game-divider" />
-              <div className="lg__game-desc">
-                What game should we add next? Any game with Steam achievements can be added. Join our Discord and suggest it.
-              </div>
-            </div>
           </div>
 
           <div className="lg__note">
             <div className="lg__note-title">Challenges are in development</div>
             <div className="lg__note-text">
               Gold rank is awarded automatically when you hit 100% achievements. Challenges — the path to Platinum and beyond — are being built together with the first testers. If you want to help shape them, request an invite.
-            </div>
-          </div>
-
-          <div className="lg__note">
-            <div className="lg__note-title">How games are added</div>
-            <div className="lg__note-text">
-              Any game with Steam achievements can be added to Pantheon. Community members suggest games
-              in Discord, the community votes, and we add them. If you have a game in mind, join the beta and suggest it.
             </div>
           </div>
 
