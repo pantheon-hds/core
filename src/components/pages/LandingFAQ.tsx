@@ -9,19 +9,11 @@ const faqData = [
   },
   {
     question: "What data do you collect?",
-    answer: "Only what Steam makes public: your Steam ID, username, avatar, and achievement completion percentages. We do not collect emails during Steam login, payment information, or any private data. The code is fully open source and you can verify everything yourself on GitHub."
+    answer: "Only what Steam makes public: your Steam ID, username, avatar, and achievement completion percentages. We do not collect emails during Steam login, payment information, or any private data."
   },
   {
     question: "Who are the judges and how do I become one?",
     answer: "Judges are experienced players who have earned Platinum rank in a game and applied through their Profile page. They watch submitted videos anonymously and vote independently. 2 of 3 approvals required. To apply, go to your Profile, scroll to the Judge section, and include a short note on why you want to judge."
-  },
-  {
-    question: "Can I buy a rank?",
-    answer: "No. Ranks cannot be purchased under any circumstances. Bronze through Gold are earned automatically via Steam achievements. Platinum and above require completing community challenges verified by real judges. Money has no place in this system and that will never change."
-  },
-  {
-    question: "What happens if a Legend statue is revoked?",
-    answer: "A Legend statue can only be revoked by a community vote, the same process that granted it. The admin cannot unilaterally remove a Legend statue. If a revocation happens, it will be announced publicly with a full explanation. This is part of our commitment to transparency."
   },
   {
     question: "The code is open source. Where can I see it?",
