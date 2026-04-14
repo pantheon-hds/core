@@ -105,15 +105,7 @@ const LandingBeta: React.FC = () => {
             </div>
           )}
 
-          <div className="lb__promises">
-            <div className="lb__promise-title">What we promise</div>
-            <div className="lb__promise-list">
-              <div className="lb__promise">✓ No spam. We email only when you are invited.</div>
-              <div className="lb__promise">✓ Your data is never sold or shared.</div>
-              <div className="lb__promise">✓ You can remove yourself from the list anytime.</div>
-              <div className="lb__promise">✓ No pay-to-win. Invites are based on merit, not money.</div>
-            </div>
-          </div>
+
         </div>
       </div>
     </LandingLayout>
